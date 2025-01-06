@@ -1,19 +1,44 @@
 import React, { useState } from 'react';
 import { Building2, MapPin, Briefcase } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { getToken } from '../../utils/auth';
+import { createCompany } from '../../services/companies';
 
 export function AddCompany() {
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     address: '',
     industry: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle company creation logic here
-    navigate('/companies');
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const token = getToken();
+      if (!token) {
+        setError('Authentication token not found');
+        return;
+      }
+
+      await createCompany(token, {
+        name: formData.name,
+        address: formData.address || undefined,
+        industry: formData.industry || undefined,
+      });
+
+      navigate('/companies');
+    } catch (err) {
+      setError('Failed to create company. Please try again.');
+      console.error('Error creating company:', err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -27,6 +52,12 @@ export function AddCompany() {
     <div className="max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">Add New Company</h1>
       <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6 space-y-6">
+        {error && (
+          <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg">
+            {error}
+          </div>
+        )}
+
         <div className="space-y-4">
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -50,11 +81,10 @@ export function AddCompany() {
             <input
               type="text"
               name="address"
-              required
               value={formData.address}
               onChange={handleChange}
               className="appearance-none relative block w-full px-3 py-2 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-              placeholder="Company address"
+              placeholder="Company address (optional)"
             />
           </div>
 
@@ -65,11 +95,10 @@ export function AddCompany() {
             <input
               type="text"
               name="industry"
-              required
               value={formData.industry}
               onChange={handleChange}
               className="appearance-none relative block w-full px-3 py-2 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-              placeholder="Industry"
+              placeholder="Industry (optional)"
             />
           </div>
         </div>
@@ -79,14 +108,16 @@ export function AddCompany() {
             type="button"
             onClick={() => navigate('/companies')}
             className="px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 hover:bg-gray-50"
+            disabled={isLoading}
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700"
+            className="px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isLoading}
           >
-            Add Company
+            {isLoading ? 'Creating...' : 'Add Company'}
           </button>
         </div>
       </form>

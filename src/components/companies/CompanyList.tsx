@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Building2, Plus } from 'lucide-react';
+import { Building2, Plus, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getToken } from '../../utils/auth';
 import { Company, getCompanies } from '../../services/companies';
@@ -101,7 +101,10 @@ export function CompanyList() {
                   </div>
                 </div>
                 {company.address && (
-                  <p className="mt-4 text-sm text-gray-500">{company.address}</p>
+                  <p className="mt-4 text-sm text-gray-500 flex items-center">
+                    <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
+                    {company.address}
+                  </p>
                 )}
                 <div className="mt-6 flex space-x-4">
                   <Link

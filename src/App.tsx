@@ -6,6 +6,7 @@ import { UnauthenticatedApp } from './components/UnauthenticatedApp';
 import { useAuth } from './hooks/useAuth';
 import { LandingPage } from './components/landing/LandingPage';
 import { CompanyList } from './components/companies/CompanyList';
+import { AddCompany } from './components/companies/AddCompany';
 
 export function App() {
   const { isAuthenticated, logout } = useAuth();
@@ -21,7 +22,7 @@ export function App() {
     if (!isAuthenticated && location.pathname !== '/' && !location.pathname.startsWith('/login') && !location.pathname.startsWith('/signup')) {
       navigate('/login');
     } else if (isAuthenticated && (location.pathname === '/login' || location.pathname === '/signup' || location.pathname === '/')) {
-      navigate('/dashboard');
+      navigate('/companies');
     }
   }, [isAuthenticated, location.pathname, navigate]);
 
@@ -39,9 +40,10 @@ export function App() {
   return (
     <DashboardLayout onLogout={handleLogout}>
       <Routes>
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/" element={<Navigate to="/companies" replace />} />
         <Route path="/companies" element={<CompanyList />} />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/companies/new" element={<AddCompany />} />
+        <Route path="*" element={<Navigate to="/companies" replace />} />
       </Routes>
     </DashboardLayout>
   );
