@@ -9,6 +9,7 @@ import { CompanyList } from './components/companies/CompanyList';
 import { AddCompany } from './components/companies/AddCompany';
 import { CompanyProducts } from './components/companies/CompanyProducts';
 import { AddProduct } from './components/companies/AddProduct';
+import { CompanyLeads } from './components/companies/CompanyLeads';
 import { ToastProvider } from './context/ToastContext';
 
 export function App() {
@@ -46,6 +47,7 @@ export function App() {
             <Route path="/companies/new" element={<AddCompany />} />
             <Route path="/companies/:companyId/products" element={<CompanyProducts />} />
             <Route path="/companies/:companyId/products/new" element={<AddProduct />} />
+            <Route path="/companies/:companyId/leads" element={<CompanyLeads />} />
             <Route path="*" element={<Navigate to="/companies" replace />} />
           </Routes>
         </DashboardLayout>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Phone } from 'lucide-react';
-import { Product, Lead } from '../../types';
+import { Product } from '../../services/products';
+import { Lead } from '../../services/leads';
 import { Dialog } from '../shared/Dialog';
 
 interface CallDialogProps {
@@ -44,9 +45,11 @@ export function CallDialog({ isOpen, onClose, products, lead, onInitiateCall }: 
           <p className="text-sm text-gray-500">
             Initiating call with <span className="font-medium text-gray-900">{lead.name}</span>
           </p>
-          <p className="text-sm text-gray-500 mt-1">
-            {lead.jobTitle} at {lead.company}
-          </p>
+          {lead.job_title && lead.company && (
+            <p className="text-sm text-gray-500 mt-1">
+              {lead.job_title} at {lead.company}
+            </p>
+          )}
         </div>
         <div>
           <p className="text-sm font-medium text-gray-700 mb-2">
@@ -71,8 +74,10 @@ export function CallDialog({ isOpen, onClose, products, lead, onInitiateCall }: 
                   className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
                 />
                 <div className="ml-4">
-                  <h3 className="text-sm font-medium text-gray-900">{product.name}</h3>
-                  <p className="text-sm text-gray-500">{product.description}</p>
+                  <h3 className="text-sm font-medium text-gray-900">{product.product_name}</h3>
+                  {product.description && (
+                    <p className="text-sm text-gray-500 mt-1">{product.description}</p>
+                  )}
                 </div>
               </label>
             ))}
