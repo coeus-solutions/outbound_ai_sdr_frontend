@@ -7,6 +7,7 @@ import { useAuth } from './hooks/useAuth';
 import { LandingPage } from './components/landing/LandingPage';
 import { CompanyList } from './components/companies/CompanyList';
 import { AddCompany } from './components/companies/AddCompany';
+import { ToastProvider } from './context/ToastContext';
 
 export function App() {
   const { isAuthenticated, logout } = useAuth();
@@ -26,25 +27,25 @@ export function App() {
     }
   }, [isAuthenticated, location.pathname, navigate]);
 
-  if (!isAuthenticated) {
-    return (
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<UnauthenticatedApp />} />
-        <Route path="/signup" element={<UnauthenticatedApp />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    );
-  }
-
   return (
-    <DashboardLayout onLogout={handleLogout}>
-      <Routes>
-        <Route path="/" element={<Navigate to="/companies" replace />} />
-        <Route path="/companies" element={<CompanyList />} />
-        <Route path="/companies/new" element={<AddCompany />} />
-        <Route path="*" element={<Navigate to="/companies" replace />} />
-      </Routes>
-    </DashboardLayout>
+    <ToastProvider>
+      {!isAuthenticated ? (
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<UnauthenticatedApp />} />
+          <Route path="/signup" element={<UnauthenticatedApp />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      ) : (
+        <DashboardLayout onLogout={handleLogout}>
+          <Routes>
+            <Route path="/" element={<Navigate to="/companies" replace />} />
+            <Route path="/companies" element={<CompanyList />} />
+            <Route path="/companies/new" element={<AddCompany />} />
+            <Route path="*" element={<Navigate to="/companies" replace />} />
+          </Routes>
+        </DashboardLayout>
+      )}
+    </ToastProvider>
   );
 }

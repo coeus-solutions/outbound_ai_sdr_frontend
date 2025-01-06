@@ -3,9 +3,11 @@ import { Building2, MapPin, Briefcase } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getToken } from '../../utils/auth';
 import { createCompany } from '../../services/companies';
+import { useToast } from '../../context/ToastContext';
 
 export function AddCompany() {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -23,6 +25,7 @@ export function AddCompany() {
       const token = getToken();
       if (!token) {
         setError('Authentication token not found');
+        showToast('Authentication failed. Please try logging in again.', 'error');
         return;
       }
 
@@ -32,10 +35,12 @@ export function AddCompany() {
         industry: formData.industry || undefined,
       });
 
+      showToast('Company created successfully!', 'success');
       navigate('/companies');
     } catch (err) {
-      setError('Failed to create company. Please try again.');
-      console.error('Error creating company:', err);
+      const errorMessage = 'Failed to create company. Please try again.';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setIsLoading(false);
     }
