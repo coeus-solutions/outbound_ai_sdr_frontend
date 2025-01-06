@@ -5,6 +5,7 @@ import { Dashboard } from './components/dashboard/Dashboard';
 import { UnauthenticatedApp } from './components/UnauthenticatedApp';
 import { useAuth } from './hooks/useAuth';
 import { LandingPage } from './components/landing/LandingPage';
+import { CompanyList } from './components/companies/CompanyList';
 
 export function App() {
   const { isAuthenticated, logout } = useAuth();
@@ -39,7 +40,7 @@ export function App() {
     <DashboardLayout onLogout={handleLogout}>
       <Routes>
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/companies" element={<div>Companies</div>} />
+        <Route path="/companies" element={<CompanyList />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </DashboardLayout>
