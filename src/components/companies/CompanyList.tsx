@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Building2, Plus } from 'lucide-react';
+import { Building2, Plus, MapPin, Users, Package, Phone } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getToken } from '../../utils/auth';
 import { Company, getCompanies } from '../../services/companies';
@@ -55,15 +55,20 @@ export function CompanyList() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold text-gray-900">Companies</h1>
-        <Link
-          to="/companies/new"
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Add Company
-        </Link>
+      <div>
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-semibold text-gray-900">Companies</h1>
+          <Link
+            to="/companies/new"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add Company
+          </Link>
+        </div>
+        <p className="mt-2 text-sm text-gray-600">
+          Manage all your companies in one place. View products, track leads, and monitor sales calls for each company.
+        </p>
       </div>
 
       {companies.length === 0 ? (
@@ -94,27 +99,43 @@ export function CompanyList() {
                     <Building2 className="h-8 w-8 text-gray-400" />
                   </div>
                   <div className="ml-4">
-                    <h3 className="text-lg font-medium text-gray-900">{company.name}</h3>
+                    <div className="flex items-center space-x-2">
+                      <h3 className="text-lg font-medium text-gray-900">
+                        {company.name}
+                      </h3>
+                      {company.address && (
+                        <span className="flex items-center text-sm text-gray-500">
+                          <MapPin className="h-4 w-4 mr-1" />
+                          {company.address}
+                        </span>
+                      )}
+                    </div>
                     {company.industry && (
                       <p className="text-sm text-gray-500">{company.industry}</p>
                     )}
                   </div>
                 </div>
-                {company.address && (
-                  <p className="mt-4 text-sm text-gray-500">{company.address}</p>
-                )}
-                <div className="mt-6 flex space-x-4">
-                  <Link
-                    to={`/companies/${company.id}/products`}
-                    className="text-sm text-indigo-600 hover:text-indigo-500"
-                  >
-                    View Products
-                  </Link>
+                <div className="mt-4 flex flex-col space-y-2">
                   <Link
                     to={`/companies/${company.id}/leads`}
-                    className="text-sm text-indigo-600 hover:text-indigo-500"
+                    className="text-sm text-gray-600 hover:text-indigo-600 flex items-center"
                   >
-                    View Leads
+                    <Users className="h-4 w-4 mr-1" />
+                    View leads
+                  </Link>
+                  <Link
+                    to={`/companies/${company.id}/products`}
+                    className="text-sm text-gray-600 hover:text-indigo-600 flex items-center"
+                  >
+                    <Package className="h-4 w-4 mr-1" />
+                    View products
+                  </Link>
+                  <Link
+                    to={`/companies/${company.id}/calls`}
+                    className="text-sm text-gray-600 hover:text-indigo-600 flex items-center"
+                  >
+                    <Phone className="h-4 w-4 mr-1" />
+                    View call logs
                   </Link>
                 </div>
               </div>

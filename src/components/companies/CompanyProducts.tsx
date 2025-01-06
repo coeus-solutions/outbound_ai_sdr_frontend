@@ -1,15 +1,53 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Package, Plus } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
-import { Product } from '../../types';
 import { EmptyState } from './EmptyState';
 import { PageHeader } from '../shared/PageHeader';
-import { mockProducts, mockCompanies } from '../../data/mockData';
+import { getToken } from '../../utils/auth';
+import { Product, getProducts } from '../../services/products';
+import { Company, getCompanyById } from '../../services/companies';
+import { useToast } from '../../context/ToastContext';
 
 export function CompanyProducts() {
   const { companyId } = useParams();
-  const products = mockProducts.filter(p => p.companyId === companyId);
-  const company = mockCompanies.find(c => c.id === companyId);
+  const { showToast } = useToast();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [company, setCompany] = useState<Company | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchData() {
+      if (!companyId) return;
+
+      try {
+        const token = getToken();
+        if (!token) {
+          setError('Authentication token not found');
+          showToast('Authentication failed. Please try logging in again.', 'error');
+          return;
+        }
+
+        // Fetch both company details and products in parallel
+        const [companyData, productsData] = await Promise.all([
+          getCompanyById(token, companyId),
+          getProducts(token, companyId)
+        ]);
+
+        setCompany(companyData);
+        setProducts(productsData);
+        setError(null);
+      } catch (err) {
+        const errorMessage = 'Failed to fetch data';
+        setError(errorMessage);
+        showToast(errorMessage, 'error');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchData();
+  }, [companyId, showToast]);
 
   const addProductButton = (
     <Link
@@ -20,6 +58,28 @@ export function CompanyProducts() {
       Add Product
     </Link>
   );
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <div className="text-red-600 mb-4">{error}</div>
+        <button
+          onClick={() => window.location.reload()}
+          className="text-indigo-600 hover:text-indigo-500"
+        >
+          Try again
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -45,8 +105,10 @@ export function CompanyProducts() {
               <div className="flex items-start space-x-3">
                 <Package className="h-6 w-6 text-indigo-600 flex-shrink-0" />
                 <div>
-                  <h3 className="text-lg font-semibold">{product.name}</h3>
-                  <p className="text-gray-600 text-sm mt-1">{product.description}</p>
+                  <h3 className="text-lg font-semibold">{product.product_name}</h3>
+                  {product.description && (
+                    <p className="text-gray-600 text-sm mt-1">{product.description}</p>
+                  )}
                 </div>
               </div>
             </div>

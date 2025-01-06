@@ -29,6 +29,21 @@ export async function getCompanies(token: string): Promise<Company[]> {
   return response.json();
 }
 
+export async function getCompanyById(token: string, companyId: string): Promise<Company> {
+  const response = await fetch(`${apiEndpoints.companies.list}/${companyId}`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch company details');
+  }
+
+  return response.json();
+}
+
 export async function createCompany(token: string, company: CompanyCreate): Promise<Company> {
   const response = await fetch(apiEndpoints.companies.create, {
     method: 'POST',
