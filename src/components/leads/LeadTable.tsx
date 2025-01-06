@@ -53,7 +53,12 @@ export function LeadTable({ leads }: LeadTableProps) {
           return;
         }
 
-        await startCall(token, selectedLead.id, productId);
+        if (!companyId) {
+          showToast('Company ID is missing', 'error');
+          return;
+        }
+
+        await startCall(token, companyId, selectedLead.id, productId);
         showToast('Call initiated successfully', 'success');
       } catch (err) {
         console.error('Error initiating call:', err);
