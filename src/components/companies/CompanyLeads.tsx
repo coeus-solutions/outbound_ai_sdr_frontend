@@ -9,6 +9,7 @@ import { getToken } from '../../utils/auth';
 import { Lead, getLeads, uploadLeads } from '../../services/leads';
 import { Company, getCompanyById } from '../../services/companies';
 import { useToast } from '../../context/ToastContext';
+import { CsvFormatDialog } from './CsvFormatDialog';
 
 export function CompanyLeads() {
   const { companyId } = useParams();
@@ -18,6 +19,7 @@ export function CompanyLeads() {
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isFormatDialogOpen, setIsFormatDialogOpen] = useState(false);
 
   const fetchData = async () => {
     if (!companyId) return;
@@ -121,11 +123,17 @@ export function CompanyLeads() {
             description="Upload a CSV file to import your leads."
             actionLink="#"
             actionText="Learn how to format your CSV"
+            onAction={() => setIsFormatDialogOpen(true)}
           />
         </div>
       ) : (
         <LeadTable leads={leads} />
       )}
+
+      <CsvFormatDialog
+        isOpen={isFormatDialogOpen}
+        onClose={() => setIsFormatDialogOpen(false)}
+      />
     </div>
   );
 } 
