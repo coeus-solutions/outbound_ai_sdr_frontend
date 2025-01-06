@@ -6,7 +6,7 @@ import { LeadTable } from '../leads/LeadTable';
 import { FileUpload } from '../shared/FileUpload';
 import { PageHeader } from '../shared/PageHeader';
 import { getToken } from '../../utils/auth';
-import { Lead, getLeads } from '../../services/leads';
+import { Lead, getLeads, uploadLeads } from '../../services/leads';
 import { Company, getCompanyById } from '../../services/companies';
 import { useToast } from '../../context/ToastContext';
 
@@ -16,52 +16,71 @@ export function CompanyLeads() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [company, setCompany] = useState<Company | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function fetchData() {
-      if (!companyId) return;
+  const fetchData = async () => {
+    if (!companyId) return;
 
-      try {
-        const token = getToken();
-        if (!token) {
-          setError('Authentication token not found');
-          showToast('Authentication failed. Please try logging in again.', 'error');
-          return;
-        }
-
-        // Fetch both company details and leads in parallel
-        const [companyData, leadsData] = await Promise.all([
-          getCompanyById(token, companyId),
-          getLeads(token, companyId)
-        ]);
-
-        setCompany(companyData);
-        setLeads(leadsData);
-        setError(null);
-      } catch (err) {
-        const errorMessage = 'Failed to fetch data';
-        setError(errorMessage);
-        showToast(errorMessage, 'error');
-      } finally {
-        setIsLoading(false);
+    try {
+      const token = getToken();
+      if (!token) {
+        setError('Authentication token not found');
+        showToast('Authentication failed. Please try logging in again.', 'error');
+        return;
       }
-    }
 
+      // Fetch both company details and leads in parallel
+      const [companyData, leadsData] = await Promise.all([
+        getCompanyById(token, companyId),
+        getLeads(token, companyId)
+      ]);
+
+      setCompany(companyData);
+      setLeads(leadsData);
+      setError(null);
+    } catch (err) {
+      const errorMessage = 'Failed to fetch data';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchData();
   }, [companyId, showToast]);
 
   const handleFileUpload = async (file: File) => {
-    // Handle CSV file upload and parsing
-    console.log('Uploading file:', file);
+    if (!companyId) return;
+
+    setIsUploading(true);
+    try {
+      const token = getToken();
+      if (!token) {
+        showToast('Authentication failed. Please try logging in again.', 'error');
+        return;
+      }
+
+      await uploadLeads(token, companyId, file);
+      showToast('Leads uploaded successfully!', 'success');
+      // Refresh the leads list
+      fetchData();
+    } catch (err) {
+      showToast('Failed to upload leads. Please make sure the CSV file is properly formatted.', 'error');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const uploadButton = (
     <FileUpload 
       accept=".csv"
       onUpload={handleFileUpload}
-      buttonText="Upload CSV"
+      buttonText={isUploading ? 'Uploading...' : 'Upload CSV'}
       icon={<Upload className="h-5 w-5 mr-2" />}
+      disabled={isUploading}
     />
   );
 

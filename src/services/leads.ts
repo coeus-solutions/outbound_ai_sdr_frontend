@@ -27,4 +27,21 @@ export async function getLeads(token: string, companyId: string): Promise<Lead[]
   }
 
   return response.json();
+}
+
+export async function uploadLeads(token: string, companyId: string, file: File): Promise<void> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await fetch(apiEndpoints.companies.leads.upload(companyId), {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to upload leads');
+  }
 } 
