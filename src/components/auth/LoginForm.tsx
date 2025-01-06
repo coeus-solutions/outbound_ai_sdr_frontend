@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Mail, Lock } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { apiEndpoints } from '../../config';
+import { setToken } from '../../utils/auth';
 
 interface LoginFormProps {
   onLogin: (token: string) => void;
@@ -32,15 +33,15 @@ export function LoginForm({ onLogin }: LoginFormProps) {
         body: formData,
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Login failed');
+        throw new Error(data.detail || 'Login failed');
       }
 
-      const data = await response.json();
-      localStorage.setItem('token', data.access_token);
+      setToken(data.access_token);
       onLogin(data.access_token);
-      navigate('/dashboard');
+      navigate('/');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred during login');
     } finally {

@@ -1,18 +1,29 @@
 import { useState, useEffect } from 'react';
-import { auth } from '../utils/auth';
+import { isAuthenticated as checkAuth, logout as authLogout, setToken, getToken } from '../utils/auth';
 
 export function useAuth() {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => auth.isAuthenticated());
+  const [isAuthenticated, setIsAuthenticated] = useState(() => checkAuth());
 
-  const login = () => {
-    auth.login();
+  const login = (token: string) => {
+    setToken(token);
     setIsAuthenticated(true);
   };
 
   const logout = () => {
-    auth.logout();
+    authLogout();
     setIsAuthenticated(false);
   };
+
+  useEffect(() => {
+    const checkAuthStatus = () => {
+      const authState = checkAuth();
+      setIsAuthenticated(authState);
+    };
+
+    checkAuthStatus();
+    const interval = setInterval(checkAuthStatus, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   return {
     isAuthenticated,

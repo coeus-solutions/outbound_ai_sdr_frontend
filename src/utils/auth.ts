@@ -1,30 +1,19 @@
-import { User } from '../types';
+import { config } from '../config';
 
-class Auth {
-  private static instance: Auth;
+export const getToken = () => localStorage.getItem('token');
+
+export const setToken = (token: string) => localStorage.setItem('token', token);
+
+export const removeToken = () => localStorage.removeItem('token');
+
+export const isAuthenticated = () => !!getToken();
+
+export const logout = () => {
+  removeToken();
   
-  private constructor() {}
-  
-  static getInstance(): Auth {
-    if (!Auth.instance) {
-      Auth.instance = new Auth();
-    }
-    return Auth.instance;
+  if (config.isProduction) {
+    window.location.href = '/login';
   }
-
-  login = () => {
-    localStorage.setItem('isAuthenticated', 'true');
-    window.location.reload(); // Force reload to update auth state
-  };
   
-  logout = () => {
-    localStorage.removeItem('isAuthenticated');
-    window.location.reload(); // Force reload to update auth state
-  };
-  
-  isAuthenticated = (): boolean => {
-    return localStorage.getItem('isAuthenticated') === 'true';
-  };
-}
-
-export const auth = Auth.getInstance();
+  return '/login';
+};

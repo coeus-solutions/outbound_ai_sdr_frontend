@@ -1,25 +1,21 @@
 import React, { useState } from 'react';
 import { Sidebar } from './Sidebar';
-import { auth } from '../../utils/auth';
 import { cn } from '../../utils/cn';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
+  onLogout: () => void;
 }
 
-export function DashboardLayout({ children }: DashboardLayoutProps) {
+export function DashboardLayout({ children, onLogout }: DashboardLayoutProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
-
-  const handleLogout = () => {
-    auth.logout();
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Sidebar 
         isCollapsed={isCollapsed}
         onToggle={() => setIsCollapsed(!isCollapsed)}
-        onLogout={handleLogout}
+        onLogout={onLogout}
       />
       
       <main className={cn(
