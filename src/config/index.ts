@@ -32,9 +32,12 @@ export const apiEndpoints = {
       list: (companyId: string) => `${config.apiUrl}/api/companies/${companyId}/leads`,
       upload: (companyId: string) => `${config.apiUrl}/api/companies/${companyId}/leads/upload`,
     },
+    calls: {
+      start: (companyId: string) => `${config.apiUrl}/api/companies/${companyId}/calls/start`,
+      list: (companyId: string) => `${config.apiUrl}/api/companies/${companyId}/calls`,
+    },
   },
   calls: {
-    start: `${config.apiUrl}/api/calls/start`,
     details: (callId: string) => `${config.apiUrl}/api/calls/${callId}`,
     webhook: `${config.apiUrl}/api/calls/webhook`,
   },

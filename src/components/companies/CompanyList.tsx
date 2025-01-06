@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Building2, Plus, MapPin } from 'lucide-react';
+import { Building2, Plus, MapPin, Users, Package, Phone } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getToken } from '../../utils/auth';
 import { Company, getCompanies } from '../../services/companies';
@@ -99,30 +99,45 @@ export function CompanyList() {
                     <Building2 className="h-8 w-8 text-gray-400" />
                   </div>
                   <div className="ml-4">
-                    <h3 className="text-lg font-medium text-gray-900">{company.name}</h3>
+                    <div className="flex items-center space-x-2">
+                      <h3 className="text-lg font-medium text-gray-900">
+                        <Link to={`/companies/${company.id}`} className="hover:text-indigo-600">
+                          {company.name}
+                        </Link>
+                      </h3>
+                      {company.address && (
+                        <span className="flex items-center text-sm text-gray-500">
+                          <MapPin className="h-4 w-4 mr-1" />
+                          {company.address}
+                        </span>
+                      )}
+                    </div>
                     {company.industry && (
                       <p className="text-sm text-gray-500">{company.industry}</p>
                     )}
                   </div>
                 </div>
-                {company.address && (
-                  <p className="mt-4 text-sm text-gray-500 flex items-center">
-                    <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
-                    {company.address}
-                  </p>
-                )}
-                <div className="mt-6 flex space-x-4">
-                  <Link
-                    to={`/companies/${company.id}/products`}
-                    className="text-sm text-indigo-600 hover:text-indigo-500"
-                  >
-                    View Products
-                  </Link>
+                <div className="mt-4 flex flex-col space-y-2">
                   <Link
                     to={`/companies/${company.id}/leads`}
-                    className="text-sm text-indigo-600 hover:text-indigo-500"
+                    className="text-sm text-gray-600 hover:text-indigo-600 flex items-center"
                   >
-                    View Leads
+                    <Users className="h-4 w-4 mr-1" />
+                    View leads
+                  </Link>
+                  <Link
+                    to={`/companies/${company.id}/products`}
+                    className="text-sm text-gray-600 hover:text-indigo-600 flex items-center"
+                  >
+                    <Package className="h-4 w-4 mr-1" />
+                    View products
+                  </Link>
+                  <Link
+                    to={`/companies/${company.id}/calls`}
+                    className="text-sm text-gray-600 hover:text-indigo-600 flex items-center"
+                  >
+                    <Phone className="h-4 w-4 mr-1" />
+                    View call logs
                   </Link>
                 </div>
               </div>

@@ -23,8 +23,8 @@ export function CallSummaryDialog({ isOpen, onClose, callLog }: CallSummaryDialo
         <div className="border-b pb-4">
           <div className="flex justify-between items-start">
             <div>
-              <h3 className="text-lg font-medium text-gray-900">{callLog.leadName}</h3>
-              <p className="text-sm text-gray-500">{callLog.productName}</p>
+              <h3 className="text-lg font-medium text-gray-900">{callLog.lead_name}</h3>
+              <p className="text-sm text-gray-500">{callLog.product_name}</p>
             </div>
             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
               callLog.sentiment === 'positive' 
@@ -44,7 +44,7 @@ export function CallSummaryDialog({ isOpen, onClose, callLog }: CallSummaryDialo
               <Clock className="h-4 w-4 mr-1" />
               {formatDuration(callLog.duration)}
             </div>
-            <div>{formatDateTime(callLog.timestamp)}</div>
+            <div>{formatDateTime(callLog.created_at)}</div>
           </div>
         </div>
         

@@ -1,69 +1,99 @@
 import { useState, useEffect } from 'react';
 import { CallLog } from '../types';
-
-// Mock data - replace with actual API calls
-const mockCallLogs: CallLog[] = [
-  {
-    id: '1',
-    companyId: '1',
-    leadId: '1',
-    leadName: 'John Smith',
-    productId: '1',
-    productName: 'Enterprise CRM',
-    timestamp: new Date().toISOString(),
-    duration: 645, // 10:45
-    sentiment: 'positive',
-    summary: 'Lead showed strong interest in the product features. Discussed pricing and implementation timeline. Follow-up scheduled for next week.'
-  },
-  {
-    id: '2',
-    companyId: '1',
-    leadId: '2',
-    leadName: 'Sarah Johnson',
-    productId: '2',
-    productName: 'Analytics Suite',
-    timestamp: new Date(Date.now() - 86400000).toISOString(), // Yesterday
-    duration: 425, // 7:05
-    sentiment: 'neutral',
-    summary: 'Technical discussion about integration capabilities. Lead requested additional documentation about API endpoints.'
-  }
-];
+import { getCompanyCalls } from '../services/calls';
+import { getToken } from '../utils/auth';
 
 interface CallLogFilters {
-  search: string;
   dateRange: 'all' | 'today' | 'week' | 'month';
-  sentiment?: 'positive' | 'negative' | 'neutral';
+  sentiment?: 'positive' | 'neutral' | 'negative';
 }
 
-export function useCallLogs() {
+export function useCallLogs(companyId: string) {
   const [callLogs, setCallLogs] = useState<CallLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<CallLogFilters>({
-    search: '',
     dateRange: 'all'
   });
 
   useEffect(() => {
-    // Simulate API call
     const loadCallLogs = async () => {
+      if (!companyId) {
+        console.error('No companyId provided');
+        return;
+      }
+
       setIsLoading(true);
       try {
-        // Replace with actual API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        setCallLogs(mockCallLogs);
+        const token = getToken();
+        if (!token) {
+          const errorMessage = 'Authentication token not found';
+          console.error(errorMessage);
+          setError(errorMessage);
+          return;
+        }
+
+        console.log('Fetching call logs for company:', companyId);
+        const data = await getCompanyCalls(token, companyId);
+        console.log('Call logs response:', data);
+
+        if (!Array.isArray(data)) {
+          const errorMessage = 'Invalid response format from server';
+          console.error(errorMessage, data);
+          setError(errorMessage);
+          return;
+        }
+
+        setCallLogs(data);
+        setError(null);
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Failed to load call logs';
         console.error('Error loading call logs:', error);
+        setError(errorMessage);
       } finally {
         setIsLoading(false);
       }
     };
 
     loadCallLogs();
-  }, []);
+  }, [companyId]);
+
+  // Filter the call logs based on the current filters
+  const filteredCallLogs = callLogs.filter(log => {
+    // Date range filter
+    if (filters.dateRange !== 'all') {
+      const logDate = new Date(log.created_at);
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const thisWeek = new Date(today);
+      thisWeek.setDate(today.getDate() - today.getDay());
+      const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+      switch (filters.dateRange) {
+        case 'today':
+          if (logDate < today) return false;
+          break;
+        case 'week':
+          if (logDate < thisWeek) return false;
+          break;
+        case 'month':
+          if (logDate < thisMonth) return false;
+          break;
+      }
+    }
+
+    // Sentiment filter
+    if (filters.sentiment && log.sentiment !== filters.sentiment) {
+      return false;
+    }
+
+    return true;
+  });
 
   return {
-    callLogs,
+    callLogs: filteredCallLogs,
     isLoading,
+    error,
     filters,
     setFilters
   };

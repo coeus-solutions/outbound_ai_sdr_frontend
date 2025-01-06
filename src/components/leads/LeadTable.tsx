@@ -6,6 +6,7 @@ import { CallDialog } from './CallDialog';
 import { useParams } from 'react-router-dom';
 import { getToken } from '../../utils/auth';
 import { useToast } from '../../context/ToastContext';
+import { startCall } from '../../services/calls';
 
 interface LeadTableProps {
   leads: Lead[];
@@ -43,10 +44,21 @@ export function LeadTable({ leads }: LeadTableProps) {
     fetchProducts();
   }, [companyId, showToast]);
 
-  const handleInitiateCall = (productId: string) => {
+  const handleInitiateCall = async (productId: string) => {
     if (selectedLead) {
-      console.log(`Initiating call with ${selectedLead.name} for product ${productId}`);
-      // Add your call initiation logic here
+      try {
+        const token = getToken();
+        if (!token) {
+          showToast('Authentication failed. Please try logging in again.', 'error');
+          return;
+        }
+
+        await startCall(token, selectedLead.id, productId);
+        showToast('Call initiated successfully', 'success');
+      } catch (err) {
+        console.error('Error initiating call:', err);
+        showToast('Failed to initiate call', 'error');
+      }
       setIsCallDialogOpen(false);
       setSelectedLead(null);
     }
