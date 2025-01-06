@@ -101,9 +101,7 @@ export function CompanyList() {
                   <div className="ml-4">
                     <div className="flex items-center space-x-2">
                       <h3 className="text-lg font-medium text-gray-900">
-                        <Link to={`/companies/${company.id}`} className="hover:text-indigo-600">
-                          {company.name}
-                        </Link>
+                        {company.name}
                       </h3>
                       {company.address && (
                         <span className="flex items-center text-sm text-gray-500">
