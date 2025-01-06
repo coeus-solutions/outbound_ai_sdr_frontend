@@ -1,41 +1,27 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { AuthLayout } from './auth/AuthLayout';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { LoginForm } from './auth/LoginForm';
 import { SignUpForm } from './auth/SignUpForm';
-import { ForgotPasswordForm } from './auth/ForgotPasswordForm';
 import { useAuth } from '../hooks/useAuth';
 
 export function UnauthenticatedApp() {
   const { login } = useAuth();
+  const location = useLocation();
+  const isSignup = location.pathname === '/signup';
 
   return (
-    <Routes>
-      <Route 
-        path="/login" 
-        element={
-          <AuthLayout title="Sign in to your account">
-            <LoginForm onLogin={login} />
-          </AuthLayout>
-        } 
-      />
-      <Route 
-        path="/signup" 
-        element={
-          <AuthLayout title="Create your account">
-            <SignUpForm onSignup={login} />
-          </AuthLayout>
-        } 
-      />
-      <Route 
-        path="/forgot-password" 
-        element={
-          <AuthLayout title="Reset your password">
-            <ForgotPasswordForm />
-          </AuthLayout>
-        } 
-      />
-      <Route path="*" element={<Navigate to="/login" replace />} />
-    </Routes>
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          {isSignup ? 'Create your account' : 'Sign in to your account'}
+        </h2>
+      </div>
+
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          {isSignup ? <SignUpForm onSignup={login} /> : <LoginForm onLogin={login} />}
+        </div>
+      </div>
+    </div>
   );
 }

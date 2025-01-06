@@ -1,21 +1,48 @@
-import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { AuthenticatedApp } from './components/AuthenticatedApp';
+import React, { useEffect } from 'react';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { DashboardLayout } from './components/dashboard/DashboardLayout';
+import { Dashboard } from './components/dashboard/Dashboard';
 import { UnauthenticatedApp } from './components/UnauthenticatedApp';
-import { LandingPage } from './components/landing/LandingPage';
 import { useAuth } from './hooks/useAuth';
+import { LandingPage } from './components/landing/LandingPage';
+import { CompanyList } from './components/companies/CompanyList';
 
-export default function App() {
-  const { isAuthenticated } = useAuth();
+export function App() {
+  const { isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  if (isAuthenticated) {
-    return <AuthenticatedApp />;
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
+  useEffect(() => {
+    if (!isAuthenticated && location.pathname !== '/' && !location.pathname.startsWith('/login') && !location.pathname.startsWith('/signup')) {
+      navigate('/login');
+    } else if (isAuthenticated && (location.pathname === '/login' || location.pathname === '/signup' || location.pathname === '/')) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, location.pathname, navigate]);
+
+  if (!isAuthenticated) {
+    return (
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<UnauthenticatedApp />} />
+        <Route path="/signup" element={<UnauthenticatedApp />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    );
   }
 
   return (
-    <Routes>
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/*" element={<UnauthenticatedApp />} />
-    </Routes>
+    <DashboardLayout onLogout={handleLogout}>
+      <Routes>
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/companies" element={<CompanyList />} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      </Routes>
+    </DashboardLayout>
   );
 }
