@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Mail, Package } from 'lucide-react';
-import { Editor } from '@tinymce/tinymce-react';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 import { getToken } from '../../utils/auth';
 import { useToast } from '../../context/ToastContext';
 import { getCompanyById, Company } from '../../services/companies';
@@ -96,12 +97,26 @@ export function AddEmailCampaign() {
     }));
   };
 
-  const handleEditorChange = (content: string) => {
-    setFormData(prev => ({
-      ...prev,
-      email_body: content
-    }));
+  const modules = {
+    toolbar: [
+      [{ 'header': [1, 2, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'color': [] }, { 'background': [] }],
+      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+      [{ 'align': [] }],
+      ['link'],
+      ['clean']
+    ],
   };
+
+  const formats = [
+    'header',
+    'bold', 'italic', 'underline', 'strike',
+    'color', 'background',
+    'list', 'bullet',
+    'align',
+    'link'
+  ];
 
   if (isLoading) {
     return (
@@ -217,25 +232,15 @@ export function AddEmailCampaign() {
               Email Body
             </label>
             <div className="mt-1">
-              <Editor
-                id="email_body"
-                apiKey={import.meta.env.VITE_TINYMCE_API_KEY}
-                init={{
-                  height: 300,
-                  menubar: false,
-                  plugins: [
-                    'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
-                    'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-                    'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
-                  ],
-                  toolbar: 'undo redo | blocks | ' +
-                    'bold italic forecolor | alignleft aligncenter ' +
-                    'alignright alignjustify | bullist numlist outdent indent | ' +
-                    'removeformat | help',
-                }}
+              <ReactQuill
+                theme="snow"
                 value={formData.email_body}
-                onEditorChange={handleEditorChange}
+                onChange={(content) => setFormData(prev => ({ ...prev, email_body: content }))}
+                modules={modules}
+                formats={formats}
+                className="h-64 bg-white"
               />
+              <div className="h-16" /> {/* Spacer for Quill toolbar */}
             </div>
           </div>
         </div>
