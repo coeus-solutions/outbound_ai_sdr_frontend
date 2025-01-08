@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Mail, Package } from 'lucide-react';
+import { Editor } from '@tinymce/tinymce-react';
 import { getToken } from '../../utils/auth';
 import { useToast } from '../../context/ToastContext';
 import { getCompanyById, Company } from '../../services/companies';
@@ -92,6 +93,13 @@ export function AddEmailCampaign() {
     setFormData(prev => ({
       ...prev,
       [e.target.name]: e.target.value
+    }));
+  };
+
+  const handleEditorChange = (content: string) => {
+    setFormData(prev => ({
+      ...prev,
+      email_body: content
     }));
   };
 
@@ -209,15 +217,24 @@ export function AddEmailCampaign() {
               Email Body
             </label>
             <div className="mt-1">
-              <textarea
-                name="email_body"
+              <Editor
                 id="email_body"
-                required
+                apiKey={import.meta.env.VITE_TINYMCE_API_KEY}
+                init={{
+                  height: 300,
+                  menubar: false,
+                  plugins: [
+                    'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                    'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                    'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+                  ],
+                  toolbar: 'undo redo | blocks | ' +
+                    'bold italic forecolor | alignleft aligncenter ' +
+                    'alignright alignjustify | bullist numlist outdent indent | ' +
+                    'removeformat | help',
+                }}
                 value={formData.email_body}
-                onChange={handleChange}
-                rows={6}
-                className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                placeholder="Enter email body"
+                onEditorChange={handleEditorChange}
               />
             </div>
           </div>
