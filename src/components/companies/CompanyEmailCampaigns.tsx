@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Mail, Plus, Eye } from 'lucide-react';
+import { Mail, Plus, Eye, Play } from 'lucide-react';
 import { PageHeader } from '../shared/PageHeader';
 import { getCompanyById, Company } from '../../services/companies';
-import { getCompanyEmailCampaigns, EmailCampaign } from '../../services/emailCampaigns';
+import { getCompanyEmailCampaigns, EmailCampaign, runEmailCampaign } from '../../services/emailCampaigns';
 import { getToken } from '../../utils/auth';
 import { useToast } from '../../context/ToastContext';
 import { formatDateTime } from '../../utils/formatters';
@@ -17,6 +17,7 @@ export function CompanyEmailCampaigns() {
   const [error, setError] = useState<string | null>(null);
   const [selectedCampaign, setSelectedCampaign] = useState<EmailCampaign | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isRunning, setIsRunning] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -58,6 +59,27 @@ export function CompanyEmailCampaigns() {
   const closeModal = () => {
     setSelectedCampaign(null);
     setIsModalOpen(false);
+  };
+
+  const handleRunCampaign = async (campaign: EmailCampaign) => {
+    setIsRunning(campaign.id);
+    try {
+      const token = getToken();
+      if (!token) {
+        setError('Authentication token not found');
+        showToast('Authentication failed. Please try logging in again.', 'error');
+        return;
+      }
+
+      const result = await runEmailCampaign(token, campaign.id);
+      showToast(`Campaign "${campaign.name}" started successfully!`, 'success');
+    } catch (err) {
+      const errorMessage = 'Failed to run campaign';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
+    } finally {
+      setIsRunning(null);
+    }
   };
 
   if (isLoading) {
@@ -145,13 +167,23 @@ export function CompanyEmailCampaigns() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <button
-                        onClick={() => handleViewEmail(campaign)}
-                        className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                      >
-                        <Eye className="h-4 w-4 mr-1" />
-                        View Email
-                      </button>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => handleViewEmail(campaign)}
+                          className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          View Email
+                        </button>
+                        <button
+                          onClick={() => handleRunCampaign(campaign)}
+                          disabled={isRunning === campaign.id}
+                          className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <Play className="h-4 w-4 mr-1" />
+                          {isRunning === campaign.id ? 'Running...' : 'Run Campaign'}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

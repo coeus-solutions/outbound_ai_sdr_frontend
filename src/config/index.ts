@@ -44,4 +44,7 @@ export const apiEndpoints = {
     details: (callId: string) => `${config.apiUrl}/api/calls/${callId}`,
     webhook: `${config.apiUrl}/api/calls/webhook`,
   },
+  emailCampaigns: {
+    run: (campaignId: string) => `${config.apiUrl}/api/email-campaigns/${campaignId}/run`,
+  },
 } as const; 

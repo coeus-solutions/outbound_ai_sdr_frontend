@@ -23,6 +23,12 @@ export interface EmailCampaignCreate {
   email_body: string;
 }
 
+export interface RunCampaignResponse {
+  message: string;
+  campaign_id: string;
+  status: string;
+}
+
 export async function getCompanyEmailCampaigns(token: string, companyId: string): Promise<EmailCampaign[]> {
   const response = await fetch(apiEndpoints.companies.emailCampaigns.list(companyId), {
     headers: {
@@ -51,6 +57,22 @@ export async function createEmailCampaign(token: string, companyId: string, camp
 
   if (!response.ok) {
     throw new Error('Failed to create email campaign');
+  }
+
+  return response.json();
+}
+
+export async function runEmailCampaign(token: string, campaignId: string): Promise<RunCampaignResponse> {
+  const response = await fetch(apiEndpoints.emailCampaigns.run(campaignId), {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to run email campaign');
   }
 
   return response.json();
