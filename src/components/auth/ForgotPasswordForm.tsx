@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Mail } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { AuthLayout } from './AuthLayout';
 
 export function ForgotPasswordForm() {
   const [email, setEmail] = useState('');
@@ -11,27 +12,23 @@ export function ForgotPasswordForm() {
     setSubmitted(true);
   };
 
-  if (submitted) {
-    return (
-      <div className="mt-8 text-center">
-        <div className="rounded-md bg-blue-50 p-4 mb-4">
-          <p className="text-sm text-blue-700">
-            If an account exists for {email}, you will receive a password reset link in your email.
-          </p>
-        </div>
-        <Link
-          to="/login"
-          className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
-        >
-          Return to sign in
-        </Link>
+  const content = submitted ? (
+    <div className="text-center">
+      <div className="rounded-md bg-blue-50 p-4 mb-4">
+        <p className="text-sm text-blue-700">
+          If an account exists for {email}, you will receive a password reset link in your email.
+        </p>
       </div>
-    );
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-      <div>
+      <Link
+        to="/login"
+        className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+      >
+        Return to sign in
+      </Link>
+    </div>
+  ) : (
+    <form onSubmit={handleSubmit} className="mt-4">
+      <div className="mb-4">
         <p className="text-sm text-gray-500 mb-4">
           Enter your email address and we'll send you a link to reset your password.
         </p>
@@ -50,7 +47,7 @@ export function ForgotPasswordForm() {
         </div>
       </div>
 
-      <div>
+      <div className="mb-2">
         <button
           type="submit"
           className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -68,5 +65,15 @@ export function ForgotPasswordForm() {
         </Link>
       </div>
     </form>
+  );
+
+  return (
+    <div className="bg-white flex justify-center pt-8 px-4">
+      <div className="w-full max-w-md">
+        <AuthLayout title="Reset your password">
+          {content}
+        </AuthLayout>
+      </div>
+    </div>
   );
 }

@@ -11,7 +11,7 @@ export function LandingPage() {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-2">
               <Bot className="h-8 w-8 text-indigo-600" />
-              <span className="text-xl font-bold text-gray-900">SDR AI</span>
+              <span className="text-xl font-bold text-gray-900">ReachGenie.ai</span>
             </div>
             <nav className="flex items-center space-x-4">
               <a href="#features" className="text-gray-600 hover:text-gray-900">Features</a>

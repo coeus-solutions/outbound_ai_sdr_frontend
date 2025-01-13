@@ -29,7 +29,7 @@ export function Sidebar({ isCollapsed, onToggle, onLogout }: SidebarProps) {
       <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center space-x-3">
           <Building2 className="h-8 w-8 text-indigo-600 flex-shrink-0" />
-          {!isCollapsed && <span className="text-xl font-bold">SDR AI</span>}
+          {!isCollapsed && <span className="text-xl font-bold">ReachGenie.ai</span>}
         </div>
         <button
           onClick={onToggle}
