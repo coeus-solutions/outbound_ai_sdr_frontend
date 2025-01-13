@@ -28,7 +28,13 @@ export function Sidebar({ isCollapsed, onToggle, onLogout }: SidebarProps) {
     >
       <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center space-x-0">
-          <img src="/images/logo.png" alt="ReachGenie.ai Logo" className="h-8 flex-shrink-0" />
+          <div className={cn("flex-shrink-0", isCollapsed ? "w-10" : "w-8")}>
+            <img 
+              src="/images/logo.png" 
+              alt="ReachGenie.ai Logo" 
+              className="w-full h-auto object-contain" 
+            />
+          </div>
           {!isCollapsed && <span className="text-xl font-bold">ReachGenie.ai</span>}
         </div>
         <button
