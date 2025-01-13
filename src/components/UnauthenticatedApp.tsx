@@ -3,7 +3,6 @@ import { Routes, Route, Navigate, useLocation, Link } from 'react-router-dom';
 import { LoginForm } from './auth/LoginForm';
 import { SignUpForm } from './auth/SignUpForm';
 import { useAuth } from '../hooks/useAuth';
-import { Building2 } from 'lucide-react';
 
 export function UnauthenticatedApp() {
   const { login } = useAuth();
@@ -13,10 +12,10 @@ export function UnauthenticatedApp() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md flex justify-center">
-        <Link to="/" className="inline-flex items-center gap-3 hover:opacity-80 transition-opacity">
-          <Building2 className="h-10 w-10 text-indigo-600" />
+        <Link to="/" className="inline-flex items-center space-x-0 hover:opacity-80 transition-opacity">
+          <img src="/images/logo.png" alt="ReachGenie.ai Logo" className="h-8" />
           <h2 className="text-center text-3xl font-extrabold text-gray-900">
-            {isSignup ? 'ReachGenie.ai' : 'ReachGenie.ai'}
+            ReachGenie.ai
           </h2>
         </Link>
       </div>
