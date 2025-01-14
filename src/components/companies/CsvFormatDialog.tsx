@@ -28,7 +28,7 @@ Jane Smith,jane@example.com,Tech Corp,+0987654321,500-1000,VP Sales,https://face
     <Dialog
       isOpen={isOpen}
       onClose={onClose}
-      title="CSV File Format Guide"
+      title="CSV Import Guidelines"
     >
       <div className="space-y-4">
         <div className="border-b pb-4">
