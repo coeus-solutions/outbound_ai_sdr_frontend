@@ -18,7 +18,6 @@ interface EmailCampaignsResponse {
 export interface EmailCampaignCreate {
   name: string;
   description?: string;
-  product_id: string;
   email_subject: string;
   email_body: string;
 }

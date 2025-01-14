@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Mail, Package } from 'lucide-react';
+import { Mail, Package, Wand2 } from 'lucide-react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { getToken } from '../../utils/auth';
 import { useToast } from '../../context/ToastContext';
 import { getCompanyById, Company } from '../../services/companies';
-import { getProducts, Product } from '../../services/products';
 import { createEmailCampaign } from '../../services/emailCampaigns';
+import { apiEndpoints } from '../../config';
 
 export function AddEmailCampaign() {
   const { companyId } = useParams();
@@ -15,13 +15,13 @@ export function AddEmailCampaign() {
   const { showToast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [showGeneratedFields, setShowGeneratedFields] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [company, setCompany] = useState<Company | null>(null);
-  const [products, setProducts] = useState<Product[]>([]);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    product_id: '',
     email_subject: '',
     email_body: '',
   });
@@ -38,13 +38,11 @@ export function AddEmailCampaign() {
           return;
         }
 
-        const [companyData, productsData] = await Promise.all([
+        const [companyData] = await Promise.all([
           getCompanyById(token, companyId),
-          getProducts(token, companyId)
         ]);
 
         setCompany(companyData);
-        setProducts(productsData);
         setError(null);
       } catch (err) {
         const errorMessage = 'Failed to fetch data';
@@ -74,7 +72,6 @@ export function AddEmailCampaign() {
       await createEmailCampaign(token, companyId, {
         name: formData.name,
         description: formData.description || undefined,
-        product_id: formData.product_id,
         email_subject: formData.email_subject,
         email_body: formData.email_body,
       });
@@ -87,6 +84,50 @@ export function AddEmailCampaign() {
       showToast(errorMessage, 'error');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleGenerate = async () => {
+    const achievementText = (document.getElementById('achievement') as HTMLTextAreaElement)?.value;
+    if (!achievementText) {
+      showToast('Please enter what you would like to achieve first', 'error');
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const token = getToken();
+      if (!token) {
+        throw new Error('Authentication token not found');
+      }
+
+      const response = await fetch(apiEndpoints.generate.campaign, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ achievement_text: achievementText }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate campaign content');
+      }
+
+      const data = await response.json();
+      setFormData(prev => ({
+        ...prev,
+        name: data.campaign_name,
+        description: data.description,
+        email_subject: data.email_subject,
+        email_body: data.email_body,
+      }));
+      setShowGeneratedFields(true);
+      showToast('Campaign content generated successfully!', 'success');
+    } catch (err) {
+      showToast('Failed to generate campaign content. Please try again.', 'error');
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -152,116 +193,123 @@ export function AddEmailCampaign() {
 
         <div className="space-y-4">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-              Campaign Name
+            <label htmlFor="achievement" className="block text-sm font-medium text-gray-700">
+              What would you like to achieve?
             </label>
             <div className="mt-1">
-              <input
-                type="text"
-                name="name"
-                id="name"
-                required
-                value={formData.name}
-                onChange={handleChange}
+              <textarea
+                name="achievement"
+                id="achievement"
+                rows={3}
                 className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                placeholder="Enter campaign name"
+                placeholder="Enter your campaign goal"
               />
-            </div>
-          </div>
-
-          <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-              Description (Optional)
-            </label>
-            <div className="mt-1">
-              <input
-                type="text"
-                name="description"
-                id="description"
-                value={formData.description}
-                onChange={handleChange}
-                className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                placeholder="Enter campaign description"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label htmlFor="product_id" className="block text-sm font-medium text-gray-700">
-              Product
-            </label>
-            <div className="mt-1">
-              <select
-                name="product_id"
-                id="product_id"
-                required
-                value={formData.product_id}
-                onChange={handleChange}
-                className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+              <button
+                type="button"
+                className="mt-2 inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={handleGenerate}
+                disabled={isGenerating}
               >
-                <option value="">Select a product</option>
-                {products.map(product => (
-                  <option key={product.id} value={product.id}>
-                    {product.product_name}
-                  </option>
-                ))}
-              </select>
+                <Wand2 className={`w-4 h-4 mr-2 ${isGenerating ? 'animate-spin' : ''}`} />
+                {isGenerating ? 'Generating...' : 'Let\'s make it awesome'}
+              </button>
             </div>
           </div>
 
-          <div>
-            <label htmlFor="email_subject" className="block text-sm font-medium text-gray-700">
-              Email Subject
-            </label>
-            <div className="mt-1">
-              <input
-                type="text"
-                name="email_subject"
-                id="email_subject"
-                required
-                value={formData.email_subject}
-                onChange={handleChange}
-                className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                placeholder="Enter email subject"
-              />
-            </div>
-          </div>
+          {showGeneratedFields && (
+            <>
+              <div>
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                  Campaign Name
+                </label>
+                <div className="mt-1">
+                  <input
+                    type="text"
+                    name="name"
+                    id="name"
+                    required
+                    value={formData.name}
+                    onChange={handleChange}
+                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                    placeholder="Enter campaign name"
+                  />
+                </div>
+              </div>
 
-          <div>
-            <label htmlFor="email_body" className="block text-sm font-medium text-gray-700">
-              Email Body
-            </label>
-            <div className="mt-1">
-              <ReactQuill
-                theme="snow"
-                value={formData.email_body}
-                onChange={(content) => setFormData(prev => ({ ...prev, email_body: content }))}
-                modules={modules}
-                formats={formats}
-                className="h-64 bg-white"
-              />
-              <div className="h-16" /> {/* Spacer for Quill toolbar */}
-            </div>
-          </div>
+              <div>
+                <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                  Description (Optional)
+                </label>
+                <div className="mt-1">
+                  <input
+                    type="text"
+                    name="description"
+                    id="description"
+                    value={formData.description}
+                    onChange={handleChange}
+                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                    placeholder="Enter campaign description"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="email_subject" className="block text-sm font-medium text-gray-700">
+                  Email Subject
+                </label>
+                <div className="mt-1">
+                  <input
+                    type="text"
+                    name="email_subject"
+                    id="email_subject"
+                    required
+                    value={formData.email_subject}
+                    onChange={handleChange}
+                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                    placeholder="Enter email subject"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="email_body" className="block text-sm font-medium text-gray-700">
+                  Email Body
+                </label>
+                <div className="mt-1">
+                  <ReactQuill
+                    theme="snow"
+                    value={formData.email_body}
+                    onChange={(content) => setFormData(prev => ({ ...prev, email_body: content }))}
+                    modules={modules}
+                    formats={formats}
+                    className="h-64 bg-white"
+                  />
+                  <div className="h-16" /> {/* Spacer for Quill toolbar */}
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
-        <div className="flex justify-end space-x-4">
-          <button
-            type="button"
-            onClick={() => navigate(`/companies/${companyId}/email-campaigns`)}
-            className="px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 hover:bg-gray-50"
-            disabled={isSaving}
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={isSaving}
-          >
-            {isSaving ? 'Creating...' : 'Create Campaign'}
-          </button>
-        </div>
+        {showGeneratedFields && (
+          <div className="flex justify-end space-x-4">
+            <button
+              type="button"
+              onClick={() => navigate(`/companies/${companyId}/email-campaigns`)}
+              className="px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 hover:bg-gray-50"
+              disabled={isSaving}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isSaving}
+            >
+              {isSaving ? 'Creating...' : 'Create Campaign'}
+            </button>
+          </div>
+        )}
       </form>
     </div>
   );
