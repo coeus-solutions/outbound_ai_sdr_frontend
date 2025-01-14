@@ -1,7 +1,8 @@
-import React from 'react';
-import { Building, ChevronLeft, ChevronRight, LogOut } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Building, ChevronLeft, ChevronRight, LogOut, User } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '../../utils/cn';
+import { getUserEmail } from '../../utils/auth';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -11,7 +12,12 @@ interface SidebarProps {
 
 export function Sidebar({ isCollapsed, onToggle, onLogout }: SidebarProps) {
   const location = useLocation();
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   
+  useEffect(() => {
+    setUserEmail(getUserEmail());
+  }, []);
+
   const isActive = (path: string) => {
     if (path === '/companies') {
       return location.pathname === '/' || location.pathname.startsWith('/companies');
@@ -71,6 +77,12 @@ export function Sidebar({ isCollapsed, onToggle, onLogout }: SidebarProps) {
       </div>
 
       <div className="p-4 border-t">
+        {!isCollapsed && userEmail && (
+          <div className="px-4 py-2 text-sm text-gray-500 truncate flex items-center">
+            <User className="h-4 w-4 mr-2 flex-shrink-0" />
+            {userEmail}
+          </div>
+        )}
         <button
           onClick={onLogout}
           className={cn(
