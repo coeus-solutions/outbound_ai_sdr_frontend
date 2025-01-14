@@ -47,4 +47,7 @@ export const apiEndpoints = {
   emailCampaigns: {
     run: (campaignId: string) => `${config.apiUrl}/api/email-campaigns/${campaignId}/run`,
   },
+  generate: {
+    campaign: `${config.apiUrl}/api/generate-campaign`,
+  },
 } as const; 
