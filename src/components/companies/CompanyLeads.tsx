@@ -77,13 +77,23 @@ export function CompanyLeads() {
   };
 
   const uploadButton = (
-    <FileUpload 
-      accept=".csv"
-      onUpload={handleFileUpload}
-      buttonText={isUploading ? 'Uploading...' : 'Upload CSV'}
-      icon={<Upload className="h-5 w-5 mr-2" />}
-      disabled={isUploading}
-    />
+    <div className="flex items-center gap-3">
+      {leads.length > 0 && (
+        <button
+          onClick={() => setIsFormatDialogOpen(true)}
+          className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+        >
+          CSV import guidelines
+        </button>
+      )}
+      <FileUpload 
+        accept=".csv"
+        onUpload={handleFileUpload}
+        buttonText={isUploading ? 'Uploading...' : 'Upload CSV'}
+        icon={<Upload className="h-5 w-5 mr-2" />}
+        disabled={isUploading}
+      />
+    </div>
   );
 
   if (isLoading) {
