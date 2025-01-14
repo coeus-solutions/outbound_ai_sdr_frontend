@@ -45,7 +45,7 @@ Jane Smith,jane@example.com,Tech Corp,+0987654321,500-1000,VP Sales,https://face
         </div>
 
         <div className="space-y-2">
-          <p className="text-sm font-medium text-gray-700">Optional Fields:</p>
+          <p className="text-sm font-medium text-gray-700">Optional Information:</p>
           <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
             <li>Email address of the Lead (used in sending campaign emails)</li>
             <li>Contact number of the Lead (used in calls)</li>
