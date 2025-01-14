@@ -33,34 +33,28 @@ Jane Smith,jane@example.com,Tech Corp,+0987654321,500-1000,VP Sales,https://face
       <div className="space-y-4">
         <div className="border-b pb-4">
           <p className="text-sm text-gray-500">
-            Your CSV file should include the following columns in this exact order:
+            Your CSV file can include the following information in any order, just make sure to add the header at the top
           </p>
         </div>
 
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <div className="font-mono text-sm text-gray-600 whitespace-pre-wrap break-all">
-            name, email, company, phone_number, company_size, job_title, company_facebook, company_twitter, company_revenue
-          </div>
-        </div>
-
         <div className="space-y-2">
-          <p className="text-sm font-medium text-gray-700">Required Fields:</p>
+          <p className="text-sm font-medium text-gray-700">Required Information:</p>
           <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
-            <li>name - Full name of the lead</li>
-            <li>email - Email address</li>
-            <li>phone_number - Contact number</li>
+            <li>Name of the lead (missing this will result in skipping this lead)</li>
           </ul>
         </div>
 
         <div className="space-y-2">
           <p className="text-sm font-medium text-gray-700">Optional Fields:</p>
           <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
-            <li>company - Company name</li>
-            <li>company_size - Size of the company (e.g., "100-500", "1000+")</li>
-            <li>job_title - Lead's job title</li>
-            <li>company_facebook - Facebook URL</li>
-            <li>company_twitter - Twitter URL</li>
-            <li>company_revenue - Company revenue range</li>
+            <li>Email address of the Lead (used in sending campaign emails)</li>
+            <li>Contact number of the Lead (used in calls)</li>
+            <li>Company name</li>
+            <li>Size of the company (e.g., "100-500", "1000+")</li>
+            <li>Lead's job title</li>
+            <li>Facebook URL</li>
+            <li>Twitter URL</li>
+            <li>Company revenue range</li>
           </ul>
         </div>
 
