@@ -122,7 +122,7 @@ export function CompanyLeads() {
             title="No leads yet"
             description="Upload a CSV file to import your leads."
             actionLink="#"
-            actionText="Learn how to format your CSV"
+            actionText="CSV import guidelines"
             onAction={() => setIsFormatDialogOpen(true)}
           />
         </div>
