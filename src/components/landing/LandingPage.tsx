@@ -3,6 +3,14 @@ import { HeroSection } from './HeroSection';
 import { FeatureSection } from './FeatureSection';
 import { Footer } from '../shared/Footer';
 
+const scrollToSection = (sectionId: string) => (e: React.MouseEvent<HTMLAnchorElement>) => {
+  e.preventDefault();
+  const element = document.getElementById(sectionId);
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth' });
+  }
+};
+
 export function LandingPage() {
   return (
     <div className="min-h-screen flex flex-col">
@@ -14,7 +22,7 @@ export function LandingPage() {
               <span className="text-xl font-bold text-gray-900">ReachGenie.ai</span>
             </div>
             <nav className="flex items-center space-x-4">
-              <a href="#features" className="text-gray-600 hover:text-gray-900">Features</a>
+              <a onClick={scrollToSection('features')} href="#features" className="text-gray-600 hover:text-gray-900 cursor-pointer">Features</a>
               <a href="#pricing" className="text-gray-600 hover:text-gray-900">Pricing</a>
             </nav>
           </div>
