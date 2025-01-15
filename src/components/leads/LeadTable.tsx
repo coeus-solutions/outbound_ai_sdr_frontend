@@ -7,6 +7,7 @@ import { useParams } from 'react-router-dom';
 import { getToken } from '../../utils/auth';
 import { useToast } from '../../context/ToastContext';
 import { startCall } from '../../services/calls';
+import * as Tooltip from '@radix-ui/react-tooltip';
 
 interface LeadTableProps {
   leads: Lead[];
@@ -165,17 +166,40 @@ export function LeadTable({ leads }: LeadTableProps) {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <button
-                      onClick={() => {
-                        setSelectedLead(lead);
-                        setIsCallDialogOpen(true);
-                      }}
-                      disabled={isLoadingProducts || products.length === 0}
-                      className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-full text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <Phone className="h-4 w-4 mr-1" />
-                      {isLoadingProducts ? 'Loading...' : 'Call'}
-                    </button>
+                    <Tooltip.Provider>
+                      <Tooltip.Root>
+                        <Tooltip.Trigger asChild>
+                          <button
+                            onClick={() => {
+                              setSelectedLead(lead);
+                              setIsCallDialogOpen(true);
+                            }}
+                            disabled={isLoadingProducts || products.length === 0 || !lead.phone_number}
+                            className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-full text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <Phone className="h-4 w-4 mr-1" />
+                            {isLoadingProducts ? 'Loading...' : 'Call'}
+                          </button>
+                        </Tooltip.Trigger>
+                        {(isLoadingProducts || products.length === 0 || !lead.phone_number) && (
+                          <Tooltip.Portal>
+                            <Tooltip.Content
+                              className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
+                              sideOffset={5}
+                            >
+                              {!lead.phone_number 
+                                ? "This lead doesn't have a phone number"
+                                : isLoadingProducts
+                                ? "Loading products..."
+                                : products.length === 0
+                                ? "No products available"
+                                : null}
+                              <Tooltip.Arrow className="fill-gray-900" />
+                            </Tooltip.Content>
+                          </Tooltip.Portal>
+                        )}
+                      </Tooltip.Root>
+                    </Tooltip.Provider>
                   </td>
                 </tr>
               ))}
