@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Github, Twitter } from 'lucide-react';
 import { TermsDialog } from './TermsDialog';
 import { PrivacyDialog } from './PrivacyDialog';
 
@@ -57,29 +56,9 @@ export function Footer() {
         </div>
 
         <div className="mt-8 pt-8 border-t border-gray-200">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-gray-500 text-sm">
-              © {currentYear} ReachGenie.ai. All rights reserved.
-            </p>
-            <div className="flex space-x-6 mt-4 md:mt-0">
-              <a
-                href="https://twitter.com/reachgenie"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-400 hover:text-gray-500"
-              >
-                <Twitter className="h-5 w-5" />
-              </a>
-              <a
-                href="https://github.com/reachgenie"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-400 hover:text-gray-500"
-              >
-                <Github className="h-5 w-5" />
-              </a>
-            </div>
-          </div>
+          <p className="text-gray-500 text-sm text-center md:text-left">
+            © {currentYear} ReachGenie.ai. All rights reserved.
+          </p>
         </div>
       </div>
 
