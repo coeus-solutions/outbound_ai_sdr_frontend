@@ -29,7 +29,14 @@ export async function getLeads(token: string, companyId: string): Promise<Lead[]
   return response.json();
 }
 
-export async function uploadLeads(token: string, companyId: string, file: File): Promise<void> {
+export interface UploadLeadsResponse {
+  message: string;
+  leads_saved: number;
+  leads_skipped: number;
+  unmapped_headers: string[];
+}
+
+export async function uploadLeads(token: string, companyId: string, file: File): Promise<UploadLeadsResponse> {
   const formData = new FormData();
   formData.append('file', file);
 
@@ -44,4 +51,6 @@ export async function uploadLeads(token: string, companyId: string, file: File):
   if (!response.ok) {
     throw new Error('Failed to upload leads');
   }
+
+  return response.json();
 } 

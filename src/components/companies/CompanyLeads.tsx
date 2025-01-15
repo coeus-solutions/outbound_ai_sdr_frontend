@@ -65,8 +65,11 @@ export function CompanyLeads() {
         return;
       }
 
-      await uploadLeads(token, companyId, file);
-      showToast('Leads uploaded successfully!', 'success');
+      const result = await uploadLeads(token, companyId, file);
+      showToast(
+        `Successfully added ${result.leads_saved} leads${result.leads_skipped > 0 ? `. ${result.leads_skipped} leads were skipped due to missing information` : ''}.`,
+        'success'
+      );
       // Refresh the leads list
       fetchData();
     } catch (err) {
