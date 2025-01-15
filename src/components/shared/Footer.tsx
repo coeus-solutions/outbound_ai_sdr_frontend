@@ -1,9 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Github, Twitter } from 'lucide-react';
+import { TermsDialog } from './TermsDialog';
+import { PrivacyDialog } from './PrivacyDialog';
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
+  const [isTermsOpen, setIsTermsOpen] = useState(false);
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
 
   return (
     <footer className="bg-white border-t border-gray-200">
@@ -33,14 +37,20 @@ export function Footer() {
             <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">Legal</h3>
             <ul className="mt-4 space-y-3">
               <li>
-                <Link to="/terms" className="text-gray-600 hover:text-indigo-600 text-sm">
+                <button
+                  onClick={() => setIsTermsOpen(true)}
+                  className="text-gray-600 hover:text-indigo-600 text-sm text-left"
+                >
                   Terms of Service
-                </Link>
+                </button>
               </li>
               <li>
-                <Link to="/privacy" className="text-gray-600 hover:text-indigo-600 text-sm">
+                <button
+                  onClick={() => setIsPrivacyOpen(true)}
+                  className="text-gray-600 hover:text-indigo-600 text-sm text-left"
+                >
                   Privacy Policy
-                </Link>
+                </button>
               </li>
             </ul>
           </div>
@@ -72,6 +82,15 @@ export function Footer() {
           </div>
         </div>
       </div>
+
+      <TermsDialog 
+        isOpen={isTermsOpen}
+        onClose={() => setIsTermsOpen(false)}
+      />
+      <PrivacyDialog 
+        isOpen={isPrivacyOpen}
+        onClose={() => setIsPrivacyOpen(false)}
+      />
     </footer>
   );
 } 
