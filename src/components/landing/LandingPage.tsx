@@ -1,6 +1,7 @@
 import React from 'react';
 import { HeroSection } from './HeroSection';
 import { FeatureSection } from './FeatureSection';
+import { PricingSection } from './PricingSection';
 import { Footer } from '../shared/Footer';
 
 const scrollToSection = (sectionId: string) => (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -23,7 +24,7 @@ export function LandingPage() {
             </div>
             <nav className="flex items-center space-x-4">
               <a onClick={scrollToSection('features')} href="#features" className="text-gray-600 hover:text-gray-900 cursor-pointer">Features</a>
-              <a href="#pricing" className="text-gray-600 hover:text-gray-900">Pricing</a>
+              <a onClick={scrollToSection('pricing')} href="#pricing" className="text-gray-600 hover:text-gray-900 cursor-pointer">Pricing</a>
             </nav>
           </div>
         </div>
@@ -31,6 +32,7 @@ export function LandingPage() {
       <main className="flex-grow">
         <HeroSection />
         <FeatureSection />
+        <PricingSection />
       </main>
       <Footer />
     </div>
