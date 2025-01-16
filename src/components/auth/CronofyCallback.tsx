@@ -31,8 +31,7 @@ export function CronofyCallback() {
       }
 
       try {
-        const response = await cronofyAuth(token, companyId, code, redirectUrl);
-        console.log('Cronofy auth successful:', response);
+        await cronofyAuth(token, companyId, code, redirectUrl);
         showToast('Calendar connected successfully', 'success');
         navigate(`/companies/${companyId}/settings`);
       } catch (err) {

@@ -15,8 +15,7 @@ export interface CompanyCreate {
 }
 
 export interface CronofyAuthResponse {
-  access_token: string;
-  refresh_token: string;
+  message: string;
 }
 
 export async function getCompanies(token: string): Promise<Company[]> {
