@@ -94,7 +94,9 @@ export function CompanyList() {
               className="relative bg-white rounded-lg shadow hover:shadow-md transition-shadow"
             >
               <div className="absolute top-4 right-4">
-                <Settings className="h-5 w-5 text-gray-400 hover:text-gray-600 cursor-pointer" />
+                <Link to={`/companies/${company.id}/settings`}>
+                  <Settings className="h-5 w-5 text-gray-400 hover:text-gray-600 cursor-pointer" />
+                </Link>
               </div>
               <div className="p-6">
                 <div className="flex items-center">
