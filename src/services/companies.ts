@@ -14,6 +14,11 @@ export interface CompanyCreate {
   industry?: string;
 }
 
+export interface CronofyAuthResponse {
+  access_token: string;
+  refresh_token: string;
+}
+
 export async function getCompanies(token: string): Promise<Company[]> {
   const response = await fetch(apiEndpoints.companies.list, {
     headers: {
@@ -56,6 +61,21 @@ export async function createCompany(token: string, company: CompanyCreate): Prom
 
   if (!response.ok) {
     throw new Error('Failed to create company');
+  }
+
+  return response.json();
+}
+
+export async function cronofyAuth(token: string, companyId: string, code: string, redirectUrl: string): Promise<CronofyAuthResponse> {
+  const response = await fetch(`${apiEndpoints.companies.list}/${companyId}/cronofy-auth?code=${encodeURIComponent(code)}&redirect_url=${encodeURIComponent(redirectUrl)}`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to authenticate with Cronofy');
   }
 
   return response.json();
