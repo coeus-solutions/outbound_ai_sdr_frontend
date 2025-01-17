@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Calendar } from 'lucide-react';
+import { Calendar, Check, X } from 'lucide-react';
 import { getToken } from '../../utils/auth';
 import { Company, getCompanyById } from '../../services/companies';
 import { useToast } from '../../context/ToastContext';
+import * as Tooltip from '@radix-ui/react-tooltip';
 
 function getOAuthUrl(providerName: string, companyId: string): string {
   const redirectUri = `${window.location.origin}/cronofy-auth`;
@@ -118,6 +119,9 @@ export function CompanySettings() {
     );
   }
 
+  const isCalendarConnected = company?.cronofy_provider && company?.cronofy_linked_email;
+  const connectedProvider = calendarProviders.find(p => p.providerName === company?.cronofy_provider);
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="space-y-8">
@@ -140,6 +144,37 @@ export function CompanySettings() {
               Integrate your calendar to enable seamless meeting scheduling when leads are ready to engage
             </p>
           </div>
+
+          {isCalendarConnected && connectedProvider && (
+            <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-indigo-50 via-blue-50 to-indigo-50">
+              <div className="flex items-center space-x-4 p-4 bg-white/80 backdrop-blur-sm rounded-lg shadow-sm">
+                <div className={`flex-shrink-0 h-12 w-12 rounded-lg ${connectedProvider.bgColor} p-2 flex items-center justify-center shadow-sm`}>
+                  <img
+                    src={connectedProvider.logo}
+                    alt={`${connectedProvider.name} logo`}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-sm font-medium text-gray-900 uppercase tracking-wide">Connected Calendar</h3>
+                  <div className="mt-1.5 flex flex-col">
+                    <span className="text-base text-gray-900 font-medium">
+                      {company.cronofy_default_calendar_name || 'Default Calendar'}
+                    </span>
+                    <span className="text-sm text-gray-600">
+                      {company.cronofy_linked_email} • {connectedProvider.name}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex-shrink-0">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 shadow-sm">
+                    <Check className="h-3.5 w-3.5 mr-1" />
+                    Connected
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="px-6 py-6">
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
@@ -166,14 +201,42 @@ export function CompanySettings() {
                         </p>
                       </div>
                     </div>
-                    <a
-                      href={getOAuthUrl(provider.providerName, companyId || '')}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
-                    >
-                      Connect
-                    </a>
+                    {company?.cronofy_provider === provider.providerName ? (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        <Check className="h-3 w-3 mr-1" />
+                        Connected
+                      </span>
+                    ) : (
+                      <Tooltip.Provider>
+                        <Tooltip.Root>
+                          <Tooltip.Trigger asChild>
+                            <button
+                              type="button"
+                              disabled={Boolean(isCalendarConnected)}
+                              className={`inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md transition-colors duration-200 ${
+                                isCalendarConnected 
+                                  ? 'border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed'
+                                  : 'border-transparent text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
+                              }`}
+                              onClick={isCalendarConnected ? undefined : () => window.open(getOAuthUrl(provider.providerName, companyId || ''), '_blank')}
+                            >
+                              Connect
+                            </button>
+                          </Tooltip.Trigger>
+                          {isCalendarConnected && (
+                            <Tooltip.Portal>
+                              <Tooltip.Content
+                                className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
+                                sideOffset={5}
+                              >
+                                Please disconnect the current calendar before connecting a new one
+                                <Tooltip.Arrow className="fill-gray-900" />
+                              </Tooltip.Content>
+                            </Tooltip.Portal>
+                          )}
+                        </Tooltip.Root>
+                      </Tooltip.Provider>
+                    )}
                   </div>
                 </div>
               ))}

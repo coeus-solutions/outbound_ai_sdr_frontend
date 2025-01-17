@@ -6,6 +6,10 @@ export interface Company {
   address?: string;
   industry?: string;
   user_id: string;
+  cronofy_provider?: string;
+  cronofy_linked_email?: string;
+  cronofy_default_calendar_name?: string;
+  cronofy_default_calendar_id?: string;
 }
 
 export interface CompanyCreate {
