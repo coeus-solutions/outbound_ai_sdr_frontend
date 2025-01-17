@@ -74,7 +74,9 @@ export async function cronofyAuth(token: string, companyId: string, code: string
   });
 
   if (!response.ok) {
-    throw new Error('Failed to authenticate with Cronofy');
+    const error = new Error('Failed to authenticate with Cronofy') as any;
+    error.response = response;
+    throw error;
   }
 
   return response.json();

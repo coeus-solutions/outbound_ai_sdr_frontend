@@ -4,6 +4,11 @@ import { getToken } from '../../utils/auth';
 import { cronofyAuth } from '../../services/companies';
 import { useToast } from '../../context/ToastContext';
 
+interface ApiError {
+  status_code: number;
+  detail: string;
+}
+
 export function CronofyCallback() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -36,7 +41,20 @@ export function CronofyCallback() {
         navigate(`/companies/${companyId}/settings`);
       } catch (err) {
         console.error('Error connecting calendar:', err);
-        showToast('Failed to connect calendar. Please try again.', 'error');
+        
+        // Check if the error is an API error response
+        if (err instanceof Error && 'response' in err) {
+          const response = (err as any).response;
+          if (response?.status === 400) {
+            const errorData = await response.json() as ApiError;
+            showToast(errorData.detail, 'error');
+          } else {
+            showToast('Failed to connect calendar. Please try again.', 'error');
+          }
+        } else {
+          showToast('Failed to connect calendar. Please try again.', 'error');
+        }
+        
         navigate(`/companies/${companyId}/settings`);
       }
     }
