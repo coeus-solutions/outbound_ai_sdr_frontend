@@ -84,4 +84,21 @@ export async function cronofyAuth(token: string, companyId: string, code: string
   }
 
   return response.json();
+}
+
+export async function disconnectCalendar(token: string, companyId: string): Promise<void> {
+  const response = await fetch(`${apiEndpoints.companies.list}/${companyId}/calendar`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw error;
+  }
+
+  return response.json();
 } 

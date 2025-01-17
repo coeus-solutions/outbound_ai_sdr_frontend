@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Calendar, Check, X } from 'lucide-react';
 import { getToken } from '../../utils/auth';
-import { Company, getCompanyById } from '../../services/companies';
+import { Company, getCompanyById, disconnectCalendar } from '../../services/companies';
 import { useToast } from '../../context/ToastContext';
 import * as Tooltip from '@radix-ui/react-tooltip';
+import { Dialog } from '../shared/Dialog';
 
 function getOAuthUrl(providerName: string, companyId: string): string {
   const redirectUri = `${window.location.origin}/cronofy-auth`;
@@ -69,6 +70,8 @@ export function CompanySettings() {
   const [company, setCompany] = useState<Company | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isDisconnecting, setIsDisconnecting] = useState(false);
+  const [showDisconnectConfirm, setShowDisconnectConfirm] = useState(false);
 
   useEffect(() => {
     async function fetchCompany() {
@@ -96,6 +99,36 @@ export function CompanySettings() {
 
     fetchCompany();
   }, [companyId, showToast]);
+
+  const handleDisconnectClick = () => {
+    setShowDisconnectConfirm(true);
+  };
+
+  const handleDisconnectConfirm = async () => {
+    if (!companyId) return;
+
+    try {
+      setIsDisconnecting(true);
+      const token = getToken();
+      if (!token) {
+        showToast('Authentication failed. Please try logging in again.', 'error');
+        return;
+      }
+
+      await disconnectCalendar(token, companyId);
+      
+      // Refetch company data to update the UI
+      const updatedCompany = await getCompanyById(token, companyId);
+      setCompany(updatedCompany);
+      
+      showToast('Calendar disconnected successfully', 'success');
+      setShowDisconnectConfirm(false);
+    } catch (err) {
+      showToast('Failed to disconnect calendar. Please try again.', 'error');
+    } finally {
+      setIsDisconnecting(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -166,11 +199,28 @@ export function CompanySettings() {
                     </span>
                   </div>
                 </div>
-                <div className="flex-shrink-0">
+                <div className="flex-shrink-0 flex items-center space-x-3">
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 shadow-sm">
                     <Check className="h-3.5 w-3.5 mr-1" />
                     Connected
                   </span>
+                  <button
+                    onClick={handleDisconnectClick}
+                    disabled={isDisconnecting}
+                    className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+                  >
+                    {isDisconnecting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-700 mr-2"></div>
+                        Disconnecting...
+                      </>
+                    ) : (
+                      <>
+                        <X className="h-4 w-4 mr-1" />
+                        Disconnect
+                      </>
+                    )}
+                  </button>
                 </div>
               </div>
             </div>
@@ -244,6 +294,40 @@ export function CompanySettings() {
           </div>
         </div>
       </div>
+
+      <Dialog
+        isOpen={showDisconnectConfirm}
+        onClose={() => setShowDisconnectConfirm(false)}
+        title="Disconnect Calendar"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-gray-500">
+            Are you sure you want to disconnect the calendar? This will remove the calendar integration and all associated settings.
+          </p>
+          <div className="flex justify-end space-x-3">
+            <button
+              onClick={() => setShowDisconnectConfirm(false)}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleDisconnectConfirm}
+              disabled={isDisconnecting}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isDisconnecting ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Disconnecting...
+                </>
+              ) : (
+                'Disconnect'
+              )}
+            </button>
+          </div>
+        </div>
+      </Dialog>
     </div>
   );
 } 
