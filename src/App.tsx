@@ -13,6 +13,8 @@ import { CompanyLeads } from './components/companies/CompanyLeads';
 import { CompanyCallLogs } from './components/companies/CompanyCallLogs';
 import { CompanyEmailCampaigns } from './components/companies/CompanyEmailCampaigns';
 import { AddEmailCampaign } from './components/companies/AddEmailCampaign';
+import { CompanySettings } from './components/companies/CompanySettings';
+import { CronofyCallback } from './components/auth/CronofyCallback';
 import { ToastProvider } from './context/ToastContext';
 
 export function App() {
@@ -40,6 +42,7 @@ export function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<UnauthenticatedApp />} />
           <Route path="/signup" element={<UnauthenticatedApp />} />
+          <Route path="/cronofy-auth" element={<CronofyCallback />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       ) : (
@@ -54,6 +57,8 @@ export function App() {
             <Route path="/companies/:companyId/calls" element={<CompanyCallLogs />} />
             <Route path="/companies/:companyId/email-campaigns" element={<CompanyEmailCampaigns />} />
             <Route path="/companies/:companyId/email-campaigns/new" element={<AddEmailCampaign />} />
+            <Route path="/companies/:companyId/settings" element={<CompanySettings />} />
+            <Route path="/cronofy-auth" element={<CronofyCallback />} />
             <Route path="*" element={<Navigate to="/companies" replace />} />
           </Routes>
         </DashboardLayout>

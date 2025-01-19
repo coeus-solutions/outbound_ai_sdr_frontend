@@ -6,12 +6,20 @@ export interface Company {
   address?: string;
   industry?: string;
   user_id: string;
+  cronofy_provider?: string;
+  cronofy_linked_email?: string;
+  cronofy_default_calendar_name?: string;
+  cronofy_default_calendar_id?: string;
 }
 
 export interface CompanyCreate {
   name: string;
   address?: string;
   industry?: string;
+}
+
+export interface CronofyAuthResponse {
+  message: string;
 }
 
 export async function getCompanies(token: string): Promise<Company[]> {
@@ -56,6 +64,40 @@ export async function createCompany(token: string, company: CompanyCreate): Prom
 
   if (!response.ok) {
     throw new Error('Failed to create company');
+  }
+
+  return response.json();
+}
+
+export async function cronofyAuth(token: string, companyId: string, code: string, redirectUrl: string): Promise<CronofyAuthResponse> {
+  const response = await fetch(`${apiEndpoints.companies.list}/${companyId}/cronofy-auth?code=${encodeURIComponent(code)}&redirect_url=${encodeURIComponent(redirectUrl)}`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    const error = new Error('Failed to authenticate with Cronofy') as any;
+    error.response = response;
+    throw error;
+  }
+
+  return response.json();
+}
+
+export async function disconnectCalendar(token: string, companyId: string): Promise<void> {
+  const response = await fetch(`${apiEndpoints.companies.list}/${companyId}/calendar`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw error;
   }
 
   return response.json();
