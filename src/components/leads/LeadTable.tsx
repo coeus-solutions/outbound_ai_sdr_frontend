@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Building2, Mail, Phone, Briefcase, Facebook, Twitter, ChevronRight } from 'lucide-react';
 import * as Tooltip from '@radix-ui/react-tooltip';
-import { useToast } from '../../hooks/useToast';
+import { useToast } from '../../context/ToastContext';
 import { getToken } from '../../utils/auth';
 import { getProducts, Product } from '../../services/products';
 import { Lead, LeadDetail, getLeadDetails } from '../../services/leads';
