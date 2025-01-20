@@ -8,7 +8,7 @@ import { getProducts, Product } from '../../services/products';
 import { Lead, LeadDetail, getLeadDetails } from '../../services/leads';
 import { startCall } from '../../services/calls';
 import { CallDialog } from './CallDialog';
-import { LeadDetailsPanel } from './LeadDetailsPanel';
+import { LeadDetailsPanel } from './LeadsDetailsPanel';
 
 interface LeadTableProps {
   leads: Lead[];
