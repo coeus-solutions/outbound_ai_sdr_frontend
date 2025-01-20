@@ -2,6 +2,7 @@ import React from 'react';
 import { HeroSection } from './HeroSection';
 import { FeatureSection } from './FeatureSection';
 import { PricingSection } from './PricingSection';
+import { HowItWorksSection } from './HowItWorksSection';
 import { Footer } from '../shared/Footer';
 
 const scrollToSection = (sectionId: string) => (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -23,6 +24,7 @@ export function LandingPage() {
               <span className="text-xl font-bold text-gray-900">ReachGenie.ai</span>
             </div>
             <nav className="flex items-center space-x-4">
+              <a onClick={scrollToSection('how-it-works')} href="#how-it-works" className="text-gray-600 hover:text-gray-900 cursor-pointer">How It Works</a>
               <a onClick={scrollToSection('features')} href="#features" className="text-gray-600 hover:text-gray-900 cursor-pointer">Features</a>
               <a onClick={scrollToSection('pricing')} href="#pricing" className="text-gray-600 hover:text-gray-900 cursor-pointer">Pricing</a>
             </nav>
@@ -31,6 +33,7 @@ export function LandingPage() {
       </header>
       <main className="flex-grow">
         <HeroSection />
+        <HowItWorksSection />
         <FeatureSection />
         <PricingSection />
       </main>
