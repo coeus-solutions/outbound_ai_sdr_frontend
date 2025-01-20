@@ -14,6 +14,37 @@ export interface Lead {
   company_id: string;
 }
 
+export interface LeadDetail extends Lead {
+  first_name: string | null;
+  last_name: string | null;
+  lead_source: string;
+  education: string;
+  personal_linkedin_url: string;
+  country: string;
+  city: string;
+  state: string;
+  mobile: string;
+  direct_phone: string;
+  office_phone: string | null;
+  hq_location: string | null;
+  website: string;
+  headcount: number;
+  industries: string[];
+  department: string;
+  company_address: string;
+  company_city: string;
+  company_zip: string;
+  company_state: string;
+  company_country: string;
+  company_linkedin_url: string;
+  company_type: string;
+  company_description: string;
+  technologies: string[];
+  financials: { value: string };
+  company_founded_year: number;
+  seniority: string;
+}
+
 export async function getLeads(token: string, companyId: string): Promise<Lead[]> {
   const response = await fetch(apiEndpoints.companies.leads.list(companyId), {
     headers: {
@@ -27,6 +58,22 @@ export async function getLeads(token: string, companyId: string): Promise<Lead[]
   }
 
   return response.json();
+}
+
+export async function getLeadDetails(token: string, companyId: string, leadId: string): Promise<LeadDetail> {
+  const response = await fetch(`${apiEndpoints.companies.leads.list(companyId)}/${leadId}`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch lead details');
+  }
+
+  const result = await response.json();
+  return result.data;
 }
 
 export interface UploadLeadsResponse {
