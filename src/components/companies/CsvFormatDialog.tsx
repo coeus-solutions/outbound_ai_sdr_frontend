@@ -1,5 +1,5 @@
 import React from 'react';
-import { FileText, Download } from 'lucide-react';
+import { Download } from 'lucide-react';
 import { Dialog } from '../shared/Dialog';
 
 interface CsvFormatDialogProps {
@@ -33,7 +33,8 @@ Jane Smith,jane@example.com,Tech Corp,+0987654321,500-1000,VP Sales,https://face
       <div className="space-y-4">
         <div className="border-b pb-4">
           <p className="text-sm text-gray-500">
-            Your CSV file can include the following information in any order, just make sure to add the header at the top
+            Your CSV file can include the following information in any order, just make sure to add the header at the top.
+            We support import from Cognism so you can direct export Cognism leads and import them here.
           </p>
         </div>
 

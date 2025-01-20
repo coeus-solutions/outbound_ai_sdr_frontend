@@ -41,10 +41,11 @@ export function CompanyLeads() {
       setCompany(companyData);
       setLeads(leadsData);
       setError(null);
-    } catch (err) {
+    } catch (error) {
       const errorMessage = 'Failed to fetch data';
       setError(errorMessage);
       showToast(errorMessage, 'error');
+      console.error('Error fetching data:', error);
     } finally {
       setIsLoading(false);
     }
@@ -65,15 +66,11 @@ export function CompanyLeads() {
         return;
       }
 
-      const result = await uploadLeads(token, companyId, file);
-      showToast(
-        `Successfully added ${result.leads_saved} leads${result.leads_skipped > 0 ? `. ${result.leads_skipped} leads were skipped due to missing information` : ''}.`,
-        'success'
-      );
-      // Refresh the leads list
-      fetchData();
-    } catch (err) {
+      await uploadLeads(token, companyId, file);
+      showToast('Data Queued. Please check back in a few minutes.', 'success');
+    } catch (error) {
       showToast('Failed to upload leads. Please make sure the CSV file is properly formatted.', 'error');
+      console.error('Error uploading leads:', error);
     } finally {
       setIsUploading(false);
     }
