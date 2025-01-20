@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Building, ChevronLeft, ChevronRight, LogOut, User } from 'lucide-react';
+import { Building, ChevronLeft, ChevronRight, LogOut, User, HelpCircle } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '../../utils/cn';
 import { getUserEmail } from '../../utils/auth';
@@ -58,6 +58,21 @@ export function Sidebar({ isCollapsed, onToggle, onLogout }: SidebarProps) {
 
       <div className="flex-1 p-4">
         <ul className="space-y-2">
+          <li>
+            <Link
+              to="/getting-started"
+              className={cn(
+                "flex items-center space-x-3 px-4 py-2 rounded-lg transition-colors",
+                isActive('/getting-started')
+                  ? "bg-indigo-50 text-indigo-600"
+                  : "text-gray-700 hover:bg-indigo-50",
+                isCollapsed && "justify-center"
+              )}
+            >
+              <HelpCircle className="h-5 w-5 flex-shrink-0" />
+              {!isCollapsed && <span>Getting Started</span>}
+            </Link>
+          </li>
           <li>
             <Link
               to="/companies"
