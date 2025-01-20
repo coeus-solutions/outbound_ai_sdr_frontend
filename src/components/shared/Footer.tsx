@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { TermsDialog } from './TermsDialog';
 import { PrivacyDialog } from './PrivacyDialog';
 
@@ -18,7 +17,7 @@ export function Footer() {
               <span className="text-xl font-bold text-gray-900">ReachGenie.ai</span>
             </div>
             <p className="mt-4 text-gray-600 text-sm">
-              Empowering sales teams with AI-driven insights and automation to close more deals efficiently.
+              Empowering sales teams with AI-driven automations to reach and close more deals efficiently.
             </p>
           </div>
 
