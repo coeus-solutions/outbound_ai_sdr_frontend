@@ -42,4 +42,32 @@ export async function createProduct(token: string, companyId: string, product: P
   }
 
   return response.json();
+}
+
+export async function updateProduct(
+  token: string,
+  companyId: string,
+  productId: string,
+  data: {
+    product_name: string;
+    description: string;
+  }
+): Promise<Product> {
+  const response = await fetch(
+    `${apiEndpoints.companies.products(companyId)}/${productId}`,
+    {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to update product');
+  }
+
+  return response.json();
 } 
