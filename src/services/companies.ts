@@ -10,6 +10,7 @@ export interface Company {
   cronofy_linked_email?: string;
   cronofy_default_calendar_name?: string;
   cronofy_default_calendar_id?: string;
+  account_email?: string;
 }
 
 export interface CompanyCreate {
