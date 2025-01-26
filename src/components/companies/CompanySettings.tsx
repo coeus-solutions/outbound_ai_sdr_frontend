@@ -147,7 +147,7 @@ export function CompanySettings() {
       showToast('Email settings saved successfully', 'success');
     } catch (error) {
       console.error('Error saving credentials:', error);
-      showToast('Failed to save email settings', 'error');
+      showToast('Failed to save email settings, please check your credentials and try again', 'error');
     } finally {
       setIsSavingCredentials(false);
     }
@@ -348,7 +348,7 @@ export function CompanySettings() {
                   Saving...
                 </>
               ) : (
-                'Save Email Settings'
+                'Test Connection & Save Email Settings'
               )}
             </button>
           </div>
