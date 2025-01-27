@@ -8,6 +8,15 @@ import { getToken } from '../../utils/auth';
 import { useToast } from '../../context/ToastContext';
 import { formatDateTime } from '../../utils/formatters';
 
+interface APIError {
+  response?: {
+    status: number;
+    data?: {
+      detail?: string;
+    };
+  };
+}
+
 export function CompanyEmailCampaigns() {
   const { companyId } = useParams();
   const { showToast } = useToast();
@@ -66,17 +75,20 @@ export function CompanyEmailCampaigns() {
     try {
       const token = getToken();
       if (!token) {
-        setError('Authentication token not found');
         showToast('Authentication failed. Please try logging in again.', 'error');
         return;
       }
 
       const result = await runEmailCampaign(token, campaign.id);
       showToast(`Campaign "${campaign.name}" started successfully!`, 'success');
-    } catch (err) {
-      const errorMessage = 'Failed to run campaign';
-      setError(errorMessage);
-      showToast(errorMessage, 'error');
+    } catch (err: unknown) {
+      console.log('API Error:', err);  // Temporary log to debug
+      const error = err as APIError;
+      if (error?.response?.status === 400 && error?.response?.data?.detail) {
+        showToast(error.response.data.detail, 'error');
+      } else {
+        showToast('Failed to run campaign', 'error');
+      }
     } finally {
       setIsRunning(null);
     }

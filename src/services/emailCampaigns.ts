@@ -70,9 +70,16 @@ export async function runEmailCampaign(token: string, campaignId: string): Promi
     },
   });
 
+  const data = await response.json();
+  
   if (!response.ok) {
-    throw new Error('Failed to run email campaign');
+    const error = new Error('Failed to run email campaign') as any;
+    error.response = {
+      status: response.status,
+      data: data
+    };
+    throw error;
   }
 
-  return response.json();
+  return data;
 } 
