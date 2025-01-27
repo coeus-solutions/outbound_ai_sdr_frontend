@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Calendar, Check, X, Mail, Mic } from 'lucide-react';
+import { Calendar, Check, X, Mail, Mic, Lock, ChevronDown, User, Info } from 'lucide-react';
 import { getToken } from '../../utils/auth';
 import { Company, getCompanyById, disconnectCalendar } from '../../services/companies';
+import { AccountCredentials, updateAccountCredentials } from '../../services/companySettings';
 import { useToast } from '../../context/ToastContext';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import { Dialog } from '../shared/Dialog';
@@ -77,9 +78,23 @@ export function CompanySettings() {
   const [isDisconnecting, setIsDisconnecting] = useState(false);
   const [showDisconnectConfirm, setShowDisconnectConfirm] = useState(false);
   const [activeTab, setActiveTab] = useState<SettingsTab>('calendar');
+  const [selectedEmailProvider, setSelectedEmailProvider] = useState('gmail');
+  const [isSavingCredentials, setIsSavingCredentials] = useState(false);
+  const [credentials, setCredentials] = useState<AccountCredentials>({
+    account_email: '',
+    account_password: '',
+    type: selectedEmailProvider
+  });
 
   useEffect(() => {
-    async function fetchCompany() {
+    setCredentials(prev => ({
+      ...prev,
+      type: selectedEmailProvider
+    }));
+  }, [selectedEmailProvider]);
+
+  useEffect(() => {
+    async function fetchData() {
       if (!companyId) return;
 
       try {
@@ -92,9 +107,15 @@ export function CompanySettings() {
 
         const companyData = await getCompanyById(token, companyId);
         setCompany(companyData);
+        if (companyData.account_email) {
+          setCredentials(prev => ({
+            ...prev,
+            account_email: companyData.account_email || ''
+          }));
+        }
         setError(null);
       } catch (error) {
-        console.error('Error fetching company:', error);
+        console.error('Error fetching data:', error);
         const errorMessage = 'Failed to fetch company details';
         setError(errorMessage);
         showToast(errorMessage, 'error');
@@ -103,8 +124,42 @@ export function CompanySettings() {
       }
     }
 
-    fetchCompany();
+    fetchData();
   }, [companyId, showToast]);
+
+  const handleCredentialsSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!companyId) return;
+
+    setIsSavingCredentials(true);
+    try {
+      const token = getToken();
+      if (!token) {
+        showToast('Authentication failed. Please try logging in again.', 'error');
+        return;
+      }
+
+      await updateAccountCredentials(token, companyId, {
+        ...credentials,
+        type: selectedEmailProvider,
+      });
+
+      showToast('Email settings saved successfully', 'success');
+    } catch (error) {
+      console.error('Error saving credentials:', error);
+      showToast('Failed to save email settings, please check your credentials and try again', 'error');
+    } finally {
+      setIsSavingCredentials(false);
+    }
+  };
+
+  const handleCredentialsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setCredentials(prev => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
   const handleDisconnectClick = () => {
     setShowDisconnectConfirm(true);
@@ -167,6 +222,140 @@ export function CompanySettings() {
     { id: 'email', name: 'Email', icon: Mail },
     { id: 'voice', name: 'Voice Agent', icon: Mic },
   ];
+
+  const renderEmailSettings = () => (
+    <div className="bg-white shadow rounded-lg">
+      <div className="px-6 py-5 border-b border-gray-200">
+        <div className="flex items-center">
+          <Mail className="h-6 w-6 text-gray-400" />
+          <h2 className="ml-3 text-lg font-medium text-gray-900">Email Settings</h2>
+        </div>
+        <p className="mt-1 text-sm text-gray-500">
+          Enter your email account credentials to enable sending and receiving emails on your behalf
+        </p>
+      </div>
+      <form onSubmit={handleCredentialsSubmit} className="px-6 py-6 space-y-6">
+        <div className="grid grid-cols-1 gap-6">
+          <div>
+            <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-1">
+              Email Provider
+            </label>
+            <div className="flex items-center space-x-2">
+              <div className="relative max-w-[200px]">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                  <Mail className="h-5 w-5 text-gray-400" />
+                </div>
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                  <ChevronDown className="h-5 w-5 text-gray-400" />
+                </div>
+                <select
+                  id="type"
+                  name="type"
+                  value={selectedEmailProvider}
+                  onChange={(e) => setSelectedEmailProvider(e.target.value)}
+                  className="appearance-none block w-full pl-10 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-lg bg-white"
+                >
+                  <option value="gmail">Gmail</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div>
+            <label htmlFor="account_email" className="block text-sm font-medium text-gray-700">
+              Account Email
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                <User className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                type="email"
+                name="account_email"
+                id="account_email"
+                value={credentials.account_email}
+                onChange={handleCredentialsChange}
+                className="appearance-none block w-full px-3 py-2 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                placeholder="john.doe@example.com"
+                required
+              />
+            </div>
+          </div>
+          <div>
+            <div className="flex items-center space-x-2">
+              <label htmlFor="account_password" className="block text-sm font-medium text-gray-700">
+                Account Password
+              </label>
+              <Tooltip.Provider>
+                <Tooltip.Root>
+                  <Tooltip.Trigger asChild>
+                    <button
+                      type="button"
+                      className="inline-flex items-center text-gray-400 hover:text-gray-500"
+                    >
+                      <Info className="h-4 w-4" />
+                    </button>
+                  </Tooltip.Trigger>
+                  <Tooltip.Portal>
+                    <Tooltip.Content
+                      className="bg-gray-900 text-white px-4 py-2 rounded text-xs max-w-xs z-50"
+                      sideOffset={5}
+                    >
+                      <div>
+                        An app password is a 16-digit passcode that gives permission to access your Google Account. App passwords can only be used with accounts that have 2-Step Verification turned on.
+                      </div>
+                      <div className="mt-2">
+                        You can create an app password at:{' '}
+                        <a 
+                          href="https://myaccount.google.com/apppasswords" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-300 hover:text-blue-200 underline"
+                        >
+                          https://myaccount.google.com/apppasswords
+                        </a>
+                      </div>
+                      <Tooltip.Arrow className="fill-gray-900" />
+                    </Tooltip.Content>
+                  </Tooltip.Portal>
+                </Tooltip.Root>
+              </Tooltip.Provider>
+            </div>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                <Lock className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                type="password"
+                name="account_password"
+                id="account_password"
+                value={credentials.account_password}
+                onChange={handleCredentialsChange}
+                className="appearance-none block w-full px-3 py-2 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                placeholder="••••••••"
+                required
+              />
+            </div>
+          </div>
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              disabled={isSavingCredentials}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSavingCredentials ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Saving...
+                </>
+              ) : (
+                'Test Connection & Save Email Settings'
+              )}
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  );
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -281,7 +470,7 @@ export function CompanySettings() {
                             {isCalendarConnected && (
                               <Tooltip.Portal>
                                 <Tooltip.Content
-                                  className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
+                                  className="bg-gray-900 text-white px-4 py-2 rounded text-xs max-w-xs z-50"
                                   sideOffset={5}
                                 >
                                   Please disconnect the current calendar before connecting a new one
@@ -301,55 +490,7 @@ export function CompanySettings() {
         );
 
       case 'email':
-        return (
-          <div className="bg-white shadow rounded-lg">
-            <div className="px-6 py-5 border-b border-gray-200">
-              <div className="flex items-center">
-                <Mail className="h-6 w-6 text-gray-400" />
-                <h2 className="ml-3 text-lg font-medium text-gray-900">Email Settings</h2>
-              </div>
-              <p className="mt-1 text-sm text-gray-500">
-                Configure your IMAP email account for sending and receiving emails
-              </p>
-            </div>
-            <div className="px-6 py-6 space-y-6">
-              <div className="grid grid-cols-1 gap-6">
-                <div>
-                  <label htmlFor="username" className="block text-sm font-medium text-gray-700">
-                    IMAP Username
-                  </label>
-                  <input
-                    type="text"
-                    name="username"
-                    id="username"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                    placeholder="email@example.com"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                    IMAP Password
-                  </label>
-                  <input
-                    type="password"
-                    name="password"
-                    id="password"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                    placeholder="••••••••"
-                  />
-                </div>
-                <div className="flex justify-end">
-                  <button
-                    type="button"
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                  >
-                    Save Email Settings
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
+        return renderEmailSettings();
 
       case 'voice':
         return (
