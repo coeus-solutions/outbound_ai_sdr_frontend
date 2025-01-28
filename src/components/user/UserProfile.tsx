@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, Lock, Mail } from 'lucide-react';
-import { getUserEmail } from '../../utils/auth';
+import { getUserEmail, getToken } from '../../utils/auth';
+import { updateUser, getUser } from '../../services/users';
+import { useToast } from '../../context/ToastContext';
 
 export function UserProfile() {
   const [name, setName] = useState('');
@@ -8,47 +10,118 @@ export function UserProfile() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isPageLoading, setIsPageLoading] = useState(true);
   const userEmail = getUserEmail();
+  const { showToast } = useToast();
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const token = getToken();
+        if (!token) {
+          showToast('Authentication failed. Please try logging in again.', 'error');
+          return;
+        }
+
+        const userData = await getUser(token);
+        setName(userData.name || '');
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to fetch user profile';
+        showToast(errorMessage, 'error');
+      } finally {
+        setIsPageLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, [showToast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setSuccessMessage('');
+    setIsLoading(true);
 
-    // Name validation
-    if (!name.trim()) {
-      setError('Please enter your name');
-      return;
+    try {
+      // Name validation
+      if (!name.trim()) {
+        setError('Please enter your name');
+        setIsLoading(false);
+        return;
+      }
+
+      // Password validation
+      if (newPassword || currentPassword || confirmPassword) {
+        if (!currentPassword) {
+          setError('Please enter your current password');
+          setIsLoading(false);
+          return;
+        }
+
+        if (!newPassword) {
+          setError('Please enter your new password');
+          setIsLoading(false);
+          return;
+        }
+
+        if (!confirmPassword) {
+          setError('Please confirm your new password');
+          setIsLoading(false);
+          return;
+        }
+
+        if (newPassword !== confirmPassword) {
+          setError('New passwords do not match');
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      const token = getToken();
+      if (!token) {
+        showToast('Authentication failed. Please try logging in again.', 'error');
+        setIsLoading(false);
+        return;
+      }
+
+      const updateData = {
+        name: name.trim(),
+        ...(newPassword ? {
+          new_password: newPassword,
+          old_password: currentPassword
+        } : {})
+      };
+
+      const updatedUser = await updateUser(token, updateData);
+      showToast('Profile updated successfully', 'success');
+
+      // Clear password fields after successful update
+      if (newPassword) {
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update profile';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
+    } finally {
+      setIsLoading(false);
     }
-
-    // Password validation
-    if (currentPassword && (!newPassword || !confirmPassword)) {
-      setError('Please enter both new password and confirm password');
-      return;
-    }
-
-    if (newPassword && !currentPassword) {
-      setError('Please enter your current password');
-      return;
-    }
-
-    if (confirmPassword && !currentPassword) {
-      setError('Please enter your current password');
-      return;
-    }
-
-    if (newPassword && newPassword !== confirmPassword) {
-      setError('New passwords do not match');
-      return;
-    }
-
-    // TODO: API integration will be added later
-    console.log('Form submitted:', { name, currentPassword, newPassword });
   };
 
   // Check if any password field has a value
   const isPasswordFieldFilled = Boolean(currentPassword || newPassword || confirmPassword);
+
+  if (isPageLoading) {
+    return (
+      <div className="max-w-2xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <div className="bg-white shadow rounded-lg p-8 flex justify-center items-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
@@ -64,12 +137,6 @@ export function UserProfile() {
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg" role="alert">
               {error}
-            </div>
-          )}
-          
-          {successMessage && (
-            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
-              {successMessage}
             </div>
           )}
 
@@ -183,9 +250,17 @@ export function UserProfile() {
           <div className="flex justify-end">
             <button
               type="submit"
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              disabled={isLoading}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Save Changes
+              {isLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Saving...
+                </>
+              ) : (
+                'Save Changes'
+              )}
             </button>
           </div>
         </form>
