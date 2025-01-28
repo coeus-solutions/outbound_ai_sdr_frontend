@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Building, ChevronLeft, ChevronRight, LogOut, User, HelpCircle, Mail } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '../../utils/cn';
-import { getUserEmail } from '../../utils/auth';
+import { getUserEmail, getToken } from '../../utils/auth';
+import { getUser } from '../../services/users';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -13,9 +14,24 @@ interface SidebarProps {
 export function Sidebar({ isCollapsed, onToggle, onLogout }: SidebarProps) {
   const location = useLocation();
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string>('');
   
   useEffect(() => {
     setUserEmail(getUserEmail());
+    
+    const fetchUserName = async () => {
+      try {
+        const token = getToken();
+        if (token) {
+          const userData = await getUser(token);
+          setUserName(userData.name || '');
+        }
+      } catch (error) {
+        console.error('Failed to fetch user name:', error);
+      }
+    };
+
+    fetchUserName();
   }, []);
 
   const isActive = (path: string) => {
@@ -92,11 +108,26 @@ export function Sidebar({ isCollapsed, onToggle, onLogout }: SidebarProps) {
       </div>
 
       <div className="p-4 border-t">
-        {!isCollapsed && userEmail && (
-          <div className="px-4 py-2 text-sm text-gray-500 truncate flex items-center">
-            <Mail className="h-4 w-4 mr-2 flex-shrink-0" />
-            {userEmail}
-          </div>
+        {!isCollapsed && (
+          <>
+            {userName ? (
+              <div className="px-4 py-2">
+                <div className="text-sm text-gray-700 font-medium">
+                  {userName}
+                </div>
+                <div className="text-xs text-gray-500">
+                  ({userEmail})
+                </div>
+              </div>
+            ) : (
+              userEmail && (
+                <div className="px-4 py-2 text-sm text-gray-500 truncate flex items-center">
+                  <Mail className="h-4 w-4 mr-2 flex-shrink-0" />
+                  {userEmail}
+                </div>
+              )
+            )}
+          </>
         )}
         <Link
           to="/profile"
