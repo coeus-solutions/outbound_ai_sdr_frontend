@@ -20,9 +20,12 @@ export const config = {
 
 export const apiEndpoints = {
   auth: {
-    login: `${config.apiUrl}/api/auth/login`,
-    signup: `${config.apiUrl}/api/auth/signup`,
-    resetPassword: `${config.apiUrl}/api/auth/reset-password`,
+    login: `${config.apiUrl}/api/auth/login` as const,
+    signup: `${config.apiUrl}/api/auth/signup` as const,
+    resetPassword: `${config.apiUrl}/api/auth/reset-password` as const,
+  },
+  users: {
+    me: `${config.apiUrl}/api/users/me` as const,
   },
   companies: {
     list: `${config.apiUrl}/api/companies`,
