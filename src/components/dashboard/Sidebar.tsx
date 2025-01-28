@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Building, ChevronLeft, ChevronRight, LogOut, User, HelpCircle } from 'lucide-react';
+import { Building, ChevronLeft, ChevronRight, LogOut, User, HelpCircle, Mail } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '../../utils/cn';
 import { getUserEmail } from '../../utils/auth';
@@ -94,10 +94,21 @@ export function Sidebar({ isCollapsed, onToggle, onLogout }: SidebarProps) {
       <div className="p-4 border-t">
         {!isCollapsed && userEmail && (
           <div className="px-4 py-2 text-sm text-gray-500 truncate flex items-center">
-            <User className="h-4 w-4 mr-2 flex-shrink-0" />
+            <Mail className="h-4 w-4 mr-2 flex-shrink-0" />
             {userEmail}
           </div>
         )}
+        <Link
+          to="/profile"
+          className={cn(
+            "flex items-center w-full px-4 py-2 text-gray-700 hover:bg-indigo-50 rounded-lg transition-colors mb-2",
+            isActive('/profile') && "bg-indigo-50 text-indigo-600",
+            isCollapsed && "justify-center"
+          )}
+        >
+          <User className={cn("h-5 w-5 flex-shrink-0", isActive('/profile') && "text-indigo-600")} />
+          {!isCollapsed && <span className="ml-3">Profile</span>}
+        </Link>
         <button
           onClick={onLogout}
           className={cn(

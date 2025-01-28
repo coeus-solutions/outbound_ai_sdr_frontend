@@ -17,6 +17,7 @@ import { CompanySettings } from './components/companies/CompanySettings';
 import { CronofyCallback } from './components/auth/CronofyCallback';
 import { ToastProvider } from './context/ToastContext';
 import { GettingStarted } from './components/dashboard/GettingStarted';
+import { UserProfile } from './components/user/UserProfile';
 
 export function App() {
   const { isAuthenticated, logout } = useAuth();
@@ -62,6 +63,7 @@ export function App() {
             <Route path="/companies/:companyId/settings" element={<CompanySettings />} />
             <Route path="/cronofy-auth" element={<CronofyCallback />} />
             <Route path="/getting-started" element={<GettingStarted />} />
+            <Route path="/profile" element={<UserProfile />} />
             <Route path="*" element={<Navigate to="/companies" replace />} />
           </Routes>
         </DashboardLayout>
