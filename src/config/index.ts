@@ -24,6 +24,7 @@ export const apiEndpoints = {
     signup: `${config.apiUrl}/api/auth/signup` as const,
     resetPassword: `${config.apiUrl}/api/auth/reset-password` as const,
     forgotPassword: `${config.apiUrl}/api/auth/forgot-password` as const,
+    verify: `${config.apiUrl}/api/auth/verify` as const,
   },
   users: {
     me: `${config.apiUrl}/api/users/me` as const,

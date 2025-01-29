@@ -18,6 +18,7 @@ import { CronofyCallback } from './components/auth/CronofyCallback';
 import { ToastProvider } from './context/ToastContext';
 import { GettingStarted } from './components/dashboard/GettingStarted';
 import { UserProfile } from './components/user/UserProfile';
+import { VerifyAccount } from './components/auth/VerifyAccount';
 
 export function App() {
   const { isAuthenticated, logout } = useAuth();
@@ -30,7 +31,7 @@ export function App() {
   };
 
   useEffect(() => {
-    if (!isAuthenticated && location.pathname !== '/' && !location.pathname.startsWith('/login') && !location.pathname.startsWith('/signup') && !location.pathname.startsWith('/forgot-password') && !location.pathname.startsWith('/reset-password')) {
+    if (!isAuthenticated && location.pathname !== '/' && !location.pathname.startsWith('/login') && !location.pathname.startsWith('/signup') && !location.pathname.startsWith('/forgot-password') && !location.pathname.startsWith('/reset-password') && !location.pathname.startsWith('/verify-account')) {
       navigate('/login');
     } else if (isAuthenticated && (location.pathname === '/login' || location.pathname === '/signup' || location.pathname === '/' || location.pathname === '/forgot-password' || location.pathname === '/reset-password')) {
       navigate('/companies');
@@ -46,6 +47,7 @@ export function App() {
           <Route path="/signup" element={<UnauthenticatedApp />} />
           <Route path="/forgot-password" element={<UnauthenticatedApp />} />
           <Route path="/reset-password" element={<UnauthenticatedApp />} />
+          <Route path="/verify-account" element={<VerifyAccount />} />
           <Route path="/cronofy-auth" element={<CronofyCallback />} />
           <Route path="/getting-started" element={<GettingStarted />} />
           <Route path="*" element={<Navigate to="/" replace />} />
