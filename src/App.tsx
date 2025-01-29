@@ -30,9 +30,9 @@ export function App() {
   };
 
   useEffect(() => {
-    if (!isAuthenticated && location.pathname !== '/' && !location.pathname.startsWith('/login') && !location.pathname.startsWith('/signup')) {
+    if (!isAuthenticated && location.pathname !== '/' && !location.pathname.startsWith('/login') && !location.pathname.startsWith('/signup') && !location.pathname.startsWith('/forgot-password') && !location.pathname.startsWith('/reset-password')) {
       navigate('/login');
-    } else if (isAuthenticated && (location.pathname === '/login' || location.pathname === '/signup' || location.pathname === '/')) {
+    } else if (isAuthenticated && (location.pathname === '/login' || location.pathname === '/signup' || location.pathname === '/' || location.pathname === '/forgot-password' || location.pathname === '/reset-password')) {
       navigate('/companies');
     }
   }, [isAuthenticated, location.pathname, navigate]);
@@ -44,6 +44,8 @@ export function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<UnauthenticatedApp />} />
           <Route path="/signup" element={<UnauthenticatedApp />} />
+          <Route path="/forgot-password" element={<UnauthenticatedApp />} />
+          <Route path="/reset-password" element={<UnauthenticatedApp />} />
           <Route path="/cronofy-auth" element={<CronofyCallback />} />
           <Route path="/getting-started" element={<GettingStarted />} />
           <Route path="*" element={<Navigate to="/" replace />} />
