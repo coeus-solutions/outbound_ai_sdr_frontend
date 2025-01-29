@@ -64,6 +64,12 @@ export function UserProfile() {
           return;
         }
 
+        if (newPassword.length < 8) {
+          setError('New password must be at least 8 characters long');
+          setIsLoading(false);
+          return;
+        }
+
         if (!confirmPassword) {
           setError('Please confirm your new password');
           setIsLoading(false);
@@ -219,8 +225,9 @@ export function UserProfile() {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    placeholder="Enter new password"
+                    placeholder="Enter new password (minimum 8 characters)"
                     required={isPasswordFieldFilled}
+                    minLength={8}
                   />
                 </div>
               </div>
@@ -239,8 +246,9 @@ export function UserProfile() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    placeholder="Confirm new password"
+                    placeholder="Confirm new password (minimum 8 characters)"
                     required={isPasswordFieldFilled}
+                    minLength={8}
                   />
                 </div>
               </div>
