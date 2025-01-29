@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useLocation, Link } from 'react-router-dom';
 import { LoginForm } from './auth/LoginForm';
 import { SignUpForm } from './auth/SignUpForm';
 import { ForgotPasswordForm } from './auth/ForgotPasswordForm';
+import { ResetPasswordForm } from './auth/ResetPasswordForm';
 import { useAuth } from '../hooks/useAuth';
 import { Footer } from './shared/Footer';
 
@@ -11,6 +12,7 @@ export function UnauthenticatedApp() {
   const location = useLocation();
   const isSignup = location.pathname === '/signup';
   const isForgotPassword = location.pathname === '/forgot-password';
+  const isResetPassword = location.pathname === '/reset-password';
 
   const renderForm = () => {
     if (isSignup) {
@@ -18,6 +20,9 @@ export function UnauthenticatedApp() {
     }
     if (isForgotPassword) {
       return <ForgotPasswordForm />;
+    }
+    if (isResetPassword) {
+      return <ResetPasswordForm />;
     }
     return <LoginForm onLogin={login} />;
   };
