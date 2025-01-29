@@ -19,6 +19,13 @@ export function SignUpForm({ onSignup }: SignUpFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    // Password validation
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -105,8 +112,9 @@ export function SignUpForm({ onSignup }: SignUpFormProps) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="appearance-none relative block w-full px-3 py-2 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                  placeholder="Password"
+                  placeholder="Password (minimum 8 characters)"
                   disabled={isLoading}
+                  minLength={8}
                 />
               </div>
             </div>
