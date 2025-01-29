@@ -2,6 +2,7 @@ import React from 'react';
 import { Routes, Route, Navigate, useLocation, Link } from 'react-router-dom';
 import { LoginForm } from './auth/LoginForm';
 import { SignUpForm } from './auth/SignUpForm';
+import { ForgotPasswordForm } from './auth/ForgotPasswordForm';
 import { useAuth } from '../hooks/useAuth';
 import { Footer } from './shared/Footer';
 
@@ -9,6 +10,17 @@ export function UnauthenticatedApp() {
   const { login } = useAuth();
   const location = useLocation();
   const isSignup = location.pathname === '/signup';
+  const isForgotPassword = location.pathname === '/forgot-password';
+
+  const renderForm = () => {
+    if (isSignup) {
+      return <SignUpForm onSignup={login} />;
+    }
+    if (isForgotPassword) {
+      return <ForgotPasswordForm />;
+    }
+    return <LoginForm onLogin={login} />;
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -24,7 +36,7 @@ export function UnauthenticatedApp() {
 
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
           <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-            {isSignup ? <SignUpForm onSignup={login} /> : <LoginForm onLogin={login} />}
+            {renderForm()}
           </div>
         </div>
       </div>
