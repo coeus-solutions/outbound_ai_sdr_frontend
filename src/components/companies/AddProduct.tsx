@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Package } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Package, Upload } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getToken } from '../../utils/auth';
 import { createProduct } from '../../services/products';
@@ -14,10 +14,17 @@ export function AddProduct() {
   const [formData, setFormData] = useState({
     product_name: '',
   });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!companyId) return;
+
+    if (!selectedFile) {
+      showToast('Please select a file to upload', 'error');
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
@@ -32,6 +39,7 @@ export function AddProduct() {
 
       await createProduct(token, companyId, {
         product_name: formData.product_name,
+        file: selectedFile,
       });
 
       showToast('Product created successfully!', 'success');
@@ -43,6 +51,29 @@ export function AddProduct() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) {
+      setSelectedFile(null);
+      return;
+    }
+
+    // Check file extension
+    const extension = file.name.split('.').pop()?.toLowerCase();
+    const allowedExtensions = ['docx', 'pdf', 'txt'];
+    
+    if (!extension || !allowedExtensions.includes(extension)) {
+      showToast('Only .docx, .pdf, and .txt files are allowed', 'error');
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      setSelectedFile(null);
+      return;
+    }
+
+    setSelectedFile(file);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -76,6 +107,43 @@ export function AddProduct() {
               className="appearance-none relative block w-full px-3 py-2 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
               placeholder="Product name"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Product Documentation
+            </label>
+            <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg">
+              <div className="space-y-1 text-center">
+                <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                <div className="flex text-sm text-gray-600">
+                  <label
+                    htmlFor="file-upload"
+                    className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500"
+                  >
+                    <span>Upload a file</span>
+                    <input
+                      id="file-upload"
+                      name="file-upload"
+                      type="file"
+                      ref={fileInputRef}
+                      className="sr-only"
+                      onChange={handleFileChange}
+                      accept=".docx,.pdf,.txt"
+                    />
+                  </label>
+                  <p className="pl-1">or drag and drop</p>
+                </div>
+                <p className="text-xs text-gray-500">
+                  Only .docx, .pdf, and .txt files are allowed
+                </p>
+                {selectedFile && (
+                  <p className="text-sm text-gray-600">
+                    Selected file: {selectedFile.name}
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
