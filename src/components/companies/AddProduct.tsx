@@ -13,7 +13,6 @@ export function AddProduct() {
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     product_name: '',
-    description: '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -33,7 +32,6 @@ export function AddProduct() {
 
       await createProduct(token, companyId, {
         product_name: formData.product_name,
-        description: formData.description || undefined,
       });
 
       showToast('Product created successfully!', 'success');
@@ -77,21 +75,6 @@ export function AddProduct() {
               onChange={handleChange}
               className="appearance-none relative block w-full px-3 py-2 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
               placeholder="Product name"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-              Description
-            </label>
-            <textarea
-              id="description"
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              rows={4}
-              className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-              placeholder="Product description (optional)"
             />
           </div>
         </div>
