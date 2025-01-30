@@ -5,16 +5,21 @@ export interface Company {
   name: string;
   address?: string;
   industry?: string;
+  website?: string;
   user_id: string;
   cronofy_provider?: string;
   cronofy_linked_email?: string;
   cronofy_default_calendar_name?: string;
   cronofy_default_calendar_id?: string;
   account_email?: string;
+  products_services?: string;
+  background?: string;
+  overview?: string;
 }
 
 export interface CompanyCreate {
   name: string;
+  website: string;
   address?: string;
   industry?: string;
 }

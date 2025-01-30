@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { Building2, Plus, MapPin, Users, Package, Phone, Mail, Settings } from 'lucide-react';
+import { Building2, Plus, MapPin, Users, Package, Phone, Mail, Settings, Globe, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getToken } from '../../utils/auth';
 import { Company, getCompanies } from '../../services/companies';
+import { CompanyDetailsDialog } from './CompanyDetailsDialog';
 
 export function CompanyList() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   useEffect(() => {
     async function fetchCompanies() {
@@ -93,7 +96,16 @@ export function CompanyList() {
               key={company.id}
               className="relative bg-white rounded-lg shadow hover:shadow-md transition-shadow"
             >
-              <div className="absolute top-4 right-4">
+              <div className="absolute top-4 right-4 flex items-center space-x-2">
+                <button
+                  onClick={() => {
+                    setSelectedCompany(company);
+                    setIsDetailsOpen(true);
+                  }}
+                  className="text-gray-400 hover:text-gray-600 cursor-pointer"
+                >
+                  <Eye className="h-5 w-5" />
+                </button>
                 <Link to={`/companies/${company.id}/settings`}>
                   <Settings className="h-5 w-5 text-gray-400 hover:text-gray-600 cursor-pointer" />
                 </Link>
@@ -108,15 +120,17 @@ export function CompanyList() {
                       <h3 className="text-lg font-medium text-gray-900">
                         {company.name}
                       </h3>
-                      {company.address && (
-                        <span className="flex items-center text-sm text-gray-500">
-                          <MapPin className="h-4 w-4 mr-1" />
-                          {company.address}
-                        </span>
-                      )}
                     </div>
-                    {company.industry && (
-                      <p className="text-sm text-gray-500">{company.industry}</p>
+                    {company.website && (
+                      <a
+                        href={company.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-gray-500 hover:text-indigo-600 flex items-center mt-1"
+                      >
+                        <Globe className="h-4 w-4 mr-1" />
+                        {company.website}
+                      </a>
                     )}
                   </div>
                 </div>
@@ -155,6 +169,15 @@ export function CompanyList() {
           ))}
         </div>
       )}
+
+      <CompanyDetailsDialog
+        isOpen={isDetailsOpen}
+        onClose={() => {
+          setIsDetailsOpen(false);
+          setSelectedCompany(null);
+        }}
+        company={selectedCompany}
+      />
     </div>
   );
 }
