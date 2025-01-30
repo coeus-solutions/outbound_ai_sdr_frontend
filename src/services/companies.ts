@@ -12,6 +12,9 @@ export interface Company {
   cronofy_default_calendar_name?: string;
   cronofy_default_calendar_id?: string;
   account_email?: string;
+  products_services?: string;
+  background?: string;
+  overview?: string;
 }
 
 export interface CompanyCreate {
