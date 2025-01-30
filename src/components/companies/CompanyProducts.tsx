@@ -20,14 +20,12 @@ export function CompanyProducts() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [productForm, setProductForm] = useState({
     product_name: '',
-    description: ''
   });
 
   useEffect(() => {
     if (editingProduct) {
       setProductForm({
         product_name: editingProduct.product_name,
-        description: editingProduct.description || ''
       });
     }
   }, [editingProduct]);
@@ -82,7 +80,7 @@ export function CompanyProducts() {
 
   const handleCloseDialog = () => {
     setEditingProduct(null);
-    setProductForm({ product_name: '', description: '' });
+    setProductForm({ product_name: '' });
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -105,7 +103,10 @@ export function CompanyProducts() {
         return;
       }
 
-      const updatedProduct = await updateProduct(token, companyId, editingProduct.id, productForm);
+      const updatedProduct = await updateProduct(token, companyId, editingProduct.id, {
+        product_name: productForm.product_name,
+        description: '', // Provide an empty string since the API still requires it
+      });
       
       // Update the products list with the updated product
       setProducts(prevProducts => 
@@ -172,9 +173,6 @@ export function CompanyProducts() {
                   <Package className="h-6 w-6 text-indigo-600 flex-shrink-0" />
                   <div>
                     <h3 className="text-lg font-semibold">{product.product_name}</h3>
-                    {product.description && (
-                      <p className="text-gray-600 text-sm mt-1">{product.description}</p>
-                    )}
                   </div>
                 </div>
                 <button
@@ -206,21 +204,8 @@ export function CompanyProducts() {
               name="product_name"
               value={productForm.product_name}
               onChange={handleInputChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               required
-            />
-          </div>
-          <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-              Description
-            </label>
-            <textarea
-              id="description"
-              name="description"
-              value={productForm.description}
-              onChange={handleInputChange}
-              rows={3}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             />
           </div>
           <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3">

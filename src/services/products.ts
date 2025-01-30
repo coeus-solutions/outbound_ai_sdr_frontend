@@ -10,6 +10,7 @@ export interface Product {
 export interface ProductCreate {
   product_name: string;
   description?: string;
+  file?: File;
 }
 
 export async function getProducts(token: string, companyId: string): Promise<Product[]> {
@@ -28,13 +29,19 @@ export async function getProducts(token: string, companyId: string): Promise<Pro
 }
 
 export async function createProduct(token: string, companyId: string, product: ProductCreate): Promise<Product> {
+  const formData = new FormData();
+  formData.append('product_name', product.product_name);
+  if (product.file) {
+    formData.append('file', product.file);
+  }
+
   const response = await fetch(apiEndpoints.companies.products(companyId), {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
+      // Don't set Content-Type header, let the browser set it with the boundary
     },
-    body: JSON.stringify(product),
+    body: formData,
   });
 
   if (!response.ok) {
