@@ -5,6 +5,7 @@ export interface Company {
   name: string;
   address?: string;
   industry?: string;
+  website?: string;
   user_id: string;
   cronofy_provider?: string;
   cronofy_linked_email?: string;

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Building2, Plus, MapPin, Users, Package, Phone, Mail, Settings } from 'lucide-react';
+import { Building2, Plus, MapPin, Users, Package, Phone, Mail, Settings, Globe } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getToken } from '../../utils/auth';
 import { Company, getCompanies } from '../../services/companies';
@@ -109,6 +109,17 @@ export function CompanyList() {
                         {company.name}
                       </h3>
                     </div>
+                    {company.website && (
+                      <a
+                        href={company.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-gray-500 hover:text-indigo-600 flex items-center mt-1"
+                      >
+                        <Globe className="h-4 w-4 mr-1" />
+                        {company.website}
+                      </a>
+                    )}
                   </div>
                 </div>
                 <div className="mt-4 flex flex-col space-y-2">
