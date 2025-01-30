@@ -16,6 +16,7 @@ export interface Company {
 
 export interface CompanyCreate {
   name: string;
+  website: string;
   address?: string;
   industry?: string;
 }
