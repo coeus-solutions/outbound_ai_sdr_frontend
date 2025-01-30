@@ -108,16 +108,7 @@ export function CompanyList() {
                       <h3 className="text-lg font-medium text-gray-900">
                         {company.name}
                       </h3>
-                      {company.address && (
-                        <span className="flex items-center text-sm text-gray-500">
-                          <MapPin className="h-4 w-4 mr-1" />
-                          {company.address}
-                        </span>
-                      )}
                     </div>
-                    {company.industry && (
-                      <p className="text-sm text-gray-500">{company.industry}</p>
-                    )}
                   </div>
                 </div>
                 <div className="mt-4 flex flex-col space-y-2">
