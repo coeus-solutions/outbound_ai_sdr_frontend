@@ -126,7 +126,7 @@ export function CompanyEmailCampaigns() {
           subtitle="Email Campaigns for"
         />
         <Link
-          to={`/companies/${companyId}/email-campaigns/new`}
+          to={`/companies/${companyId}/campaigns/new`}
           className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
         >
           <Plus className="h-4 w-4 mr-2" />
@@ -141,7 +141,7 @@ export function CompanyEmailCampaigns() {
           <p className="mt-1 text-sm text-gray-500">Get started by creating your first email campaign.</p>
           <div className="mt-6">
             <Link
-              to={`/companies/${companyId}/email-campaigns/new`}
+              to={`/companies/${companyId}/campaigns/new`}
               className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
               <Plus className="h-4 w-4 mr-2" />

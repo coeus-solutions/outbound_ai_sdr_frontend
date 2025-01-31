@@ -62,8 +62,8 @@ export function App() {
             <Route path="/companies/:companyId/products/new" element={<AddProduct />} />
             <Route path="/companies/:companyId/leads" element={<CompanyLeads />} />
             <Route path="/companies/:companyId/calls" element={<CompanyCallLogs />} />
-            <Route path="/companies/:companyId/email-campaigns" element={<CompanyEmailCampaigns />} />
-            <Route path="/companies/:companyId/email-campaigns/new" element={<AddEmailCampaign />} />
+            <Route path="/companies/:companyId/campaigns" element={<CompanyEmailCampaigns />} />
+            <Route path="/companies/:companyId/campaigns/new" element={<AddEmailCampaign />} />
             <Route path="/companies/:companyId/settings" element={<CompanySettings />} />
             <Route path="/cronofy-auth" element={<CronofyCallback />} />
             <Route path="/getting-started" element={<GettingStarted />} />
