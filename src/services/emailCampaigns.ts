@@ -9,6 +9,7 @@ export interface EmailCampaign {
   email_subject: string;
   email_body: string;
   created_at: string;
+  type: 'email' | 'call';
 }
 
 interface EmailCampaignsResponse {
@@ -18,8 +19,7 @@ interface EmailCampaignsResponse {
 export interface EmailCampaignCreate {
   name: string;
   description?: string;
-  email_subject: string;
-  email_body: string;
+  campaign_type: 'email' | 'call';
 }
 
 export interface RunCampaignResponse {

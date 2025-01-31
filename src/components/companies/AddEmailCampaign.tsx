@@ -20,8 +20,7 @@ export function AddEmailCampaign() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    email_subject: '',
-    email_body: '',
+    campaign_type: 'email' as 'email' | 'call'
   });
 
   useEffect(() => {
@@ -70,8 +69,7 @@ export function AddEmailCampaign() {
       await createEmailCampaign(token, companyId, {
         name: formData.name,
         description: formData.description || undefined,
-        email_subject: formData.email_subject,
-        email_body: formData.email_body,
+        campaign_type: formData.campaign_type
       });
 
       showToast('Email campaign created successfully!', 'success');
@@ -165,6 +163,25 @@ export function AddEmailCampaign() {
           </div>
 
           <div>
+            <label htmlFor="campaign_type" className="block text-sm font-medium text-gray-700">
+              Campaign Type
+            </label>
+            <div className="mt-1">
+              <select
+                name="campaign_type"
+                id="campaign_type"
+                required
+                value={formData.campaign_type}
+                onChange={handleChange}
+                className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+              >
+                <option value="email">Email</option>
+                <option value="call">Call</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
             <label htmlFor="description" className="block text-sm font-medium text-gray-700">
               Description (Optional)
             </label>
@@ -178,41 +195,6 @@ export function AddEmailCampaign() {
                 className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
                 placeholder="Enter campaign description"
               />
-            </div>
-          </div>
-
-          <div>
-            <label htmlFor="email_subject" className="block text-sm font-medium text-gray-700">
-              Email Subject
-            </label>
-            <div className="mt-1">
-              <input
-                type="text"
-                name="email_subject"
-                id="email_subject"
-                required
-                value={formData.email_subject}
-                onChange={handleChange}
-                className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                placeholder="Enter email subject"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label htmlFor="email_body" className="block text-sm font-medium text-gray-700">
-              Email Body
-            </label>
-            <div className="mt-1">
-              <ReactQuill
-                theme="snow"
-                value={formData.email_body}
-                onChange={(content) => setFormData(prev => ({ ...prev, email_body: content }))}
-                modules={modules}
-                formats={formats}
-                className="h-64 bg-white"
-              />
-              <div className="h-16" /> {/* Spacer for Quill toolbar */}
             </div>
           </div>
         </div>
