@@ -161,7 +161,7 @@ export function CompanyList() {
                     className="text-sm text-gray-600 hover:text-indigo-600 flex items-center"
                   >
                     <Mail className="h-4 w-4 mr-1" />
-                    View email campaigns
+                    View campaigns
                   </Link>
                 </div>
               </div>
