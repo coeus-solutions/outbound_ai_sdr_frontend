@@ -50,8 +50,8 @@ export const apiEndpoints = {
     details: (callId: string) => `${config.apiUrl}/api/calls/${callId}`,
     webhook: `${config.apiUrl}/api/calls/webhook`,
   },
-  emailCampaigns: {
-    run: (campaignId: string) => `${config.apiUrl}/api/email-campaigns/${campaignId}/run`,
+  campaigns: {
+    run: (campaignId: string) => `${config.apiUrl}/api/campaigns/${campaignId}/run`,
   },
   generate: {
     campaign: `${config.apiUrl}/api/generate-campaign`,

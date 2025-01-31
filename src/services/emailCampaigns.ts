@@ -63,7 +63,7 @@ export async function createEmailCampaign(token: string, companyId: string, camp
 }
 
 export async function runEmailCampaign(token: string, campaignId: string): Promise<RunCampaignResponse> {
-  const response = await fetch(apiEndpoints.emailCampaigns.run(campaignId), {
+  const response = await fetch(apiEndpoints.campaigns.run(campaignId), {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
