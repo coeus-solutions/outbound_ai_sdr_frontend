@@ -7,7 +7,7 @@ import { getToken } from '../../utils/auth';
 import { useToast } from '../../context/ToastContext';
 import { getCompanyById, Company } from '../../services/companies';
 import { createEmailCampaign } from '../../services/emailCampaigns';
-import { apiEndpoints } from '../../config';
+import { getCompanyProducts, ProductInDB } from '../../services/products';
 
 export function AddEmailCampaign() {
   const { companyId } = useParams();
@@ -17,10 +17,12 @@ export function AddEmailCampaign() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [company, setCompany] = useState<Company | null>(null);
+  const [products, setProducts] = useState<ProductInDB[]>([]);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    campaign_type: 'email' as 'email' | 'call'
+    type: 'email' as 'email' | 'call',
+    product_id: ''
   });
 
   useEffect(() => {
@@ -35,11 +37,19 @@ export function AddEmailCampaign() {
           return;
         }
 
-        const [companyData] = await Promise.all([
+        const [companyData, productsData] = await Promise.all([
           getCompanyById(token, companyId),
+          getCompanyProducts(token, companyId)
         ]);
 
         setCompany(companyData);
+        setProducts(productsData);
+        if (productsData.length > 0) {
+          setFormData(prev => ({
+            ...prev,
+            product_id: productsData[0].id
+          }));
+        }
         setError(null);
       } catch (err) {
         const errorMessage = 'Failed to fetch data';
@@ -66,16 +76,12 @@ export function AddEmailCampaign() {
         return;
       }
 
-      await createEmailCampaign(token, companyId, {
-        name: formData.name,
-        description: formData.description || undefined,
-        campaign_type: formData.campaign_type
-      });
+      await createEmailCampaign(token, companyId, formData);
 
-      showToast('Email campaign created successfully!', 'success');
+      showToast('Campaign created successfully!', 'success');
       navigate(`/companies/${companyId}/campaigns`);
     } catch (err) {
-      const errorMessage = 'Failed to create email campaign';
+      const errorMessage = 'Failed to create campaign';
       setError(errorMessage);
       showToast(errorMessage, 'error');
     } finally {
@@ -133,6 +139,20 @@ export function AddEmailCampaign() {
     );
   }
 
+  if (products.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <div className="text-gray-600 mb-4">Please add at least one product before creating a campaign.</div>
+        <button
+          onClick={() => navigate(`/companies/${companyId}/products`)}
+          className="text-indigo-600 hover:text-indigo-500"
+        >
+          Go to Products
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">New Campaign</h1>
@@ -163,20 +183,42 @@ export function AddEmailCampaign() {
           </div>
 
           <div>
-            <label htmlFor="campaign_type" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="type" className="block text-sm font-medium text-gray-700">
               Campaign Type
             </label>
             <div className="mt-1">
               <select
-                name="campaign_type"
-                id="campaign_type"
+                name="type"
+                id="type"
                 required
-                value={formData.campaign_type}
+                value={formData.type}
                 onChange={handleChange}
                 className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
               >
                 <option value="email">Email</option>
                 <option value="call">Call</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="product_id" className="block text-sm font-medium text-gray-700">
+              Product
+            </label>
+            <div className="mt-1">
+              <select
+                name="product_id"
+                id="product_id"
+                required
+                value={formData.product_id}
+                onChange={handleChange}
+                className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+              >
+                {products.map(product => (
+                  <option key={product.id} value={product.id}>
+                    {product.product_name}
+                  </option>
+                ))}
               </select>
             </div>
           </div>

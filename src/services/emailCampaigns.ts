@@ -19,7 +19,8 @@ interface EmailCampaignsResponse {
 export interface EmailCampaignCreate {
   name: string;
   description?: string;
-  campaign_type: 'email' | 'call';
+  type: 'email' | 'call';
+  product_id: string;
 }
 
 export interface RunCampaignResponse {
