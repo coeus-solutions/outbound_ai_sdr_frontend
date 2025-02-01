@@ -83,7 +83,7 @@ export function CompanyCallLogs() {
         subtitle="Call logs for"
       />
 
-      <CallLogFilters filters={filters} onFilterChange={setFilters} />
+      <CallLogFilters filters={filters} onFilterChange={setFilters} companyId={companyId || ''} />
       <CallLogList callLogs={callLogs} isLoading={isLoading} />
     </div>
   );

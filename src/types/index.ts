@@ -5,7 +5,7 @@ export interface CallLog {
   lead_id: string;
   lead_name: string;
   product_id: string;
-  product_name: string;
+  campaign_name: string;
   created_at: string;
   duration: number; // in seconds
   sentiment: 'positive' | 'neutral' | 'negative';

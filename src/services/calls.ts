@@ -1,8 +1,13 @@
 import { apiEndpoints } from '../config';
 import { CallLog } from '../types';
 
-export async function getCompanyCalls(token: string, companyId: string): Promise<CallLog[]> {
-  const response = await fetch(apiEndpoints.companies.calls.list(companyId), {
+export async function getCompanyCalls(token: string, companyId: string, campaignId?: string): Promise<CallLog[]> {
+  const url = new URL(apiEndpoints.companies.calls.list(companyId));
+  if (campaignId) {
+    url.searchParams.append('campaign_id', campaignId);
+  }
+
+  const response = await fetch(url.toString(), {
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',
