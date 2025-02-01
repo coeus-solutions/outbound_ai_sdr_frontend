@@ -13,6 +13,14 @@ export interface ProductCreate {
   file?: File;
 }
 
+export interface ProductInDB {
+  id: string;
+  company_id: string;
+  product_name: string;
+  file_name?: string;
+  original_filename?: string;
+}
+
 export async function getProducts(token: string, companyId: string): Promise<Product[]> {
   const response = await fetch(apiEndpoints.companies.products(companyId), {
     headers: {
@@ -74,6 +82,21 @@ export async function updateProduct(
 
   if (!response.ok) {
     throw new Error('Failed to update product');
+  }
+
+  return response.json();
+}
+
+export async function getCompanyProducts(token: string, companyId: string): Promise<ProductInDB[]> {
+  const response = await fetch(apiEndpoints.companies.products(companyId), {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch products');
   }
 
   return response.json();

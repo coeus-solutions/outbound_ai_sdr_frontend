@@ -42,7 +42,7 @@ export const apiEndpoints = {
       list: (companyId: string) => `${config.apiUrl}/api/companies/${companyId}/calls`,
     },
     emailCampaigns: {
-      list: (companyId: string) => `${config.apiUrl}/api/companies/${companyId}/email-campaigns`,
+      list: (companyId: string) => `${config.apiUrl}/api/companies/${companyId}/campaigns`,
     },
     accountCredentials: (companyId: string) => `${config.apiUrl}/api/companies/${companyId}/account-credentials`,
   },
@@ -50,8 +50,8 @@ export const apiEndpoints = {
     details: (callId: string) => `${config.apiUrl}/api/calls/${callId}`,
     webhook: `${config.apiUrl}/api/calls/webhook`,
   },
-  emailCampaigns: {
-    run: (campaignId: string) => `${config.apiUrl}/api/email-campaigns/${campaignId}/run`,
+  campaigns: {
+    run: (campaignId: string) => `${config.apiUrl}/api/campaigns/${campaignId}/run`,
   },
   generate: {
     campaign: `${config.apiUrl}/api/generate-campaign`,
