@@ -44,6 +44,9 @@ export const apiEndpoints = {
     emailCampaigns: {
       list: (companyId: string) => `${config.apiUrl}/api/companies/${companyId}/campaigns`,
     },
+    emails: {
+      list: (companyId: string) => `${config.apiUrl}/api/companies/${companyId}/emails`,
+    },
     accountCredentials: (companyId: string) => `${config.apiUrl}/api/companies/${companyId}/account-credentials`,
   },
   calls: {

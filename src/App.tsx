@@ -19,6 +19,7 @@ import { ToastProvider } from './context/ToastContext';
 import { GettingStarted } from './components/dashboard/GettingStarted';
 import { UserProfile } from './components/user/UserProfile';
 import { VerifyAccount } from './components/auth/VerifyAccount';
+import { CompanyEmails } from './components/companies/CompanyEmails';
 
 export function App() {
   const { isAuthenticated, logout } = useAuth();
@@ -62,6 +63,7 @@ export function App() {
             <Route path="/companies/:companyId/products/new" element={<AddProduct />} />
             <Route path="/companies/:companyId/leads" element={<CompanyLeads />} />
             <Route path="/companies/:companyId/calls" element={<CompanyCallLogs />} />
+            <Route path="/companies/:companyId/emails" element={<CompanyEmails />} />
             <Route path="/companies/:companyId/campaigns" element={<CompanyEmailCampaigns />} />
             <Route path="/companies/:companyId/campaigns/new" element={<AddEmailCampaign />} />
             <Route path="/companies/:companyId/settings" element={<CompanySettings />} />
