@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Filter } from 'lucide-react';
-import { getCompanyEmailCampaigns, EmailCampaign } from '../../services/emailCampaigns';
+import { getCompanyCampaigns, Campaign } from '../../services/emailCampaigns';
 import { getToken } from '../../utils/auth';
 
 interface CallLogFilters {
@@ -16,7 +16,7 @@ interface CallLogFiltersProps {
 }
 
 export function CallLogFilters({ filters, onFilterChange, companyId }: CallLogFiltersProps) {
-  const [campaigns, setCampaigns] = useState<EmailCampaign[]>([]);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -25,7 +25,7 @@ export function CallLogFilters({ filters, onFilterChange, companyId }: CallLogFi
         const token = getToken();
         if (!token) return;
 
-        const campaignsData = await getCompanyEmailCampaigns(token, companyId);
+        const campaignsData = await getCompanyCampaigns(token, companyId, 'call');
         setCampaigns(campaignsData);
       } catch (error) {
         console.error('Error fetching campaigns:', error);

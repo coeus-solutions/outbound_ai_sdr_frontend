@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Filter } from 'lucide-react';
-import { getCompanyEmailCampaigns, EmailCampaign } from '../../services/emailCampaigns';
+import { getCompanyCampaigns, Campaign } from '../../services/emailCampaigns';
 import { getToken } from '../../utils/auth';
 import type { EmailLogFilters } from '../../hooks/useEmailLogs';
 
@@ -11,7 +11,7 @@ interface EmailLogFiltersProps {
 }
 
 export function EmailLogFilters({ filters, onFilterChange, companyId }: EmailLogFiltersProps) {
-  const [campaigns, setCampaigns] = useState<EmailCampaign[]>([]);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -20,7 +20,7 @@ export function EmailLogFilters({ filters, onFilterChange, companyId }: EmailLog
         const token = getToken();
         if (!token) return;
 
-        const campaignsData = await getCompanyEmailCampaigns(token, companyId);
+        const campaignsData = await getCompanyCampaigns(token, companyId, 'email');
         setCampaigns(campaignsData);
       } catch (error) {
         console.error('Error fetching campaigns:', error);
