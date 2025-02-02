@@ -17,7 +17,7 @@ interface APIError {
   };
 }
 
-export function CompanyEmailCampaigns() {
+export function CompanyCampaigns() {
   const { companyId } = useParams();
   const { showToast } = useToast();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -40,7 +40,7 @@ export function CompanyEmailCampaigns() {
 
         const [companyData, campaignsData] = await Promise.all([
           getCompanyById(token, companyId),
-          getCompanyCampaigns(token, companyId, 'email')
+          getCompanyCampaigns(token, companyId)
         ]);
 
         setCompany(companyData);
