@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Dialog } from '../shared/Dialog';
 import { Company } from '../../services/companies';
-import { Building2, MapPin, Briefcase, Globe } from 'lucide-react';
+import { MapPin, Briefcase, Globe } from 'lucide-react';
 import clsx from 'clsx';
 
 interface CompanyDetailsDialogProps {
@@ -11,35 +11,23 @@ interface CompanyDetailsDialogProps {
 }
 
 export function CompanyDetailsDialog({ isOpen, onClose, company }: CompanyDetailsDialogProps) {
-  const [activeTab, setActiveTab] = useState<'background' | 'overview' | 'products'>('background');
+  const [activeTab, setActiveTab] = useState<'overview' | 'products'>('overview');
 
   if (!company) return null;
 
   const tabs = [
-    { id: 'background', name: 'Company Background' },
     { id: 'overview', name: 'Company Overview' },
-    { id: 'products', name: 'Product and Services' },
+    { id: 'products', name: 'Products and Services' },
   ];
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'background':
-        return (
-          <div className="space-y-4 p-4">
-            {company.background ? (
-              <div>
-                <p className="text-sm text-gray-600 whitespace-pre-wrap">{company.background}</p>
-              </div>
-            ) : (
-              <p className="text-sm text-gray-500 italic">No background information available.</p>
-            )}
-          </div>
-        );
       case 'overview':
         return (
           <div className="space-y-4 p-4">
             {company.overview ? (
               <div>
+                <h3 className="text-sm font-medium text-gray-900 mb-2">Overview</h3>
                 <p className="text-sm text-gray-600 whitespace-pre-wrap">{company.overview}</p>
               </div>
             ) : (
@@ -52,6 +40,7 @@ export function CompanyDetailsDialog({ isOpen, onClose, company }: CompanyDetail
           <div className="space-y-4 p-4">
             {company.products_services ? (
               <div>
+                <h3 className="text-sm font-medium text-gray-900 mb-2">Products and Services</h3>
                 <p className="text-sm text-gray-600 whitespace-pre-wrap">{company.products_services}</p>
               </div>
             ) : (
@@ -135,4 +124,4 @@ export function CompanyDetailsDialog({ isOpen, onClose, company }: CompanyDetail
       </div>
     </Dialog>
   );
-} 
+}

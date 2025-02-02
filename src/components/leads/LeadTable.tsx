@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
-import { Building2, Mail, Phone, Briefcase, Facebook, Twitter, ChevronRight, Trash2, Loader2, Search, X } from 'lucide-react';
+import { Building2, Phone, Mail, Search, ChevronRight, X, Loader2, Trash2, Briefcase, Facebook, Twitter } from 'lucide-react';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import { useToast } from '../../context/ToastContext';
 import { getToken } from '../../utils/auth';
