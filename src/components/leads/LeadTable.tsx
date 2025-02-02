@@ -1,20 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Building2, Mail, Phone, Briefcase, Facebook, Twitter, ChevronRight } from 'lucide-react';
+import { Building2, Mail, Phone, Briefcase, Facebook, Twitter, ChevronRight, Trash2, Loader2 } from 'lucide-react';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import { useToast } from '../../context/ToastContext';
 import { getToken } from '../../utils/auth';
 import { getProducts, Product } from '../../services/products';
-import { Lead, LeadDetail, getLeadDetails } from '../../services/leads';
+import { Lead, LeadDetail, getLeadDetails, deleteLeads } from '../../services/leads';
 import { startCall } from '../../services/calls';
 import { CallDialog } from './CallDialog';
 import { LeadDetailsPanel } from './LeadDetailsPanel';
 
 interface LeadTableProps {
   leads: Lead[];
+  onLeadsDeleted?: () => void;
 }
 
-export function LeadTable({ leads }: LeadTableProps) {
+export function LeadTable({ leads, onLeadsDeleted }: LeadTableProps) {
   const { companyId } = useParams();
   const { showToast } = useToast();
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -22,6 +23,16 @@ export function LeadTable({ leads }: LeadTableProps) {
   const [isCallDialogOpen, setIsCallDialogOpen] = useState(false);
   const [isDetailsPanelOpen, setIsDetailsPanelOpen] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
+  const [selectedLeads, setSelectedLeads] = useState<Set<string>>(new Set());
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deletingProgress, setDeletingProgress] = useState(0);
+  
+  const ITEMS_PER_PAGE = 10;
+  const totalPages = Math.ceil(leads.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const currentLeads = leads.slice(startIndex, endIndex);
 
   useEffect(() => {
     async function fetchProducts() {
@@ -92,15 +103,136 @@ export function LeadTable({ leads }: LeadTableProps) {
     }
   };
 
+  const handleSelectAll = () => {
+    if (selectedLeads.size === currentLeads.length) {
+      setSelectedLeads(new Set());
+    } else {
+      setSelectedLeads(new Set(currentLeads.map(lead => lead.id)));
+    }
+  };
+
+  const handleSelectLead = (e: React.MouseEvent, leadId: string) => {
+    e.stopPropagation();
+    const newSelectedLeads = new Set(selectedLeads);
+    if (selectedLeads.has(leadId)) {
+      newSelectedLeads.delete(leadId);
+    } else {
+      newSelectedLeads.add(leadId);
+    }
+    setSelectedLeads(newSelectedLeads);
+  };
+
+  const handleDeleteSelected = async () => {
+    if (!companyId || selectedLeads.size === 0 || isDeleting) return;
+
+    try {
+      setIsDeleting(true);
+      setDeletingProgress(0);
+      const token = getToken();
+      if (!token) {
+        showToast('Authentication failed. Please try logging in again.', 'error');
+        return;
+      }
+
+      const selectedLeadsArray = Array.from(selectedLeads);
+      let successCount = 0;
+      let failureCount = 0;
+
+      for (let i = 0; i < selectedLeadsArray.length; i++) {
+        try {
+          await deleteLeads(token, companyId, [selectedLeadsArray[i]]);
+          successCount++;
+        } catch (error) {
+          failureCount++;
+          console.error(`Error deleting lead ${selectedLeadsArray[i]}:`, error);
+        }
+        setDeletingProgress(Math.round(((i + 1) / selectedLeadsArray.length) * 100));
+      }
+
+      if (failureCount === 0) {
+        showToast('All leads deleted successfully', 'success');
+      } else if (successCount === 0) {
+        showToast('Failed to delete leads', 'error');
+      } else {
+        showToast(`Deleted ${successCount} leads, failed to delete ${failureCount} leads`, 'info');
+      }
+
+      setSelectedLeads(new Set());
+      onLeadsDeleted?.();
+    } catch (error) {
+      showToast('Failed to delete leads', 'error');
+      console.error('Error deleting leads:', error);
+    } finally {
+      setIsDeleting(false);
+      setDeletingProgress(0);
+    }
+  };
+
   return (
     <>
       <div className="mt-8 flex flex-col">
+        <div className="mb-4 flex justify-between items-center">
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={handleSelectAll}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+            >
+              {selectedLeads.size === currentLeads.length ? 'Deselect All' : 'Select All'}
+            </button>
+            {selectedLeads.size > 0 && (
+              <button
+                onClick={handleDeleteSelected}
+                disabled={isDeleting}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Deleting... ({deletingProgress}%)</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="h-4 w-4" />
+                    <span>Delete Selected ({selectedLeads.size})</span>
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Previous
+            </button>
+            <span className="text-sm text-gray-700">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          </div>
+        </div>
         <div className="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
           <div className="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
             <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
               <table className="min-w-full divide-y divide-gray-300">
                 <thead className="bg-gray-50">
                   <tr>
+                    <th scope="col" className="relative py-3.5 pl-4 pr-3 sm:pl-6">
+                      <input
+                        type="checkbox"
+                        className="absolute left-4 top-1/2 -mt-2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                        checked={selectedLeads.size === currentLeads.length && currentLeads.length > 0}
+                        onChange={handleSelectAll}
+                      />
+                    </th>
                     <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
                       Name
                     </th>
@@ -122,12 +254,21 @@ export function LeadTable({ leads }: LeadTableProps) {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 bg-white">
-                  {leads.map((lead) => (
+                  {currentLeads.map((lead) => (
                     <tr 
                       key={lead.id} 
                       onClick={() => handleLeadClick(lead)}
                       className="cursor-pointer hover:bg-gray-50"
                     >
+                      <td className="relative py-4 pl-4 pr-3 sm:pl-6">
+                        <input
+                          type="checkbox"
+                          className="absolute left-4 top-1/2 -mt-2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                          checked={selectedLeads.has(lead.id)}
+                          onChange={(e) => e.stopPropagation()}
+                          onClick={(e) => handleSelectLead(e, lead.id)}
+                        />
+                      </td>
                       <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                         {lead.name}
                       </td>
@@ -253,9 +394,14 @@ export function LeadTable({ leads }: LeadTableProps) {
         isOpen={isDetailsPanelOpen}
         onClose={() => {
           setIsDetailsPanelOpen(false);
+          setSelectedLead(null);
           setSelectedLeadDetails(null);
         }}
         leadDetails={selectedLeadDetails}
+        onCallClick={() => {
+          setIsCallDialogOpen(true);
+          setIsDetailsPanelOpen(false);
+        }}
       />
     </>
   );

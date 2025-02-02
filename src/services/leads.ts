@@ -100,4 +100,35 @@ export async function uploadLeads(token: string, companyId: string, file: File):
   }
 
   return response.json();
+}
+
+export async function deleteLead(token: string, companyId: string, leadId: string): Promise<void> {
+  const response = await fetch(`${apiEndpoints.companies.leads.list(companyId)}/${leadId}`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to delete lead');
+  }
+}
+
+export async function deleteLeads(token: string, companyId: string, leadIds: string[]): Promise<void> {
+  // Delete leads one by one
+  const errors: Error[] = [];
+  
+  for (const leadId of leadIds) {
+    try {
+      await deleteLead(token, companyId, leadId);
+    } catch (error) {
+      errors.push(error as Error);
+    }
+  }
+
+  if (errors.length > 0) {
+    throw new Error(`Failed to delete ${errors.length} leads`);
+  }
 } 

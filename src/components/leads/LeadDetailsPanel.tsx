@@ -7,9 +7,10 @@ interface LeadDetailsPanelProps {
   isOpen: boolean;
   onClose: () => void;
   leadDetails: LeadDetail | null;
+  onCallClick?: () => void;
 }
 
-export function LeadDetailsPanel({ isOpen, onClose, leadDetails }: LeadDetailsPanelProps) {
+export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick }: LeadDetailsPanelProps) {
   if (!isOpen || !leadDetails) return null;
 
   const DetailSection = ({ title, children }: { title: string; children: React.ReactNode }) => (
@@ -38,12 +39,22 @@ export function LeadDetailsPanel({ isOpen, onClose, leadDetails }: LeadDetailsPa
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
           <h2 className="text-lg font-medium text-gray-900">Lead Details</h2>
-          <button
-            onClick={onClose}
-            className="rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            <X className="h-6 w-6" />
-          </button>
+          <div className="flex items-center space-x-4">
+            {onCallClick && (
+              <button
+                onClick={onCallClick}
+                className="text-indigo-600 hover:text-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <Phone className="h-6 w-6" />
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </div>
         </div>
 
         {/* Content */}

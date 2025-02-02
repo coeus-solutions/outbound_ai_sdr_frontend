@@ -137,7 +137,7 @@ export function CompanyLeads() {
           />
         </div>
       ) : (
-        <LeadTable leads={leads} />
+        <LeadTable leads={leads} onLeadsDeleted={fetchData} />
       )}
 
       <CsvFormatDialog
