@@ -1,13 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { Building2, Plus, Package, Phone, Mail, Settings, Globe, Eye, ChevronDown, ChevronUp, Target, Users, Linkedin, Lock, ArrowRight, Search, ExternalLink } from 'lucide-react';
+import { Building2, Plus, Package, Phone, Mail, Settings, Eye, ChevronDown, ChevronUp, Target, Linkedin, Lock, ArrowRight, Search, ExternalLink, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getToken } from '../../utils/auth';
-import { Company, getCompanies } from '../../services/companies';
+import { Company, getCompanies, getCompanyById, deleteCompany } from '../../services/companies';
 import { CompanyDetailsDialog } from './CompanyDetailsDialog';
+import { Dialog } from '../shared/Dialog';
+import { getCompanyProducts, Product } from '../../services/products';
+import { getCompanyCampaigns } from '../../services/emailCampaigns';
+import { getCompanyEmails } from '../../services/emails';
+import { getCompanyCalls } from '../../services/calls';
+import { getLeads } from '../../services/leads';
+import { useToast } from '../../context/ToastContext';
 
-interface ProductStats {
-  id: string;
-  name: string;
+interface ProductStats extends Product {
   leads: {
     total: number;
     contacted: number;
@@ -30,13 +35,24 @@ interface CompanyWithStats extends Company {
   products: ProductStats[];
 }
 
+interface CompanyCardProps {
+  company: CompanyWithStats;
+  onViewDetails: () => void;
+  isLoadingDetails?: boolean;
+  onDelete: () => void;
+}
+
 export function CompanyList() {
+  const { showToast } = useToast();
   const [companies, setCompanies] = useState<CompanyWithStats[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [loadingCompanyId, setLoadingCompanyId] = useState<string | null>(null);
+  const [companyToDelete, setCompanyToDelete] = useState<Company | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     async function fetchCompanies() {
@@ -46,19 +62,65 @@ export function CompanyList() {
           setError('Authentication token not found');
           return;
         }
-        const data = await getCompanies(token);
-        // TODO: Replace this with actual API data once available
-        const companiesWithStats: CompanyWithStats[] = data.map(company => ({
-          ...company,
-          products: [{
-            id: '1',
-            name: 'Default Product',
-            leads: { total: 0, contacted: 0 },
-            calls: { total: 0, conversations: 0, meetings: 0 },
-            emails: { total: 0, opens: 0, replies: 0, meetings: 0 },
-            campaigns: 0
-          }]
-        }));
+        const companiesData = await getCompanies(token);
+        
+        // Fetch products and stats for each company
+        const companiesWithStats = await Promise.all(
+          companiesData.map(async (company) => {
+            try {
+              const products = await getCompanyProducts(token, company.id);
+              const campaigns = await getCompanyCampaigns(token, company.id);
+              const emails = await getCompanyEmails(token, company.id);
+              const calls = await getCompanyCalls(token, company.id);
+              const leads = await getLeads(token, company.id);
+
+              // Map products with their stats
+              const productsWithStats: ProductStats[] = products.map(product => {
+                const productCampaigns = campaigns.filter(c => c.product_id === product.id);
+                const productEmails = emails.filter(e => productCampaigns.some(c => c.id === e.campaign_id));
+                // For now, we'll count all leads since we don't have product-specific leads
+                const totalLeads = leads.length;
+                // We'll assume a lead is contacted if they have any calls or emails
+                const contactedLeads = leads.filter(lead => 
+                  calls.some(call => call.lead_id === lead.id) || 
+                  emails.some(email => email.lead_id === lead.id)
+                );
+                
+                return {
+                  ...product,
+                  leads: {
+                    total: totalLeads,
+                    contacted: contactedLeads.length,
+                  },
+                  calls: {
+                    total: calls.filter(c => c.product_id === product.id).length,
+                    conversations: 0, // TODO: Add when API provides this data
+                    meetings: 0,
+                  },
+                  emails: {
+                    total: productEmails.length,
+                    opens: 0, // TODO: Add when API provides this data
+                    replies: 0,
+                    meetings: 0,
+                  },
+                  campaigns: productCampaigns.length,
+                };
+              });
+
+              return {
+                ...company,
+                products: productsWithStats,
+              };
+            } catch (error) {
+              console.error(`Error fetching data for company ${company.id}:`, error);
+              return {
+                ...company,
+                products: [],
+              };
+            }
+          })
+        );
+
         setCompanies(companiesWithStats);
         setError(null);
       } catch (err) {
@@ -75,9 +137,57 @@ export function CompanyList() {
   const filteredCompanies = companies.filter(company => 
     company.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     company.products.some(product => 
-      product.name.toLowerCase().includes(searchQuery.toLowerCase())
+      product.product_name.toLowerCase().includes(searchQuery.toLowerCase())
     )
   );
+
+  const handleViewDetails = async (company: Company) => {
+    try {
+      setLoadingCompanyId(company.id);
+      const token = getToken();
+      if (!token) {
+        setError('Authentication token not found');
+        return;
+      }
+      const fullCompanyDetails = await getCompanyById(token, company.id);
+      setSelectedCompany(fullCompanyDetails);
+      setIsDetailsOpen(true);
+    } catch (error) {
+      console.error('Error fetching company details:', error);
+      // Still show the dialog with basic company info if fetching details fails
+      setSelectedCompany(company);
+      setIsDetailsOpen(true);
+    } finally {
+      setLoadingCompanyId(null);
+    }
+  };
+
+  const handleDeleteCompany = async (company: Company) => {
+    setCompanyToDelete(company);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!companyToDelete) return;
+
+    try {
+      setIsDeleting(true);
+      const token = getToken();
+      if (!token) {
+        showToast('Authentication failed. Please try logging in again.', 'error');
+        return;
+      }
+
+      await deleteCompany(token, companyToDelete.id);
+      setCompanies(companies.filter(c => c.id !== companyToDelete.id));
+      showToast('Company deleted successfully', 'success');
+      setCompanyToDelete(null);
+    } catch (error) {
+      console.error('Error deleting company:', error);
+      showToast('Failed to delete company', 'error');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -161,10 +271,9 @@ export function CompanyList() {
               <CompanyCard
                 key={company.id}
                 company={company}
-                onViewDetails={() => {
-                  setSelectedCompany(company);
-                  setIsDetailsOpen(true);
-                }}
+                onViewDetails={() => handleViewDetails(company)}
+                isLoadingDetails={loadingCompanyId === company.id}
+                onDelete={() => handleDeleteCompany(company)}
               />
             ))}
           </div>
@@ -179,16 +288,45 @@ export function CompanyList() {
         }}
         company={selectedCompany}
       />
+
+      <Dialog
+        isOpen={Boolean(companyToDelete)}
+        onClose={() => setCompanyToDelete(null)}
+        title="Delete Company"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-gray-500">
+            Are you sure you want to delete {companyToDelete?.name}? This action cannot be undone.
+          </p>
+          <div className="flex justify-end space-x-3">
+            <button
+              onClick={() => setCompanyToDelete(null)}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleConfirmDelete}
+              disabled={isDeleting}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isDeleting ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Deleting...
+                </>
+              ) : (
+                'Delete'
+              )}
+            </button>
+          </div>
+        </div>
+      </Dialog>
     </div>
   );
 }
 
-interface CompanyCardProps {
-  company: CompanyWithStats;
-  onViewDetails: () => void;
-}
-
-function CompanyCard({ company, onViewDetails }: CompanyCardProps) {
+function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: CompanyCardProps) {
   const [isExpanded, setIsExpanded] = useState(true);
 
   return (
@@ -217,12 +355,24 @@ function CompanyCard({ company, onViewDetails }: CompanyCardProps) {
             <button
               onClick={onViewDetails}
               className="p-2 text-gray-400 hover:text-gray-600"
+              disabled={isLoadingDetails}
             >
-              <Eye className="w-5 h-5" />
+              {isLoadingDetails ? (
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-400"></div>
+              ) : (
+                <Eye className="w-5 h-5" />
+              )}
             </button>
             <Link to={`/companies/${company.id}/settings`}>
               <Settings className="w-5 h-5 text-gray-400 hover:text-gray-600" />
             </Link>
+            <button
+              onClick={onDelete}
+              className="p-2 text-gray-400 hover:text-red-600"
+              title="Delete company"
+            >
+              <Trash2 className="w-5 h-5" />
+            </button>
             <button 
               onClick={() => setIsExpanded(!isExpanded)}
               className="p-2 text-gray-400 hover:text-gray-600"
@@ -233,24 +383,15 @@ function CompanyCard({ company, onViewDetails }: CompanyCardProps) {
         </div>
 
         {/* Products Section */}
-        {isExpanded && (
+        {isExpanded && company.products.length > 0 && (
           <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-medium text-gray-900">Products</h3>
-              <Link 
-                to={`/companies/${company.id}/products/new`}
-                className="text-sm text-indigo-600 hover:text-indigo-700 flex items-center"
-              >
-                <Plus className="w-4 h-4 mr-1" />
-                Add Product
-              </Link>
-            </div>
-            
-            <div className="grid gap-4">
-              {company.products.map((product) => (
-                <ProductCard key={product.id} product={product} companyId={company.id} />
-              ))}
-            </div>
+            {company.products.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                companyId={company.id}
+              />
+            ))}
           </div>
         )}
       </div>
@@ -272,7 +413,7 @@ function ProductCard({ product, companyId }: ProductCardProps) {
         <div className="flex items-start space-x-3">
           <Package className="w-5 h-5 text-green-600 mt-1" />
           <div>
-            <h4 className="font-medium text-gray-900">{product.name}</h4>
+            <h4 className="font-medium text-gray-900">{product.product_name}</h4>
             <div className="mt-1 text-sm text-gray-500">
               {product.campaigns} active campaigns
             </div>

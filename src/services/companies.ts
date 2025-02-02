@@ -107,4 +107,18 @@ export async function disconnectCalendar(token: string, companyId: string): Prom
   }
 
   return response.json();
+}
+
+export async function deleteCompany(token: string, companyId: string): Promise<void> {
+  const response = await fetch(`${apiEndpoints.companies.list}/${companyId}`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to delete company');
+  }
 } 
