@@ -12,7 +12,7 @@ A modern React TypeScript application for AI-powered Sales Development Represent
 
 ## Prerequisites
 
-- Node.js (Latest LTS version recommended)
+- Node.js (version 22)
 - npm or yarn
 
 ## Getting Started
