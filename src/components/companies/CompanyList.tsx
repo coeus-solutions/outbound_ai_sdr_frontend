@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Building2, Plus, MapPin, Users, Package, Phone, Mail, Settings, Globe, Eye } from 'lucide-react';
+import { Building2, Plus, MapPin, Users, Package, Phone, Mail, Settings, Globe, Eye, MailCheck, Megaphone } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getToken } from '../../utils/auth';
 import { Company, getCompanies } from '../../services/companies';
@@ -140,28 +140,35 @@ export function CompanyList() {
                     className="text-sm text-gray-600 hover:text-indigo-600 flex items-center"
                   >
                     <Users className="h-4 w-4 mr-1" />
-                    View leads
+                    Leads
                   </Link>
                   <Link
                     to={`/companies/${company.id}/products`}
                     className="text-sm text-gray-600 hover:text-indigo-600 flex items-center"
                   >
                     <Package className="h-4 w-4 mr-1" />
-                    View products
+                    Products
                   </Link>
                   <Link
                     to={`/companies/${company.id}/calls`}
                     className="text-sm text-gray-600 hover:text-indigo-600 flex items-center"
                   >
                     <Phone className="h-4 w-4 mr-1" />
-                    View call logs
+                    Call logs
                   </Link>
                   <Link
                     to={`/companies/${company.id}/campaigns`}
                     className="text-sm text-gray-600 hover:text-indigo-600 flex items-center"
                   >
-                    <Mail className="h-4 w-4 mr-1" />
-                    View campaigns
+                    <Megaphone className="h-4 w-4 mr-1" />
+                    Campaigns
+                  </Link>
+                  <Link
+                    to={`/companies/${company.id}/emails`}
+                    className="text-sm text-gray-600 hover:text-indigo-600 flex items-center"
+                  >
+                    <MailCheck className="h-4 w-4 mr-1" />
+                    Emails
                   </Link>
                 </div>
               </div>

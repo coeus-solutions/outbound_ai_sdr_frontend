@@ -1,22 +1,20 @@
 import { apiEndpoints } from '../config';
 
-export interface EmailCampaign {
+export interface Campaign {
   id: string;
-  company_id: string;
   name: string;
-  description?: string;
-  product_id: string;
-  email_subject: string;
-  email_body: string;
-  created_at: string;
+  description: string | null;
   type: 'email' | 'call';
+  product_id: string;
+  company_id: string;
+  created_at: string;
 }
 
-interface EmailCampaignsResponse {
-  data: EmailCampaign[];
+interface CampaignsResponse {
+  data: Campaign[];
 }
 
-export interface EmailCampaignCreate {
+export interface CampaignCreate {
   name: string;
   description?: string;
   type: 'email' | 'call';
@@ -29,8 +27,13 @@ export interface RunCampaignResponse {
   status: string;
 }
 
-export async function getCompanyEmailCampaigns(token: string, companyId: string): Promise<EmailCampaign[]> {
-  const response = await fetch(apiEndpoints.companies.emailCampaigns.list(companyId), {
+export async function getCompanyCampaigns(token: string, companyId: string, type?: 'email' | 'call' | 'all'): Promise<Campaign[]> {
+  const url = new URL(apiEndpoints.companies.emailCampaigns.list(companyId));
+  if (type) {
+    url.searchParams.append('type', type);
+  }
+
+  const response = await fetch(url.toString(), {
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -38,14 +41,13 @@ export async function getCompanyEmailCampaigns(token: string, companyId: string)
   });
 
   if (!response.ok) {
-    throw new Error('Failed to fetch email campaigns');
+    throw new Error('Failed to fetch campaigns');
   }
 
-  const responseData = await response.json();
-  return responseData;
+  return response.json();
 }
 
-export async function createEmailCampaign(token: string, companyId: string, campaign: EmailCampaignCreate): Promise<EmailCampaign> {
+export async function createCampaign(token: string, companyId: string, campaign: CampaignCreate): Promise<Campaign> {
   const response = await fetch(apiEndpoints.companies.emailCampaigns.list(companyId), {
     method: 'POST',
     headers: {
@@ -56,13 +58,13 @@ export async function createEmailCampaign(token: string, companyId: string, camp
   });
 
   if (!response.ok) {
-    throw new Error('Failed to create email campaign');
+    throw new Error('Failed to create campaign');
   }
 
   return response.json();
 }
 
-export async function runEmailCampaign(token: string, campaignId: string): Promise<RunCampaignResponse> {
+export async function runCampaign(token: string, campaignId: string): Promise<RunCampaignResponse> {
   const response = await fetch(apiEndpoints.campaigns.run(campaignId), {
     method: 'POST',
     headers: {
@@ -74,7 +76,7 @@ export async function runEmailCampaign(token: string, campaignId: string): Promi
   const data = await response.json();
   
   if (!response.ok) {
-    const error = new Error('Failed to run email campaign') as any;
+    const error = new Error('Failed to run campaign') as any;
     error.response = {
       status: response.status,
       data: data

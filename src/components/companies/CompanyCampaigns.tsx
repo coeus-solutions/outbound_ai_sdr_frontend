@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { Mail, Plus, Eye, Play, Phone } from 'lucide-react';
 import { PageHeader } from '../shared/PageHeader';
 import { getCompanyById, Company } from '../../services/companies';
-import { getCompanyEmailCampaigns, EmailCampaign, runEmailCampaign } from '../../services/emailCampaigns';
+import { getCompanyCampaigns, Campaign, runCampaign } from '../../services/emailCampaigns';
 import { getToken } from '../../utils/auth';
 import { useToast } from '../../context/ToastContext';
 import { formatDateTime } from '../../utils/formatters';
@@ -17,10 +17,10 @@ interface APIError {
   };
 }
 
-export function CompanyEmailCampaigns() {
+export function CompanyCampaigns() {
   const { companyId } = useParams();
   const { showToast } = useToast();
-  const [campaigns, setCampaigns] = useState<EmailCampaign[]>([]);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [company, setCompany] = useState<Company | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -40,7 +40,7 @@ export function CompanyEmailCampaigns() {
 
         const [companyData, campaignsData] = await Promise.all([
           getCompanyById(token, companyId),
-          getCompanyEmailCampaigns(token, companyId)
+          getCompanyCampaigns(token, companyId)
         ]);
 
         setCompany(companyData);
@@ -58,7 +58,7 @@ export function CompanyEmailCampaigns() {
     fetchData();
   }, [companyId, showToast]);
 
-  const handleRunCampaign = async (campaign: EmailCampaign) => {
+  const handleRunCampaign = async (campaign: Campaign) => {
     setIsRunning(campaign.id);
     try {
       const token = getToken();
@@ -67,7 +67,7 @@ export function CompanyEmailCampaigns() {
         return;
       }
 
-      const result = await runEmailCampaign(token, campaign.id);
+      const result = await runCampaign(token, campaign.id);
       showToast(`Campaign "${campaign.name}" started successfully!`, 'success');
     } catch (err: unknown) {
       console.log('API Error:', err);  // Temporary log to debug

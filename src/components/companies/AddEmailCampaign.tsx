@@ -6,7 +6,7 @@ import 'react-quill/dist/quill.snow.css';
 import { getToken } from '../../utils/auth';
 import { useToast } from '../../context/ToastContext';
 import { getCompanyById, Company } from '../../services/companies';
-import { createEmailCampaign } from '../../services/emailCampaigns';
+import { createCampaign, CampaignCreate } from '../../services/emailCampaigns';
 import { getCompanyProducts, ProductInDB } from '../../services/products';
 
 export function AddEmailCampaign() {
@@ -65,25 +65,21 @@ export function AddEmailCampaign() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!companyId) return;
-
     setIsSaving(true);
+
     try {
       const token = getToken();
       if (!token) {
-        setError('Authentication token not found');
-        showToast('Authentication failed. Please try logging in again.', 'error');
+        showToast('Authentication token not found', 'error');
         return;
       }
 
-      await createEmailCampaign(token, companyId, formData);
-
+      await createCampaign(token, companyId!, formData);
       showToast('Campaign created successfully!', 'success');
       navigate(`/companies/${companyId}/campaigns`);
     } catch (err) {
-      const errorMessage = 'Failed to create campaign';
-      setError(errorMessage);
-      showToast(errorMessage, 'error');
+      console.error('Error creating campaign:', err);
+      showToast('Failed to create campaign', 'error');
     } finally {
       setIsSaving(false);
     }
