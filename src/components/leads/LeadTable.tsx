@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
-import { Building2, Mail, Phone, Briefcase, Facebook, Twitter, ChevronRight, Trash2, Loader2 } from 'lucide-react';
+import { Building2, Mail, Phone, Briefcase, Facebook, Twitter, ChevronRight, Trash2, Loader2, Search, X } from 'lucide-react';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import { useToast } from '../../context/ToastContext';
 import { getToken } from '../../utils/auth';
@@ -9,6 +9,7 @@ import { Lead, LeadDetail, getLeadDetails, deleteLeads } from '../../services/le
 import { startCall } from '../../services/calls';
 import { CallDialog } from './CallDialog';
 import { LeadDetailsPanel } from './LeadDetailsPanel';
+import { useDebounce } from '../../hooks/useDebounce';
 
 interface LeadTableProps {
   leads: Lead[];
@@ -27,12 +28,34 @@ export function LeadTable({ leads, onLeadsDeleted }: LeadTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deletingProgress, setDeletingProgress] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearchQuery = useDebounce(searchQuery, 300); // 300ms delay
   
   const ITEMS_PER_PAGE = 10;
-  const totalPages = Math.ceil(leads.length / ITEMS_PER_PAGE);
+
+  // Filter leads based on debounced search query
+  const filteredLeads = useMemo(() => {
+    if (!debouncedSearchQuery.trim()) return leads;
+    
+    const query = debouncedSearchQuery.toLowerCase().trim();
+    return leads.filter(lead => 
+      lead.name?.toLowerCase().includes(query) ||
+      lead.email?.toLowerCase().includes(query) ||
+      lead.company?.toLowerCase().includes(query) ||
+      lead.job_title?.toLowerCase().includes(query)
+    );
+  }, [leads, debouncedSearchQuery]);
+
+  // Update pagination calculations to use filtered leads
+  const totalPages = Math.ceil(filteredLeads.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentLeads = leads.slice(startIndex, endIndex);
+  const currentLeads = filteredLeads.slice(startIndex, endIndex);
+
+  // Reset page when search query changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
 
   useEffect(() => {
     async function fetchProducts() {
@@ -171,52 +194,80 @@ export function LeadTable({ leads, onLeadsDeleted }: LeadTableProps) {
   return (
     <>
       <div className="mt-8 flex flex-col">
-        <div className="mb-4 flex justify-between items-center">
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={handleSelectAll}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-            >
-              {selectedLeads.size === currentLeads.length ? 'Deselect All' : 'Select All'}
-            </button>
-            {selectedLeads.size > 0 && (
+        <div className="mb-4 space-y-4">
+          {/* Search input */}
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search leads by name, email, company, or job title..."
+              className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            />
+            {searchQuery && (
               <button
-                onClick={handleDeleteSelected}
-                disabled={isDeleting}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                onClick={() => setSearchQuery('')}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center"
               >
-                {isDeleting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Deleting... ({deletingProgress}%)</span>
-                  </>
-                ) : (
-                  <>
-                    <Trash2 className="h-4 w-4" />
-                    <span>Delete Selected ({selectedLeads.size})</span>
-                  </>
-                )}
+                <X className="h-5 w-5 text-gray-400 hover:text-gray-500" />
               </button>
             )}
           </div>
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Previous
-            </button>
-            <span className="text-sm text-gray-700">
-              Page {currentPage} of {totalPages}
-            </span>
-            <button
-              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
-              className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Next
-            </button>
+
+          {/* Actions and pagination row */}
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={handleSelectAll}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                {selectedLeads.size === currentLeads.length ? 'Deselect All' : 'Select All'}
+              </button>
+              {selectedLeads.size > 0 && (
+                <button
+                  onClick={handleDeleteSelected}
+                  disabled={isDeleting}
+                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                >
+                  {isDeleting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>Deleting... ({deletingProgress}%)</span>
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="h-4 w-4" />
+                      <span>Delete Selected ({selectedLeads.size})</span>
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-700">
+                Showing {startIndex + 1} to {Math.min(endIndex, filteredLeads.length)} of {filteredLeads.length} leads
+              </span>
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <span className="text-sm text-gray-700">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
           </div>
         </div>
         <div className="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
