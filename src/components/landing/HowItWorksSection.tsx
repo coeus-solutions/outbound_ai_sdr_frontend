@@ -20,7 +20,7 @@ const steps = [
   {
     icon: PersonalizeIcon,
     title: 'Hyper Personalization',
-    description: 'Transform generic outreach into tailored conversations. ReachGenie dynamically crafts pitches that speak directly to each lead’s needs and motivations.',
+    description: "Transform generic outreach into tailored conversations. ReachGenie dynamically crafts pitches that speak directly to each lead's needs and motivations.",
     color: 'bg-gray-800',
     iconColor: 'text-purple-400'
   },
@@ -109,22 +109,6 @@ export function HowItWorksSection() {
               <p className="text-gray-300">{step.description}</p>
             </motion.div>
           ))}
-        </motion.div>
-
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.6 }}
-          className="text-center mt-16"
-        >
-          <p className="text-2xl font-medium text-white">
-            Execute your outreach across{' '}
-            <span className="text-indigo-400">Emails</span>,{' '}
-            <span className="text-green-400">Phone</span>,{' '}
-            <span className="text-blue-400">LinkedIn</span>, and{' '}
-            <span className="text-emerald-400">WhatsApp</span>
-          </p>
         </motion.div>
       </div>
     </section>

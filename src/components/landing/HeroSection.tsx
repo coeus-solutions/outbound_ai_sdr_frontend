@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Mail, Phone } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export function HeroSection() {
@@ -30,9 +30,47 @@ export function HeroSection() {
           <h1 className="text-5xl font-bold tracking-tight text-white sm:text-6xl mb-8">
             Transform Your Outreach Campaigns with Human-assisted AI Agents
           </h1>
-          <p className="text-lg text-gray-100 mb-10">
-          Empower your sales team with intelligent automation, real-time insights, and data-driven decision-making. Deliver hyper-personalized, multi-channel campaigns that convert more prospects into customers with minimal effort.
+          <p className="text-lg text-gray-100 mb-6">
+            Empower your sales team with intelligent automation, real-time insights, and data-driven decision-making. 
+            Deliver hyper-personalized, multi-channel campaigns that convert more prospects into customers with minimal effort.
           </p>
+
+          {/* Outreach Channels */}
+          <div className="flex flex-wrap justify-center items-center gap-6 mb-10">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 flex items-center justify-center bg-indigo-400/20 rounded-lg">
+                <Mail className="w-5 h-5 text-indigo-400" />
+              </div>
+              <span className="text-indigo-400 font-medium">Email</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 flex items-center justify-center bg-green-400/20 rounded-lg">
+                <Phone className="w-5 h-5 text-green-400" />
+              </div>
+              <span className="text-green-400 font-medium">Phone</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 flex items-center justify-center bg-blue-400/20 rounded-lg">
+                <img 
+                  src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/LinkedIn_icon.svg/72px-LinkedIn_icon.svg.png?20210220164014" 
+                  alt="LinkedIn"
+                  className="w-5 h-5"
+                />
+              </div>
+              <span className="text-blue-400 font-medium">LinkedIn</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 flex items-center justify-center bg-emerald-400/20 rounded-lg">
+                <img 
+                  src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/512px-WhatsApp.svg.png" 
+                  alt="WhatsApp"
+                  className="w-5 h-5"
+                />
+              </div>
+              <span className="text-emerald-400 font-medium">WhatsApp</span>
+            </div>
+          </div>
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/signup"
