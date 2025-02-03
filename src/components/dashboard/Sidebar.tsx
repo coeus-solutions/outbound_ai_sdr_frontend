@@ -4,6 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { cn } from '../../utils/cn';
 import { getToken } from '../../utils/auth';
 import { getUser } from '../../services/users';
+import { motion } from 'framer-motion';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -47,14 +48,42 @@ export function Sidebar({ isCollapsed, onToggle, onLogout }: SidebarProps) {
     >
       <div className="flex items-center p-4 border-b">
         <div className="flex items-center space-x-0">
-          <div className={cn("flex-shrink-0", isCollapsed ? "w-10" : "w-8")}>
-            <img 
-              src="/images/logo.png" 
-              alt="ReachGenie.ai Logo" 
-              className="w-full h-auto object-contain" 
-            />
-          </div>
-          {!isCollapsed && <span className="text-xl font-semibold tracking-tight">ReachGenie.ai</span>}
+          <motion.div 
+            className="flex items-center"
+            whileHover={{ scale: 1.05 }}
+            transition={{ type: "spring", stiffness: 400, damping: 10 }}
+          >
+            <motion.span 
+              className="text-2xl font-bold relative"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <motion.span
+                className="absolute -inset-1 bg-gradient-to-r from-indigo-900/50 via-purple-900/50 to-indigo-900/50 rounded-lg blur-lg"
+                animate={{
+                  opacity: [0.3, 0.5, 0.3],
+                  scale: [1, 1.05, 1],
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  repeatType: "reverse",
+                }}
+              />
+              {isCollapsed ? (
+                <>
+                  <span className="relative bg-gradient-to-r from-blue-400 via-indigo-400 to-violet-400 bg-clip-text text-transparent">R</span>
+                  <span className="relative bg-gradient-to-r from-fuchsia-400 to-pink-400 bg-clip-text text-transparent">G</span>
+                </>
+              ) : (
+                <>
+                  <span className="relative bg-gradient-to-r from-blue-400 via-indigo-400 to-violet-400 bg-clip-text text-transparent">Reach</span>
+                  <span className="relative bg-gradient-to-r from-fuchsia-400 to-pink-400 bg-clip-text text-transparent">Genie</span>
+                </>
+              )}
+            </motion.span>
+          </motion.div>
         </div>
       </div>
 
