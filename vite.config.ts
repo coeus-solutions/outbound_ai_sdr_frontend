@@ -13,4 +13,11 @@ export default defineConfig({
       external: [],
     },
   },
+  css: {
+    preprocessorOptions: {
+      css: {
+        charset: false
+      }
+    }
+  }
 });
