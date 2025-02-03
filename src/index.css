@@ -10,10 +10,10 @@
   }
   
   body {
-    @apply text-gray-900 bg-gray-50;
+    @apply bg-gray-900 text-gray-100;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-semibold tracking-tight;
+    @apply font-semibold tracking-tight text-white;
   }
 }
