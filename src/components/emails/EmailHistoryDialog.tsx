@@ -17,11 +17,80 @@ function formatDate(dateString: string): string {
   });
 }
 
-interface EmailHistoryDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
-  companyId: string;
-  emailLogId: string;
+function processEmailContent(content: string): string {
+  if (!content) return '';
+
+  // Common email reply patterns
+  const replyPatterns = [
+    {
+      pattern: /^(On .* wrote:)$/m,  // "On [date/time] [name] wrote:"
+      keepMatch: true
+    },
+    {
+      pattern: /^(On .* at .*, .* wrote:)$/m,  // Another common format
+      keepMatch: true
+    },
+    {
+      pattern: /^(-{3,}Original Message-{3,})/m,  // Original message separator
+      keepMatch: true
+    },
+    {
+      pattern: /^(________________________________)$/m,  // Common separator
+      keepMatch: true
+    },
+    {
+      pattern: /^(In reply to:)$/m,  // Reply indicator
+      keepMatch: true
+    },
+    {
+      pattern: /^(Quoted message)$/m,  // Quote indicator
+      keepMatch: true
+    },
+    {
+      pattern: /^(Begin forwarded message:)$/m,  // Forwarded message
+      keepMatch: true
+    }
+  ];
+
+  // First, process reply patterns
+  replyPatterns.forEach(({ pattern, keepMatch }) => {
+    const match = content.match(pattern);
+    if (match) {
+      const [fullMatch] = match;
+      const index = match.index || 0;
+      const before = content.slice(0, index).trimEnd();
+      let after = content.slice(index + fullMatch.length);
+
+      // Remove '>' symbols from the quoted content and convert newlines to <br>
+      after = after.split('\n')
+        .map(line => {
+          if (line.trim().startsWith('>') && !line.trim().startsWith('<')) {
+            return line.replace(/^>+\s*/, '');
+          }
+          return line;
+        })
+        .join('<br>');
+
+      content = before + 
+        (keepMatch ? '\n\n' + fullMatch + '\n' : '') +
+        `<blockquote class="email-reply" style="margin-left: 0.5em; padding-left: 1em; border-left: 2px solid #e5e7eb;">` +
+        after.trimStart() +
+        '</blockquote>';
+    }
+  });
+
+  // Process any remaining '>' symbols in the content (outside of blockquotes)
+  // and convert newlines to <br>
+  let processedContent = content.split('\n')
+    .map(line => {
+      if (line.trim().startsWith('>') && !line.trim().startsWith('<')) {
+        return line.replace(/^>+\s*/, '');
+      }
+      return line;
+    })
+    .join('<br>');
+
+  return processedContent;
 }
 
 function renderEmailBody(body: string | null) {
@@ -31,25 +100,37 @@ function renderEmailBody(body: string | null) {
   const containsHTML = /<[a-z][\s\S]*>/i.test(body);
 
   if (containsHTML) {
+    // Process the content first to add blockquotes for replies
+    const processedContent = processEmailContent(body);
+    
     // Sanitize and render HTML content
-    const sanitizedHtml = DOMPurify.sanitize(body, {
+    const sanitizedHtml = DOMPurify.sanitize(processedContent, {
       ALLOWED_TAGS: [
         'p', 'br', 'strong', 'em', 'u', 'ol', 'ul', 'li', 'a', 'span', 
         'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'img', 'table', 'tr', 
         'td', 'th', 'thead', 'tbody', 'blockquote'
       ],
       ALLOWED_ATTR: ['href', 'target', 'style', 'class', 'src', 'alt'],
+      ADD_ATTR: ['target'], // Allow target attribute for links
     });
     return (
       <div 
         dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
-        className="[&_p]:mb-4 [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4 [&_li]:mb-1"
+        className="[&_p]:mb-4 [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4 [&_li]:mb-1 [&_blockquote]:border-l-2 [&_blockquote]:border-gray-200 [&_blockquote]:pl-4 [&_blockquote]:ml-2 [&_blockquote]:text-gray-500 [&_a]:text-blue-600 [&_a]:underline"
       />
     );
   }
 
-  // Render plain text with line breaks
-  return <div className="whitespace-pre-wrap">{body}</div>;
+  // For plain text, look for reply patterns and wrap in blockquotes
+  const processedContent = processEmailContent(body);
+  return <div className="whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: processedContent }} />;
+}
+
+interface EmailHistoryDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  companyId: string;
+  emailLogId: string;
 }
 
 export function EmailHistoryDialog({ isOpen, onClose, companyId, emailLogId }: EmailHistoryDialogProps) {
