@@ -11,6 +11,9 @@ import { getCompanyEmails } from '../../services/emails';
 import { getCompanyCalls } from '../../services/calls';
 import { getLeads } from '../../services/leads';
 import { useToast } from '../../context/ToastContext';
+import { SkeletonLoader } from '../shared/SkeletonLoader';
+import { LoadingButton } from '../shared/LoadingButton';
+import { CardSkeletonLoader } from '../shared/CardSkeletonLoader';
 
 interface ProductStats extends Product {
   leads: {
@@ -191,8 +194,34 @@ export function CompanyList() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      <div className="min-h-screen bg-gray-50">
+        <div className="bg-white border-b">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div className="flex justify-between items-center">
+              <div>
+                <SkeletonLoader className="h-8 w-48 mb-2" />
+                <SkeletonLoader className="h-4 w-64" />
+              </div>
+              <SkeletonLoader className="h-10 w-32" />
+            </div>
+            <div className="mt-4">
+              <SkeletonLoader className="h-10 w-full" />
+            </div>
+          </div>
+        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="grid grid-cols-1 gap-6">
+            {[...Array(3)].map((_, index) => (
+              <CardSkeletonLoader 
+                key={index}
+                hasHeader={true}
+                hasActions={true}
+                actionCount={4}
+                contentSections={2}
+              />
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -241,7 +270,7 @@ export function CompanyList() {
                 placeholder="Search companies or products..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="form-input"
               />
             </div>
           </div>
@@ -310,14 +339,13 @@ export function CompanyList() {
               disabled={isDeleting}
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isDeleting ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Deleting...
-                </>
-              ) : (
-                'Delete'
-              )}
+              <LoadingButton
+                isLoading={isDeleting}
+                loadingText="Deleting..."
+                variant="danger"
+              >
+                Delete
+              </LoadingButton>
             </button>
           </div>
         </div>
@@ -328,6 +356,10 @@ export function CompanyList() {
 
 function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: CompanyCardProps) {
   const [isExpanded, setIsExpanded] = useState(true);
+
+  if (isLoadingDetails) {
+    return <CardSkeletonLoader hasHeader={true} hasActions={true} actionCount={4} contentSections={2} />;
+  }
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
@@ -358,7 +390,7 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
               disabled={isLoadingDetails}
             >
               {isLoadingDetails ? (
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-400"></div>
+                <SkeletonLoader className="h-5 w-5 rounded-full" />
               ) : (
                 <Eye className="w-5 h-5" />
               )}

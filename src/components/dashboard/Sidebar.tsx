@@ -1,10 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { Building, ChevronLeft, ChevronRight, LogOut, User, HelpCircle } from 'lucide-react';
+/** @jsxImportSource @emotion/react */
+import { jsx } from '@emotion/react';
+import React from 'react';
+import { Building, ChevronLeft, ChevronRight, LogOut, User, HelpCircle, Moon, Sun } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '../../utils/cn';
 import { getToken } from '../../utils/auth';
 import { getUser } from '../../services/users';
 import { motion } from 'framer-motion';
+import { useTheme } from '../../hooks/useTheme';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -14,9 +17,10 @@ interface SidebarProps {
 
 export function Sidebar({ isCollapsed, onToggle, onLogout }: SidebarProps) {
   const location = useLocation();
-  const [userName, setUserName] = useState<string>('');
+  const [userName, setUserName] = React.useState<string>('');
+  const { isDark, toggleTheme } = useTheme();
   
-  useEffect(() => {
+  React.useEffect(() => {
     const fetchUserName = async () => {
       try {
         const token = getToken();
@@ -42,7 +46,7 @@ export function Sidebar({ isCollapsed, onToggle, onLogout }: SidebarProps) {
   return (
     <nav 
       className={cn(
-        "fixed top-0 left-0 h-full bg-white shadow-lg transition-all duration-300 flex flex-col font-sans",
+        "fixed top-0 left-0 h-full bg-white dark:bg-gray-900 shadow-lg transition-all duration-300 flex flex-col font-sans",
         isCollapsed ? "w-20" : "w-64"
       )}
     >
@@ -113,8 +117,8 @@ export function Sidebar({ isCollapsed, onToggle, onLogout }: SidebarProps) {
               className={cn(
                 "flex items-center space-x-3 px-4 py-2 rounded-lg transition-colors font-medium",
                 isActive('/getting-started')
-                  ? "bg-indigo-50 text-indigo-600"
-                  : "text-gray-700 hover:bg-indigo-50",
+                  ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-900/50 dark:text-indigo-400"
+                  : "text-gray-700 hover:bg-indigo-50 dark:text-gray-300 dark:hover:bg-indigo-900/30",
                 isCollapsed && "justify-center"
               )}
             >
@@ -128,8 +132,8 @@ export function Sidebar({ isCollapsed, onToggle, onLogout }: SidebarProps) {
               className={cn(
                 "flex items-center space-x-3 px-4 py-2 rounded-lg transition-colors font-medium",
                 isActive('/companies')
-                  ? "bg-indigo-50 text-indigo-600"
-                  : "text-gray-700 hover:bg-indigo-50",
+                  ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-900/50 dark:text-indigo-400"
+                  : "text-gray-700 hover:bg-indigo-50 dark:text-gray-300 dark:hover:bg-indigo-900/30",
                 isCollapsed && "justify-center"
               )}
             >
@@ -140,39 +144,55 @@ export function Sidebar({ isCollapsed, onToggle, onLogout }: SidebarProps) {
         </ul>
       </div>
 
-      <div className="p-4 border-t">
+      <div className="p-4 border-t dark:border-gray-800">
         {!isCollapsed && (
           <>
             {userName && (
               <div className="px-4 py-2">
-                <div className="text-sm font-medium tracking-tight text-gray-700">
+                <div className="text-sm font-medium tracking-tight text-gray-700 dark:text-gray-300">
                   {userName}
                 </div>
               </div>
             )}
           </>
         )}
-        <Link
-          to="/profile"
-          className={cn(
-            "flex items-center w-full px-4 py-2 text-gray-700 hover:bg-indigo-50 rounded-lg transition-colors mb-2 font-medium",
-            isActive('/profile') && "bg-indigo-50 text-indigo-600",
-            isCollapsed && "justify-center"
-          )}
-        >
-          <User className={cn("h-5 w-5 flex-shrink-0", isActive('/profile') && "text-indigo-600")} />
-          {!isCollapsed && <span className="ml-3 tracking-tight">Profile</span>}
-        </Link>
-        <button
-          onClick={onLogout}
-          className={cn(
-            "flex items-center w-full px-4 py-2 text-gray-700 hover:bg-red-50 rounded-lg transition-colors font-medium",
-            isCollapsed && "justify-center"
-          )}
-        >
-          <LogOut className="h-5 w-5 flex-shrink-0" />
-          {!isCollapsed && <span className="ml-3 tracking-tight">Logout</span>}
-        </button>
+        <div className="flex flex-col space-y-2">
+          <button
+            onClick={toggleTheme}
+            className={cn(
+              "flex items-center px-4 py-2 text-gray-700 hover:bg-indigo-50 rounded-lg transition-colors dark:text-gray-300 dark:hover:bg-indigo-900/30",
+              isCollapsed && "justify-center"
+            )}
+          >
+            {isDark ? (
+              <Sun className="h-5 w-5 flex-shrink-0" />
+            ) : (
+              <Moon className="h-5 w-5 flex-shrink-0" />
+            )}
+            {!isCollapsed && <span className="ml-3 tracking-tight">{isDark ? 'Light Mode' : 'Dark Mode'}</span>}
+          </button>
+          <Link
+            to="/profile"
+            className={cn(
+              "flex items-center w-full px-4 py-2 text-gray-700 hover:bg-indigo-50 rounded-lg transition-colors dark:text-gray-300 dark:hover:bg-indigo-900/30",
+              isActive('/profile') && "bg-indigo-50 text-indigo-600 dark:bg-indigo-900/50 dark:text-indigo-400",
+              isCollapsed && "justify-center"
+            )}
+          >
+            <User className={cn("h-5 w-5 flex-shrink-0", isActive('/profile') && "text-indigo-600 dark:text-indigo-400")} />
+            {!isCollapsed && <span className="ml-3 tracking-tight">Profile</span>}
+          </Link>
+          <button
+            onClick={onLogout}
+            className={cn(
+              "flex items-center w-full px-4 py-2 text-gray-700 hover:bg-red-50 rounded-lg transition-colors dark:text-gray-300 dark:hover:bg-red-900/30",
+              isCollapsed && "justify-center"
+            )}
+          >
+            <LogOut className="h-5 w-5 flex-shrink-0" />
+            {!isCollapsed && <span className="ml-3 tracking-tight">Logout</span>}
+          </button>
+        </div>
       </div>
     </nav>
   );

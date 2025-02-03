@@ -1,26 +1,24 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
-import { DashboardLayout } from './components/dashboard/DashboardLayout';
-import { Dashboard } from './components/dashboard/Dashboard';
-import { UnauthenticatedApp } from './components/UnauthenticatedApp';
 import { useAuth } from './hooks/useAuth';
+import { ToastProvider } from './context/ToastContext';
+import { DashboardLayout } from './components/dashboard/DashboardLayout';
 import { LandingPage } from './components/landing/LandingPage';
+import { UnauthenticatedApp } from './components/UnauthenticatedApp';
 import { CompanyList } from './components/companies/CompanyList';
 import { AddCompany } from './components/companies/AddCompany';
 import { CompanyProducts } from './components/companies/CompanyProducts';
 import { AddProduct } from './components/companies/AddProduct';
 import { CompanyLeads } from './components/companies/CompanyLeads';
 import { CompanyCallLogs } from './components/companies/CompanyCallLogs';
-import { CompanyEmailCampaigns } from './components/companies/CompanyEmailCampaigns';
+import { CompanyEmails } from './components/companies/CompanyEmails';
+import { CompanyCampaigns } from './components/companies/CompanyCampaigns';
 import { AddEmailCampaign } from './components/companies/AddEmailCampaign';
 import { CompanySettings } from './components/companies/CompanySettings';
 import { CronofyCallback } from './components/auth/CronofyCallback';
-import { ToastProvider } from './context/ToastContext';
 import { GettingStarted } from './components/dashboard/GettingStarted';
 import { UserProfile } from './components/user/UserProfile';
 import { VerifyAccount } from './components/auth/VerifyAccount';
-import { CompanyEmails } from './components/companies/CompanyEmails';
-import { CompanyCampaigns } from './components/companies/CompanyCampaigns';
 
 export function App() {
   const { isAuthenticated, logout } = useAuth();
@@ -31,6 +29,15 @@ export function App() {
     logout();
     navigate('/');
   };
+
+  useEffect(() => {
+    // Set dark mode when authenticated
+    if (isAuthenticated) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (!isAuthenticated && location.pathname !== '/' && !location.pathname.startsWith('/login') && !location.pathname.startsWith('/signup') && !location.pathname.startsWith('/forgot-password') && !location.pathname.startsWith('/reset-password') && !location.pathname.startsWith('/verify-account')) {

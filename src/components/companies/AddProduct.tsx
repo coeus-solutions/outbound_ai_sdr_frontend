@@ -104,7 +104,7 @@ export function AddProduct() {
               required
               value={formData.product_name}
               onChange={handleChange}
-              className="appearance-none relative block w-full px-3 py-2 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+              className="form-input"
               placeholder="Product name"
             />
           </div>

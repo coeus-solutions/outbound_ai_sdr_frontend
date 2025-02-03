@@ -159,7 +159,7 @@ export function UserProfile() {
                 id="email"
                 value={userEmail || ''}
                 disabled
-                className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-lg text-gray-500 bg-gray-50 sm:text-sm"
+                className="form-input"
               />
             </div>
           </div>
@@ -177,7 +177,7 @@ export function UserProfile() {
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                className="form-input"
                 placeholder="Enter your name"
                 required
               />
@@ -204,7 +204,7 @@ export function UserProfile() {
                     id="currentPassword"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
-                    className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    className="form-input"
                     placeholder="Enter current password"
                     required={isPasswordFieldFilled}
                   />
@@ -224,7 +224,7 @@ export function UserProfile() {
                     id="newPassword"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    className="form-input"
                     placeholder="Enter new password (minimum 8 characters)"
                     required={isPasswordFieldFilled}
                     minLength={8}
@@ -245,7 +245,7 @@ export function UserProfile() {
                     id="confirmPassword"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    className="form-input"
                     placeholder="Confirm new password (minimum 8 characters)"
                     required={isPasswordFieldFilled}
                     minLength={8}

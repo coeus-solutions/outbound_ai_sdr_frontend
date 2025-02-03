@@ -274,7 +274,7 @@ export function CompanySettings() {
                 id="account_email"
                 value={credentials.account_email}
                 onChange={handleCredentialsChange}
-                className="appearance-none block w-full px-3 py-2 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                className="form-input"
                 placeholder="john.doe@example.com"
                 required
               />
