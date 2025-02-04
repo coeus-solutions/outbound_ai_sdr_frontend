@@ -9,6 +9,11 @@ import * as Tooltip from '@radix-ui/react-tooltip';
 import { Dialog } from '../shared/Dialog';
 import { PageHeader } from '../shared/PageHeader';
 import clsx from 'clsx';
+import { apiEndpoints } from '../../config';
+
+type VoiceType = 'josh' | 'florian' | 'derek' | 'june' | 'nat' | 'paige';
+type BackgroundTrackType = 'office' | 'cafe' | 'restaurant' | 'none';
+type LanguageCode = 'en-US' | 'en-GB' | 'en-AU' | 'en-IN' | 'zh-CN' | 'es-ES' | 'fr-FR' | 'de-DE' | 'it-IT' | 'ja-JP' | 'ko-KR' | 'pt-BR' | 'ru-RU' | 'hi-IN' | 'ar-SA' | 'tr-TR' | 'pl-PL' | 'nl-NL' | 'cs-CZ' | 'sk-SK';
 
 function getOAuthUrl(providerName: string, companyId: string): string {
   const redirectUri = `${window.location.origin}/cronofy-auth`;
@@ -146,6 +151,20 @@ const languageOptions: LanguageOption[] = [
   { id: 'sk', label: 'Slovak' }
 ];
 
+interface VoiceAgentSettings {
+  prompt: string;
+  voice: VoiceType;
+  background_track: BackgroundTrackType;
+  temperature: number;
+  language: LanguageCode;
+}
+
+declare module '../../services/companies' {
+  interface Company {
+    voice_agent_settings?: VoiceAgentSettings;
+  }
+}
+
 export function CompanySettings() {
   const { companyId } = useParams<{ companyId: string }>();
   const { showToast } = useToast();
@@ -169,6 +188,8 @@ export function CompanySettings() {
     type: selectedEmailProvider
   });
   const [temperature, setTemperature] = useState<string>('0.7');
+  const [prompt, setPrompt] = useState<string>('');
+  const [isSavingVoiceSettings, setIsSavingVoiceSettings] = useState(false);
 
   useEffect(() => {
     setCredentials(prev => ({
@@ -191,6 +212,17 @@ export function CompanySettings() {
 
         const companyData = await getCompanyById(token, companyId);
         setCompany(companyData);
+        
+        // Set voice agent settings if they exist
+        if (companyData.voice_agent_settings) {
+          const settings = companyData.voice_agent_settings;
+          setSelectedVoice(settings.voice);
+          setSelectedBackground(settings.background_track);
+          setSelectedLanguage(settings.language);
+          setTemperature(settings.temperature.toString());
+          setPrompt(settings.prompt);
+        }
+
         if (companyData.account_email) {
           setCredentials(prev => ({
             ...prev,
@@ -273,6 +305,47 @@ export function CompanySettings() {
       showToast('Failed to disconnect calendar. Please try again.', 'error');
     } finally {
       setIsDisconnecting(false);
+    }
+  };
+
+  const handleVoiceSettingsSave = async () => {
+    if (!companyId) return;
+
+    setIsSavingVoiceSettings(true);
+    try {
+      const token = getToken();
+      if (!token) {
+        showToast('Authentication failed. Please try logging in again.', 'error');
+        return;
+      }
+
+      const response = await fetch(apiEndpoints.companies.voiceAgentSettings(companyId), {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt,
+          voice: selectedVoice,
+          background_track: selectedBackground,
+          temperature: parseFloat(temperature),
+          language: selectedLanguage,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update voice agent settings');
+      }
+
+      const updatedCompany = await response.json();
+      setCompany(updatedCompany);
+      showToast('Voice agent settings saved successfully', 'success');
+    } catch (error) {
+      console.error('Error saving voice agent settings:', error);
+      showToast('Failed to save voice agent settings', 'error');
+    } finally {
+      setIsSavingVoiceSettings(false);
     }
   };
 
@@ -585,7 +658,7 @@ export function CompanySettings() {
                 <h2 className="ml-3 text-lg font-medium text-gray-900">Voice Agent Settings</h2>
               </div>
               <p className="mt-1 text-sm text-gray-500">
-                Configure your voice agent settings and example script
+                Configure your voice agent settings
               </p>
             </div>
             <div className="px-6 py-6 space-y-6">
@@ -880,6 +953,8 @@ export function CompanySettings() {
                     id="script"
                     name="script"
                     rows={4}
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
                     className="appearance-none block w-full px-3 py-2 text-base border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-lg bg-white placeholder-gray-500"
                     placeholder="e.g. You are Alex, a sales representative agent at Acme contacting prospect for a demo"
                   />
@@ -888,9 +963,18 @@ export function CompanySettings() {
               <div className="flex justify-end">
                 <button
                   type="button"
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  disabled={isSavingVoiceSettings}
+                  onClick={handleVoiceSettingsSave}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Save Voice Settings
+                  {isSavingVoiceSettings ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Saving...
+                    </>
+                  ) : (
+                    'Save Voice Settings'
+                  )}
                 </button>
               </div>
             </div>

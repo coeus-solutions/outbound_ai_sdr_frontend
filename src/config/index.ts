@@ -48,6 +48,7 @@ export const apiEndpoints = {
       list: (companyId: string) => `${config.apiUrl}/api/companies/${companyId}/emails`,
     },
     accountCredentials: (companyId: string) => `${config.apiUrl}/api/companies/${companyId}/account-credentials`,
+    voiceAgentSettings: (companyId: string) => `${config.apiUrl}/api/companies/${companyId}/voice_agent_settings`,
   },
   calls: {
     details: (callId: string) => `${config.apiUrl}/api/calls/${callId}`,
