@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Calendar, Check, X, Mail, Mic, Lock, ChevronDown, User, Info } from 'lucide-react';
+import { Calendar, Check, X, Mail, Mic, Lock, ChevronDown, User, Info, MessageSquare, UserSquare2, UserCircle, Volume2, Globe2 } from 'lucide-react';
 import { getToken } from '../../utils/auth';
 import { Company, getCompanyById, disconnectCalendar } from '../../services/companies';
 import { AccountCredentials, updateAccountCredentials } from '../../services/companySettings';
@@ -9,6 +9,11 @@ import * as Tooltip from '@radix-ui/react-tooltip';
 import { Dialog } from '../shared/Dialog';
 import { PageHeader } from '../shared/PageHeader';
 import clsx from 'clsx';
+import { apiEndpoints } from '../../config';
+
+type VoiceType = 'josh' | 'florian' | 'derek' | 'june' | 'nat' | 'paige';
+type BackgroundTrackType = 'office' | 'cafe' | 'restaurant' | 'none';
+type LanguageCode = 'en-US' | 'en-GB' | 'en-AU' | 'en-IN' | 'zh-CN' | 'es-ES' | 'fr-FR' | 'de-DE' | 'it-IT' | 'ja-JP' | 'ko-KR' | 'pt-BR' | 'ru-RU' | 'hi-IN' | 'ar-SA' | 'tr-TR' | 'pl-PL' | 'nl-NL' | 'cs-CZ' | 'sk-SK';
 
 function getOAuthUrl(providerName: string, companyId: string): string {
   const redirectUri = `${window.location.origin}/cronofy-auth`;
@@ -69,6 +74,97 @@ const calendarProviders: CalendarProvider[] = [
 
 type SettingsTab = 'calendar' | 'email' | 'voice';
 
+interface VoiceOption {
+  id: string;
+  label: string;
+  gender: 'male' | 'female';
+}
+
+const voiceOptions: VoiceOption[] = [
+  { id: 'josh', label: 'Josh', gender: 'male' },
+  { id: 'florian', label: 'Florian', gender: 'male' },
+  { id: 'derek', label: 'Derek', gender: 'male' },
+  { id: 'june', label: 'June', gender: 'female' },
+  { id: 'nat', label: 'Nat', gender: 'male' },
+  { id: 'paige', label: 'Paige', gender: 'female' }
+];
+
+interface BackgroundOption {
+  id: string;
+  label: string;
+}
+
+const backgroundOptions: BackgroundOption[] = [
+  { id: 'office', label: 'Office' },
+  { id: 'cafe', label: 'Cafe' },
+  { id: 'restaurant', label: 'Restaurant' },
+  { id: 'none', label: 'None' }
+];
+
+interface LanguageOption {
+  id: string;
+  label: string;
+  region?: string;
+}
+
+const languageOptions: LanguageOption[] = [
+  { id: 'en', label: 'English' },
+  { id: 'en-US', label: 'English', region: 'US' },
+  { id: 'en-GB', label: 'English', region: 'UK' },
+  { id: 'en-AU', label: 'English', region: 'Australia' },
+  { id: 'en-NZ', label: 'English', region: 'New Zealand' },
+  { id: 'en-IN', label: 'English', region: 'India' },
+  { id: 'zh', label: 'Chinese', region: 'Mandarin, Simplified' },
+  { id: 'zh-CN', label: 'Chinese', region: 'Mandarin, Simplified, China' },
+  { id: 'zh-Hans', label: 'Chinese', region: 'Mandarin, Simplified, Hans' },
+  { id: 'zh-TW', label: 'Chinese', region: 'Mandarin, Traditional' },
+  { id: 'zh-Hant', label: 'Chinese', region: 'Mandarin, Traditional, Hant' },
+  { id: 'es', label: 'Spanish' },
+  { id: 'es-419', label: 'Spanish', region: 'Latin America' },
+  { id: 'fr', label: 'French' },
+  { id: 'fr-CA', label: 'French', region: 'Canada' },
+  { id: 'de', label: 'German' },
+  { id: 'el', label: 'Greek' },
+  { id: 'hi', label: 'Hindi' },
+  { id: 'hi-Latn', label: 'Hindi', region: 'Latin script' },
+  { id: 'ja', label: 'Japanese' },
+  { id: 'ko', label: 'Korean' },
+  { id: 'ko-KR', label: 'Korean', region: 'Korea' },
+  { id: 'pt', label: 'Portuguese' },
+  { id: 'pt-BR', label: 'Portuguese', region: 'Brazil' },
+  { id: 'it', label: 'Italian' },
+  { id: 'nl', label: 'Dutch' },
+  { id: 'pl', label: 'Polish' },
+  { id: 'ru', label: 'Russian' },
+  { id: 'sv', label: 'Swedish' },
+  { id: 'sv-SE', label: 'Swedish', region: 'Sweden' },
+  { id: 'da', label: 'Danish' },
+  { id: 'da-DK', label: 'Danish', region: 'Denmark' },
+  { id: 'fi', label: 'Finnish' },
+  { id: 'id', label: 'Indonesian' },
+  { id: 'ms', label: 'Malay' },
+  { id: 'tr', label: 'Turkish' },
+  { id: 'uk', label: 'Ukrainian' },
+  { id: 'bg', label: 'Bulgarian' },
+  { id: 'cs', label: 'Czech' },
+  { id: 'ro', label: 'Romanian' },
+  { id: 'sk', label: 'Slovak' }
+];
+
+interface VoiceAgentSettings {
+  prompt: string;
+  voice: VoiceType;
+  background_track: BackgroundTrackType;
+  temperature: number;
+  language: LanguageCode;
+}
+
+declare module '../../services/companies' {
+  interface Company {
+    voice_agent_settings?: VoiceAgentSettings;
+  }
+}
+
 export function CompanySettings() {
   const { companyId } = useParams<{ companyId: string }>();
   const { showToast } = useToast();
@@ -80,11 +176,20 @@ export function CompanySettings() {
   const [activeTab, setActiveTab] = useState<SettingsTab>('calendar');
   const [selectedEmailProvider, setSelectedEmailProvider] = useState('gmail');
   const [isSavingCredentials, setIsSavingCredentials] = useState(false);
+  const [selectedVoice, setSelectedVoice] = useState<string>('florian');
+  const [isVoiceDropdownOpen, setIsVoiceDropdownOpen] = useState(false);
+  const [selectedBackground, setSelectedBackground] = useState<string>('none');
+  const [isBackgroundDropdownOpen, setIsBackgroundDropdownOpen] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState<string>('en-US');
+  const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false);
   const [credentials, setCredentials] = useState<AccountCredentials>({
     account_email: '',
     account_password: '',
     type: selectedEmailProvider
   });
+  const [temperature, setTemperature] = useState<string>('0.7');
+  const [prompt, setPrompt] = useState<string>('');
+  const [isSavingVoiceSettings, setIsSavingVoiceSettings] = useState(false);
 
   useEffect(() => {
     setCredentials(prev => ({
@@ -107,6 +212,17 @@ export function CompanySettings() {
 
         const companyData = await getCompanyById(token, companyId);
         setCompany(companyData);
+        
+        // Set voice agent settings if they exist
+        if (companyData.voice_agent_settings) {
+          const settings = companyData.voice_agent_settings;
+          setSelectedVoice(settings.voice);
+          setSelectedBackground(settings.background_track);
+          setSelectedLanguage(settings.language);
+          setTemperature(settings.temperature.toString());
+          setPrompt(settings.prompt);
+        }
+
         if (companyData.account_email) {
           setCredentials(prev => ({
             ...prev,
@@ -189,6 +305,47 @@ export function CompanySettings() {
       showToast('Failed to disconnect calendar. Please try again.', 'error');
     } finally {
       setIsDisconnecting(false);
+    }
+  };
+
+  const handleVoiceSettingsSave = async () => {
+    if (!companyId) return;
+
+    setIsSavingVoiceSettings(true);
+    try {
+      const token = getToken();
+      if (!token) {
+        showToast('Authentication failed. Please try logging in again.', 'error');
+        return;
+      }
+
+      const response = await fetch(apiEndpoints.companies.voiceAgentSettings(companyId), {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt,
+          voice: selectedVoice,
+          background_track: selectedBackground,
+          temperature: parseFloat(temperature),
+          language: selectedLanguage,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update voice agent settings');
+      }
+
+      const updatedCompany = await response.json();
+      setCompany(updatedCompany);
+      showToast('Voice agent settings saved successfully', 'success');
+    } catch (error) {
+      console.error('Error saving voice agent settings:', error);
+      showToast('Failed to save voice agent settings', 'error');
+    } finally {
+      setIsSavingVoiceSettings(false);
     }
   };
 
@@ -501,44 +658,323 @@ export function CompanySettings() {
                 <h2 className="ml-3 text-lg font-medium text-gray-900">Voice Agent Settings</h2>
               </div>
               <p className="mt-1 text-sm text-gray-500">
-                Configure your voice agent settings and example script
+                Configure your voice agent settings
               </p>
             </div>
             <div className="px-6 py-6 space-y-6">
               <div>
-                <label htmlFor="voice" className="block text-sm font-medium text-gray-700">
-                  Voice Selection
-                </label>
-                <select
-                  id="voice"
-                  name="voice"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                >
-                  <option>Select a voice</option>
-                  <option>Male Voice 1</option>
-                  <option>Female Voice 1</option>
-                  <option>Male Voice 2</option>
-                  <option>Female Voice 2</option>
-                </select>
+                <div className="flex items-center space-x-2">
+                  <label htmlFor="voice" className="block text-sm font-medium text-gray-700">
+                    Voice Selection
+                  </label>
+                  <Tooltip.Provider>
+                    <Tooltip.Root>
+                      <Tooltip.Trigger asChild>
+                        <button
+                          type="button"
+                          className="inline-flex items-center text-gray-400 hover:text-gray-500"
+                        >
+                          <Info className="h-4 w-4" />
+                        </button>
+                      </Tooltip.Trigger>
+                      <Tooltip.Portal>
+                        <Tooltip.Content
+                          className="bg-gray-900 text-white px-4 py-2 rounded text-xs max-w-xs z-50"
+                          sideOffset={5}
+                        >
+                          The voice of the AI agent to use
+                          <Tooltip.Arrow className="fill-gray-900" />
+                        </Tooltip.Content>
+                      </Tooltip.Portal>
+                    </Tooltip.Root>
+                  </Tooltip.Provider>
+                </div>
+                <div className="relative mt-1">
+                  <button
+                    type="button"
+                    className="relative w-full bg-white pl-10 pr-10 py-2 text-left border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm cursor-pointer"
+                    onClick={() => setIsVoiceDropdownOpen(!isVoiceDropdownOpen)}
+                  >
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      {selectedVoice ? (
+                        voiceOptions.find(v => v.id === selectedVoice)?.gender === 'male' ? (
+                          <UserSquare2 className="h-5 w-5 text-blue-500" />
+                        ) : (
+                          <UserCircle className="h-5 w-5 text-pink-500" />
+                        )
+                      ) : (
+                        <Mic className="h-5 w-5 text-gray-400" />
+                      )}
+                    </div>
+                    <span className="block truncate">
+                      {selectedVoice ? voiceOptions.find(v => v.id === selectedVoice)?.label : 'Select a voice'}
+                    </span>
+                    <span className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                      <ChevronDown className="h-5 w-5 text-gray-400" />
+                    </span>
+                  </button>
+                  {isVoiceDropdownOpen && (
+                    <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
+                      {voiceOptions.map((voice) => (
+                        <div
+                          key={voice.id}
+                          className={`${
+                            selectedVoice === voice.id ? 'bg-indigo-50 text-indigo-900' : 'text-gray-900'
+                          } cursor-pointer select-none relative py-2 pl-10 pr-4 hover:bg-indigo-50`}
+                          onClick={() => {
+                            setSelectedVoice(voice.id);
+                            setIsVoiceDropdownOpen(false);
+                          }}
+                        >
+                          <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+                            {voice.gender === 'male' ? (
+                              <UserSquare2 className="h-5 w-5 text-blue-500" />
+                            ) : (
+                              <UserCircle className="h-5 w-5 text-pink-500" />
+                            )}
+                          </span>
+                          <span className={`block truncate ${selectedVoice === voice.id ? 'font-semibold' : 'font-normal'}`}>
+                            {voice.label}
+                          </span>
+                          {selectedVoice === voice.id && (
+                            <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-indigo-600">
+                              <Check className="h-5 w-5" />
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
               <div>
-                <label htmlFor="script" className="block text-sm font-medium text-gray-700">
-                  Example Script
+                <div className="flex items-center space-x-2">
+                  <label htmlFor="language" className="block text-sm font-medium text-gray-700">
+                    Language
+                  </label>
+                  <Tooltip.Provider>
+                    <Tooltip.Root>
+                      <Tooltip.Trigger asChild>
+                        <button
+                          type="button"
+                          className="inline-flex items-center text-gray-400 hover:text-gray-500"
+                        >
+                          <Info className="h-4 w-4" />
+                        </button>
+                      </Tooltip.Trigger>
+                      <Tooltip.Portal>
+                        <Tooltip.Content
+                          className="bg-gray-900 text-white px-4 py-2 rounded text-xs max-w-xs z-50"
+                          sideOffset={5}
+                        >
+                          Select a supported language of your choice
+                          <Tooltip.Arrow className="fill-gray-900" />
+                        </Tooltip.Content>
+                      </Tooltip.Portal>
+                    </Tooltip.Root>
+                  </Tooltip.Provider>
+                </div>
+                <div className="relative mt-1">
+                  <button
+                    type="button"
+                    className="relative w-full bg-white pl-10 pr-10 py-2 text-left border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm cursor-pointer"
+                    onClick={() => setIsLanguageDropdownOpen(!isLanguageDropdownOpen)}
+                  >
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Globe2 className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <span className="block truncate">
+                      {(() => {
+                        const lang = languageOptions.find(l => l.id === selectedLanguage);
+                        if (!lang) return 'Select language';
+                        return lang.region ? `${lang.label} (${lang.region})` : lang.label;
+                      })()}
+                    </span>
+                    <span className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                      <ChevronDown className="h-5 w-5 text-gray-400" />
+                    </span>
+                  </button>
+                  {isLanguageDropdownOpen && (
+                    <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
+                      {languageOptions.map((language) => (
+                        <div
+                          key={language.id}
+                          className={`${
+                            selectedLanguage === language.id ? 'bg-indigo-50 text-indigo-900' : 'text-gray-900'
+                          } cursor-pointer select-none relative py-2 pl-10 pr-4 hover:bg-indigo-50`}
+                          onClick={() => {
+                            setSelectedLanguage(language.id);
+                            setIsLanguageDropdownOpen(false);
+                          }}
+                        >
+                          <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+                            <Globe2 className="h-5 w-5 text-gray-400" />
+                          </span>
+                          <span className={`block truncate ${selectedLanguage === language.id ? 'font-semibold' : 'font-normal'}`}>
+                            {language.region ? `${language.label} (${language.region})` : language.label}
+                          </span>
+                          {selectedLanguage === language.id && (
+                            <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-indigo-600">
+                              <Check className="h-5 w-5" />
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center space-x-2">
+                  <label htmlFor="background" className="block text-sm font-medium text-gray-700">
+                    Background Track
+                  </label>
+                  <Tooltip.Provider>
+                    <Tooltip.Root>
+                      <Tooltip.Trigger asChild>
+                        <button
+                          type="button"
+                          className="inline-flex items-center text-gray-400 hover:text-gray-500"
+                        >
+                          <Info className="h-4 w-4" />
+                        </button>
+                      </Tooltip.Trigger>
+                      <Tooltip.Portal>
+                        <Tooltip.Content
+                          className="bg-gray-900 text-white px-4 py-2 rounded text-xs max-w-xs z-50"
+                          sideOffset={5}
+                        >
+                          Select an audio track that you'd like to play in the background during the call.
+                          <Tooltip.Arrow className="fill-gray-900" />
+                        </Tooltip.Content>
+                      </Tooltip.Portal>
+                    </Tooltip.Root>
+                  </Tooltip.Provider>
+                </div>
+                <div className="relative mt-1">
+                  <button
+                    type="button"
+                    className="relative w-full bg-white pl-10 pr-10 py-2 text-left border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm cursor-pointer"
+                    onClick={() => setIsBackgroundDropdownOpen(!isBackgroundDropdownOpen)}
+                  >
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Volume2 className={`h-5 w-5 ${selectedBackground === 'none' ? 'text-gray-400' : 'text-indigo-500'}`} />
+                    </div>
+                    <span className="block truncate">
+                      {backgroundOptions.find(b => b.id === selectedBackground)?.label || 'Select background'}
+                    </span>
+                    <span className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                      <ChevronDown className="h-5 w-5 text-gray-400" />
+                    </span>
+                  </button>
+                  {isBackgroundDropdownOpen && (
+                    <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
+                      {backgroundOptions.map((background) => (
+                        <div
+                          key={background.id}
+                          className={`${
+                            selectedBackground === background.id ? 'bg-indigo-50 text-indigo-900' : 'text-gray-900'
+                          } cursor-pointer select-none relative py-2 pl-10 pr-4 hover:bg-indigo-50`}
+                          onClick={() => {
+                            setSelectedBackground(background.id);
+                            setIsBackgroundDropdownOpen(false);
+                          }}
+                        >
+                          <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+                            <Volume2 className={`h-5 w-5 ${background.id === 'none' ? 'text-gray-400' : 'text-indigo-500'}`} />
+                          </span>
+                          <span className={`block truncate ${selectedBackground === background.id ? 'font-semibold' : 'font-normal'}`}>
+                            {background.label}
+                          </span>
+                          {selectedBackground === background.id && (
+                            <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-indigo-600">
+                              <Check className="h-5 w-5" />
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center space-x-2">
+                  <label htmlFor="temperature" className="block text-sm font-medium text-gray-700">
+                    Temperature
+                  </label>
+                  <Tooltip.Provider>
+                    <Tooltip.Root>
+                      <Tooltip.Trigger asChild>
+                        <button
+                          type="button"
+                          className="inline-flex items-center text-gray-400 hover:text-gray-500"
+                        >
+                          <Info className="h-4 w-4" />
+                        </button>
+                      </Tooltip.Trigger>
+                      <Tooltip.Portal>
+                        <Tooltip.Content
+                          className="bg-gray-900 text-white px-4 py-2 rounded text-xs max-w-xs z-50"
+                          sideOffset={5}
+                        >
+                          A value between 0 and 1 that controls the randomness of the LLM. 0 will cause more deterministic outputs while 1 will cause more random.
+                          <Tooltip.Arrow className="fill-gray-900" />
+                        </Tooltip.Content>
+                      </Tooltip.Portal>
+                    </Tooltip.Root>
+                  </Tooltip.Provider>
+                </div>
+                <div className="relative mt-1">
+                  <input
+                    type="number"
+                    id="temperature"
+                    name="temperature"
+                    min="0"
+                    max="1"
+                    step="0.1"
+                    value={temperature}
+                    onChange={(e) => {
+                      const value = parseFloat(e.target.value);
+                      if (value >= 0 && value <= 1) {
+                        setTemperature(e.target.value);
+                      }
+                    }}
+                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    placeholder="0.7"
+                  />
+                </div>
+              </div>
+              <div>
+                <label htmlFor="script" className="block text-sm font-medium text-gray-700 mb-1">
+                  Prompt
                 </label>
-                <textarea
-                  id="script"
-                  name="script"
-                  rows={4}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                  placeholder="Enter your example script here..."
-                />
+                <div className="relative">
+                  <textarea
+                    id="script"
+                    name="script"
+                    rows={4}
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    className="appearance-none block w-full px-3 py-2 text-base border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-lg bg-white placeholder-gray-500"
+                    placeholder="e.g. You are Alex, a sales representative agent at Acme contacting prospect for a demo"
+                  />
+                </div>
               </div>
               <div className="flex justify-end">
                 <button
                   type="button"
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  disabled={isSavingVoiceSettings}
+                  onClick={handleVoiceSettingsSave}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Save Voice Settings
+                  {isSavingVoiceSettings ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Saving...
+                    </>
+                  ) : (
+                    'Save Voice Settings'
+                  )}
                 </button>
               </div>
             </div>
