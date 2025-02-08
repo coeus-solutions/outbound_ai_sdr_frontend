@@ -4,6 +4,7 @@ import { useAuth } from './hooks/useAuth';
 import { ToastProvider } from './context/ToastContext';
 import { DashboardLayout } from './components/dashboard/DashboardLayout';
 import { LandingPage } from './components/landing/LandingPage';
+import { CognismLandingPage } from './components/landing/CognismLandingPage';
 import { UnauthenticatedApp } from './components/UnauthenticatedApp';
 import { CompanyList } from './components/companies/CompanyList';
 import { AddCompany } from './components/companies/AddCompany';
@@ -40,30 +41,45 @@ export function App() {
   }, [isAuthenticated]);
 
   useEffect(() => {
-    if (!isAuthenticated && location.pathname !== '/' && !location.pathname.startsWith('/login') && !location.pathname.startsWith('/signup') && !location.pathname.startsWith('/forgot-password') && !location.pathname.startsWith('/reset-password') && !location.pathname.startsWith('/verify-account')) {
+    // Only redirect to login if not on public routes
+    if (!isAuthenticated && 
+        location.pathname !== '/' && 
+        location.pathname !== '/cognism' && 
+        !location.pathname.startsWith('/login') && 
+        !location.pathname.startsWith('/signup') && 
+        !location.pathname.startsWith('/forgot-password') && 
+        !location.pathname.startsWith('/reset-password') && 
+        !location.pathname.startsWith('/verify-account')) {
       navigate('/login');
-    } else if (isAuthenticated && (location.pathname === '/login' || location.pathname === '/signup' || location.pathname === '/' || location.pathname === '/forgot-password' || location.pathname === '/reset-password')) {
+    } 
+    // Only redirect to companies if on auth routes
+    else if (isAuthenticated && 
+            (location.pathname === '/login' || 
+             location.pathname === '/signup' || 
+             location.pathname === '/forgot-password' || 
+             location.pathname === '/reset-password')) {
       navigate('/companies');
     }
   }, [isAuthenticated, location.pathname, navigate]);
 
   return (
     <ToastProvider>
-      {!isAuthenticated ? (
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<UnauthenticatedApp />} />
-          <Route path="/signup" element={<UnauthenticatedApp />} />
-          <Route path="/forgot-password" element={<UnauthenticatedApp />} />
-          <Route path="/reset-password" element={<UnauthenticatedApp />} />
-          <Route path="/verify-account" element={<VerifyAccount />} />
-          <Route path="/cronofy-auth" element={<CronofyCallback />} />
-          <Route path="/getting-started" element={<GettingStarted />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      ) : (
-        <DashboardLayout onLogout={handleLogout}>
-          <Routes>
+      <Routes>
+        <Route path="/cognism" element={<CognismLandingPage />} />
+        {!isAuthenticated ? (
+          <>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<UnauthenticatedApp />} />
+            <Route path="/signup" element={<UnauthenticatedApp />} />
+            <Route path="/forgot-password" element={<UnauthenticatedApp />} />
+            <Route path="/reset-password" element={<UnauthenticatedApp />} />
+            <Route path="/verify-account" element={<VerifyAccount />} />
+            <Route path="/cronofy-auth" element={<CronofyCallback />} />
+            <Route path="/getting-started" element={<GettingStarted />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </>
+        ) : (
+          <Route element={<DashboardLayout onLogout={handleLogout} />}>
             <Route path="/" element={<Navigate to="/companies" replace />} />
             <Route path="/companies" element={<CompanyList />} />
             <Route path="/companies/new" element={<AddCompany />} />
@@ -79,9 +95,9 @@ export function App() {
             <Route path="/getting-started" element={<GettingStarted />} />
             <Route path="/profile" element={<UserProfile />} />
             <Route path="*" element={<Navigate to="/companies" replace />} />
-          </Routes>
-        </DashboardLayout>
-      )}
+          </Route>
+        )}
+      </Routes>
     </ToastProvider>
   );
 }
