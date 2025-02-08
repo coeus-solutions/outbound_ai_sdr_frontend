@@ -1,26 +1,36 @@
 import React from 'react';
-import { Target, Mail, Phone, Goal } from 'lucide-react';
+import { Mail, Phone, Database, Shield, BarChart, Zap } from 'lucide-react';
 
 const features = [
   {
-    icon: Target,
-    title: 'Generate targeted leads',
-    description: 'Our AI Agents generate targeted leads for your product / service and demographics.'
+    icon: Database,
+    title: 'Premium B2B Data',
+    description: 'Access Cognism\'s comprehensive database of verified business contacts and company information.'
   },
   {
     icon: Mail,
-    title: 'Smart email outreach',
-    description: 'Our AI agents create a hyper personalized outbound campaign to reach out and engage your prospects.'
+    title: 'AI-Powered Email Outreach',
+    description: 'Create personalized, compliant email campaigns that resonate with your target audience.'
   },
   {
     icon: Phone,
-    title: 'Smart call outreach',
-    description: 'Our AI agents define personalized pitch for prospects and then make calls to reach out.'
+    title: 'Intelligent Phone Outreach',
+    description: 'Leverage AI to optimize your calling strategy and increase connection rates.'
   },
   {
-    icon: Goal,
-    title: 'Personalize goals',
-    description: "You can define whether you want meetings, engagement, or just spread out a message. It's completely up to you."
+    icon: Shield,
+    title: 'Global Compliance',
+    description: 'Stay compliant with GDPR, CCPA, and other regulations with built-in compliance features.'
+  },
+  {
+    icon: BarChart,
+    title: 'Advanced Analytics',
+    description: 'Track campaign performance and optimize your outreach with detailed analytics and insights.'
+  },
+  {
+    icon: Zap,
+    title: 'Sales Acceleration',
+    description: 'Automate repetitive tasks and focus on what matters - closing deals and growing revenue.'
   }
 ];
 
@@ -36,11 +46,11 @@ export function FeatureSection() {
             Powerful features to help your team close more deals efficiently
           </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {features.map((feature, index) => (
             <div key={index} className="p-6 bg-gray-900 rounded-xl border border-gray-700">
               <div className="w-12 h-12 bg-gray-800/50 rounded-lg flex items-center justify-center mb-4">
-                <feature.icon className="h-6 w-6 text-indigo-400" />
+                <feature.icon className="h-6 w-6 text-blue-400" />
               </div>
               <h3 className="text-xl font-semibold text-white mb-2">{feature.title}</h3>
               <p className="text-gray-300">{feature.description}</p>
