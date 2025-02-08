@@ -51,79 +51,75 @@ export function LoginForm({ onLogin }: LoginFormProps) {
   };
 
   return (
-    <div className="bg-white flex justify-center pt-8 px-4">
-      <div className="w-full max-w-md">
-        <AuthLayout title="Sign in to your account">
-          <form onSubmit={handleSubmit} className="mt-4">
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4" role="alert">
-                {error}
-              </div>
-            )}
+    <AuthLayout title="Sign in to your account">
+      <form onSubmit={handleSubmit} className="mt-4">
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4" role="alert">
+            {error}
+          </div>
+        )}
 
-            <div className="space-y-3 mb-3">
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="form-input"
-                  placeholder="Email address"
-                  disabled={isLoading}
-                />
-              </div>
-
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="form-input"
-                  placeholder="Password"
-                  disabled={isLoading}
-                />
-              </div>
+        <div className="space-y-3 mb-3">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Mail className="h-5 w-5 text-gray-400" />
             </div>
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="form-input"
+              placeholder="Email address"
+              disabled={isLoading}
+            />
+          </div>
 
-            <div className="flex justify-end mb-3">
-              <Link
-                to="/forgot-password"
-                className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
-              >
-                Forgot your password?
-              </Link>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Lock className="h-5 w-5 text-gray-400" />
             </div>
+            <input
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="form-input"
+              placeholder="Password"
+              disabled={isLoading}
+            />
+          </div>
+        </div>
 
-            <div className="mb-2">
-              <button
-                type="submit"
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={isLoading}
-              >
-                {isLoading ? 'Signing in...' : 'Sign in'}
-              </button>
-            </div>
+        <div className="flex justify-end mb-3">
+          <Link
+            to="/forgot-password"
+            className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+          >
+            Forgot your password?
+          </Link>
+        </div>
 
-            <div className="text-sm text-center">
-              <span className="text-gray-500">Don't have an account?</span>{' '}
-              <Link 
-                to="/signup"
-                className="font-medium text-indigo-600 hover:text-indigo-500"
-              >
-                Sign up
-              </Link>
-            </div>
-          </form>
-        </AuthLayout>
-      </div>
-    </div>
+        <div className="mb-2">
+          <button
+            type="submit"
+            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isLoading}
+          >
+            {isLoading ? 'Signing in...' : 'Sign in'}
+          </button>
+        </div>
+
+        <div className="text-sm text-center">
+          <span className="text-gray-500">Don't have an account?</span>{' '}
+          <Link 
+            to="/signup"
+            className="font-medium text-indigo-600 hover:text-indigo-500"
+          >
+            Sign up
+          </Link>
+        </div>
+      </form>
+    </AuthLayout>
   );
 }

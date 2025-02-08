@@ -1,5 +1,6 @@
 import React from 'react';
-import { Routes, Route, Navigate, useLocation, Link } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { LoginForm } from './auth/LoginForm';
 import { SignUpForm } from './auth/SignUpForm';
 import { ForgotPasswordForm } from './auth/ForgotPasswordForm';
@@ -31,18 +32,39 @@ export function UnauthenticatedApp() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <div className="flex-grow flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md flex justify-center">
-          <Link to="/" className="inline-flex items-center space-x-0 hover:opacity-80 transition-opacity">
-            <img src="/images/logo.png" alt="ReachGenie.ai Logo" className="h-8" />
-            <h2 className="text-center text-3xl font-extrabold text-gray-900">
-              ReachGenie.ai
-            </h2>
+          <Link to="/">
+            <motion.div 
+              className="flex items-center justify-center"
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 400, damping: 10 }}
+            >
+              <motion.span 
+                className="text-3xl font-bold relative"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                <motion.span
+                  className="absolute -inset-1 bg-gradient-to-r from-indigo-900/50 via-purple-900/50 to-indigo-900/50 rounded-lg blur-lg"
+                  animate={{
+                    opacity: [0.3, 0.5, 0.3],
+                    scale: [1, 1.05, 1],
+                  }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    repeatType: "reverse",
+                  }}
+                />
+                <span className="relative bg-gradient-to-r from-blue-400 via-indigo-400 to-violet-400 bg-clip-text text-transparent">Reach</span>
+                <span className="relative bg-gradient-to-r from-fuchsia-400 to-pink-400 bg-clip-text text-transparent">Genie</span>
+              </motion.span>
+            </motion.div>
           </Link>
         </div>
 
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-            {renderForm()}
-          </div>
+          {renderForm()}
         </div>
       </div>
       <Footer />
