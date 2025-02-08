@@ -1,9 +1,11 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Package, Upload } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getToken } from '../../utils/auth';
 import { createProduct } from '../../services/products';
 import { useToast } from '../../context/ToastContext';
+import { getCompanyById } from '../../services/companies';
+import { PageHeader } from '../shared/PageHeader';
 
 export function AddProduct() {
   const navigate = useNavigate();
@@ -11,11 +13,30 @@ export function AddProduct() {
   const { showToast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [companyName, setCompanyName] = useState('');
   const [formData, setFormData] = useState({
     product_name: '',
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    async function fetchCompany() {
+      if (!companyId) return;
+      try {
+        const token = getToken();
+        if (!token) {
+          setError('Authentication token not found');
+          return;
+        }
+        const company = await getCompanyById(token, companyId);
+        setCompanyName(company.name);
+      } catch (err) {
+        console.error('Error fetching company:', err);
+      }
+    }
+    fetchCompany();
+  }, [companyId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,7 +106,10 @@ export function AddProduct() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Add New Product</h1>
+      <PageHeader
+        title="Add New Product"
+        subtitle={`for ${companyName}`}
+      />
       <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6 space-y-6">
         {error && (
           <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg">

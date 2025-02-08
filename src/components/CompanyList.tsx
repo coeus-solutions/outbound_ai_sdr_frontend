@@ -156,10 +156,18 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
             )}
           </div>
           <div className="flex items-center space-x-2">
+            <Link
+              to={`/companies/${company.id}/products/new`}
+              className="p-2 text-gray-400 hover:text-indigo-600"
+              title="Add product"
+            >
+              <Package className="w-5 h-5" />
+            </Link>
             <button
               onClick={onViewDetails}
               className="p-2 text-gray-400 hover:text-gray-600"
               disabled={isLoadingDetails}
+              title="View company details"
             >
               {isLoadingDetails ? (
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-400"></div>
@@ -167,8 +175,12 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
                 <Eye className="w-5 h-5" />
               )}
             </button>
-            <Link to={`/companies/${company.id}/settings`}>
-              <Settings className="w-5 h-5 text-gray-400 hover:text-gray-600" />
+            <Link 
+              to={`/companies/${company.id}/settings`}
+              className="p-2 text-gray-400 hover:text-gray-600"
+              title="Company settings"
+            >
+              <Settings className="w-5 h-5" />
             </Link>
             <button
               onClick={onDelete}
@@ -180,13 +192,38 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
             <button 
               onClick={() => setIsExpanded(!isExpanded)}
               className="p-2 text-gray-400 hover:text-gray-600"
+              title={isExpanded ? "Collapse section" : "Expand section"}
             >
               {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
             </button>
           </div>
         </div>
 
-        {/* ... rest of the CompanyCard component ... */}
+        {/* Products Section */}
+        {isExpanded && (
+          <div className="mt-4">
+            {company.products.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {company.products.map((product) => (
+                  <ProductCard key={product.id} product={product} companyId={company.id} />
+                ))}
+              </div>
+            ) : (
+              <div className="border-2 border-dashed border-gray-200 rounded-lg p-8 text-center">
+                <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No products</h3>
+                <p className="text-gray-500 mb-4">Get started by adding your first product/service</p>
+                <Link
+                  to={`/companies/${company.id}/products/new`}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+                >
+                  <Package className="w-4 h-4 mr-2" />
+                  Add Product
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

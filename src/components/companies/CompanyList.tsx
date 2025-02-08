@@ -384,13 +384,20 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
             )}
           </div>
           <div className="flex items-center space-x-2">
+            <Link
+              to={`/companies/${company.id}/products/new`}
+              className="p-2 text-gray-400 hover:text-indigo-600"
+              title="Add product"
+            >
+              <Package className="w-5 h-5" />
+            </Link>
             <button
               onClick={onViewDetails}
               className="p-2 text-gray-400 hover:text-gray-600"
               disabled={isLoadingDetails}
             >
               {isLoadingDetails ? (
-                <SkeletonLoader className="h-5 w-5 rounded-full" />
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-400"></div>
               ) : (
                 <Eye className="w-5 h-5" />
               )}
@@ -415,15 +422,32 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
         </div>
 
         {/* Products Section */}
-        {isExpanded && company.products.length > 0 && (
+        {isExpanded && (
           <div className="space-y-4">
-            {company.products.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                companyId={company.id}
-              />
-            ))}
+            {company.products.length > 0 ? (
+              company.products.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  companyId={company.id}
+                />
+              ))
+            ) : (
+              <div className="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                <Package className="mx-auto h-12 w-12 text-gray-400" />
+                <h3 className="mt-2 text-sm font-medium text-gray-900">No products</h3>
+                <p className="mt-1 text-sm text-gray-500">Get started by adding your first product/service</p>
+                <div className="mt-6">
+                  <Link
+                    to={`/companies/${company.id}/products/new`}
+                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  >
+                    <Package className="h-5 w-5 mr-2" />
+                    Add Product
+                  </Link>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
