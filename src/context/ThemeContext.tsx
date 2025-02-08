@@ -7,21 +7,48 @@ interface ThemeContextType {
 
 export const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+const THEME_KEY = 'reachgenie-theme-preference';
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [isDark, setIsDark] = useState(false);
+  // Initialize theme from localStorage or system preference
+  const [isDark, setIsDark] = useState(() => {
+    const savedTheme = localStorage.getItem(THEME_KEY);
+    if (savedTheme !== null) {
+      return savedTheme === 'dark';
+    }
+    // If no saved preference, use system preference
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
 
   const toggleTheme = () => {
     setIsDark(prev => !prev);
   };
 
   useEffect(() => {
-    // Apply dark mode class to body
+    // Save theme preference to localStorage
+    localStorage.setItem(THEME_KEY, isDark ? 'dark' : 'light');
+
+    // Apply dark mode class to html element
     if (isDark) {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
   }, [isDark]);
+
+  // Listen for system theme changes
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (e: MediaQueryListEvent) => {
+      // Only update if there's no saved preference
+      if (!localStorage.getItem(THEME_KEY)) {
+        setIsDark(e.matches);
+      }
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
 
   return (
     <ThemeContext.Provider value={{ isDark, toggleTheme }}>
