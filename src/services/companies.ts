@@ -1,4 +1,4 @@
-import { apiEndpoints } from '../config';
+import { apiEndpoints, config } from '../config';
 
 export interface Company {
   id: string;
@@ -32,6 +32,7 @@ export interface CompanyUserResponse {
   name: string | null;
   email: string;
   role: string;
+  user_company_profile_id: string;
 }
 
 export async function getCompanies(token: string): Promise<Company[]> {
@@ -142,4 +143,19 @@ export async function getCompanyUsers(token: string, companyId: string): Promise
   }
 
   return response.json();
+}
+
+export async function deleteUserCompanyProfile(token: string, userCompanyProfileId: string): Promise<void> {
+  const response = await fetch(`${config.apiUrl}/api/user_company_profile/${userCompanyProfileId}`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to delete user from company');
+  }
 } 
