@@ -28,6 +28,12 @@ export interface CronofyAuthResponse {
   message: string;
 }
 
+export interface CompanyUserResponse {
+  name: string | null;
+  email: string;
+  role: string;
+}
+
 export async function getCompanies(token: string): Promise<Company[]> {
   const response = await fetch(apiEndpoints.companies.list, {
     headers: {
@@ -121,4 +127,19 @@ export async function deleteCompany(token: string, companyId: string): Promise<v
   if (!response.ok) {
     throw new Error('Failed to delete company');
   }
+}
+
+export async function getCompanyUsers(token: string, companyId: string): Promise<CompanyUserResponse[]> {
+  const response = await fetch(apiEndpoints.companies.users(companyId), {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch company users');
+  }
+
+  return response.json();
 } 

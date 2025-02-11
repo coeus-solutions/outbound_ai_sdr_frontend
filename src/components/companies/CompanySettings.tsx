@@ -12,6 +12,7 @@ import clsx from 'clsx';
 import { apiEndpoints } from '../../config';
 import { toast } from 'react-hot-toast';
 import { v4 as uuidv4 } from 'uuid';
+import { CompanyUsers } from './CompanyUsers';
 
 type VoiceType = 'josh' | 'florian' | 'derek' | 'june' | 'nat' | 'paige';
 type BackgroundTrackType = 'office' | 'cafe' | 'restaurant' | 'none';
@@ -799,60 +800,50 @@ export function CompanySettings() {
     switch (activeTab) {
       case 'calendar':
         return (
-          <div className="bg-white shadow rounded-lg">
-            <div className="px-6 py-5 border-b border-gray-200">
-              <div className="flex items-center">
-                <Calendar className="h-6 w-6 text-gray-400" />
-                <h2 className="ml-3 text-lg font-medium text-gray-900">Calendar</h2>
-              </div>
-              <p className="mt-1 text-sm text-gray-500">
-                Integrate your calendar to enable seamless meeting scheduling when leads are ready to engage
-              </p>
-            </div>
-
-            {isCalendarConnected && connectedProvider && (
-              <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-indigo-50 via-blue-50 to-indigo-50">
-                <div className="flex items-center space-x-4 p-4 bg-white/80 backdrop-blur-sm rounded-lg shadow-sm">
-                  <div className={`flex-shrink-0 h-12 w-12 rounded-lg ${connectedProvider.bgColor} p-2 flex items-center justify-center shadow-sm`}>
-                    <img
-                      src={connectedProvider.logo}
-                      alt={`${connectedProvider.name} logo`}
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-sm font-medium text-gray-900 uppercase tracking-wide">Connected Calendar</h3>
-                    <div className="mt-1.5 flex flex-col">
-                      <span className="text-base text-gray-900 font-medium">
-                        {company.cronofy_default_calendar_name || 'Default Calendar'}
-                      </span>
-                      <span className="text-sm text-gray-600">
-                        {company.cronofy_linked_email} • {connectedProvider.name}
-                      </span>
+          <div className="space-y-6">
+            {/* Calendar settings */}
+            {isCalendarConnected && (
+              <div className="bg-white shadow rounded-lg">
+                <div className="px-6 py-5 border-b border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <img
+                        src={connectedProvider?.logo}
+                        alt={`${connectedProvider?.name} logo`}
+                        className="h-8 w-8 rounded-lg"
+                      />
+                      <div className="ml-4">
+                        <h3 className="text-lg font-medium text-gray-900">
+                          {connectedProvider?.name}
+                        </h3>
+                        <p className="text-sm text-gray-500">
+                          Connected as {company?.cronofy_linked_email}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex-shrink-0 flex items-center space-x-3">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 shadow-sm">
-                      <Check className="h-3.5 w-3.5 mr-1" />
-                      Connected
-                    </span>
-                    <button
-                      onClick={handleDisconnectClick}
-                      disabled={isDisconnecting}
-                      className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-                    >
-                      {isDisconnecting ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-700 mr-2"></div>
-                          Disconnecting...
-                        </>
-                      ) : (
-                        <>
-                          <X className="h-4 w-4 mr-1" />
-                          Disconnect
-                        </>
-                      )}
-                    </button>
+                    <div className="flex-shrink-0 flex items-center space-x-3">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 shadow-sm">
+                        <Check className="h-3.5 w-3.5 mr-1" />
+                        Connected
+                      </span>
+                      <button
+                        onClick={handleDisconnectClick}
+                        disabled={isDisconnecting}
+                        className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+                      >
+                        {isDisconnecting ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-700 mr-2"></div>
+                            Disconnecting...
+                          </>
+                        ) : (
+                          <>
+                            <X className="h-4 w-4 mr-1" />
+                            Disconnect
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -927,343 +918,351 @@ export function CompanySettings() {
           </div>
         );
 
+      case 'invite_users':
+        return (
+          <div className="space-y-6">
+            <CompanyUsers />
+            {renderInviteUsersTab()}
+          </div>
+        );
+
       case 'email':
         return renderEmailSettings();
 
       case 'voice':
         return (
-          <div className="bg-white shadow rounded-lg">
-            <div className="px-6 py-5 border-b border-gray-200">
-              <div className="flex items-center">
-                <Mic className="h-6 w-6 text-gray-400" />
-                <h2 className="ml-3 text-lg font-medium text-gray-900">Voice Agent Settings</h2>
-              </div>
-              <p className="mt-1 text-sm text-gray-500">
-                Configure your voice agent settings
-              </p>
-            </div>
-            <div className="px-6 py-6 space-y-6">
-              <div>
-                <div className="flex items-center space-x-2">
-                  <label htmlFor="voice" className="block text-sm font-medium text-gray-700">
-                    Voice Selection
-                  </label>
-                  <Tooltip.Provider>
-                    <Tooltip.Root>
-                      <Tooltip.Trigger asChild>
-                        <button
-                          type="button"
-                          className="inline-flex items-center text-gray-400 hover:text-gray-500"
-                        >
-                          <Info className="h-4 w-4" />
-                        </button>
-                      </Tooltip.Trigger>
-                      <Tooltip.Portal>
-                        <Tooltip.Content
-                          className="bg-gray-900 text-white px-4 py-2 rounded text-xs max-w-xs z-50"
-                          sideOffset={5}
-                        >
-                          The voice of the AI agent to use
-                          <Tooltip.Arrow className="fill-gray-900" />
-                        </Tooltip.Content>
-                      </Tooltip.Portal>
-                    </Tooltip.Root>
-                  </Tooltip.Provider>
+          <div className="space-y-6">
+            {/* Voice settings */}
+            <div className="bg-white shadow rounded-lg">
+              <div className="px-6 py-5 border-b border-gray-200">
+                <div className="flex items-center">
+                  <Mic className="h-6 w-6 text-gray-400" />
+                  <h2 className="ml-3 text-lg font-medium text-gray-900">Voice Agent Settings</h2>
                 </div>
-                <div className="relative mt-1">
-                  <button
-                    type="button"
-                    className="relative w-full bg-white pl-10 pr-10 py-2 text-left border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm cursor-pointer"
-                    onClick={() => setIsVoiceDropdownOpen(!isVoiceDropdownOpen)}
-                  >
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      {selectedVoice ? (
-                        voiceOptions.find(v => v.id === selectedVoice)?.gender === 'male' ? (
-                          <UserSquare2 className="h-5 w-5 text-blue-500" />
+                <p className="mt-1 text-sm text-gray-500">
+                  Configure your voice agent settings
+                </p>
+              </div>
+              <div className="px-6 py-6 space-y-6">
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <label htmlFor="voice" className="block text-sm font-medium text-gray-700">
+                      Voice Selection
+                    </label>
+                    <Tooltip.Provider>
+                      <Tooltip.Root>
+                        <Tooltip.Trigger asChild>
+                          <button
+                            type="button"
+                            className="inline-flex items-center text-gray-400 hover:text-gray-500"
+                          >
+                            <Info className="h-4 w-4" />
+                          </button>
+                        </Tooltip.Trigger>
+                        <Tooltip.Portal>
+                          <Tooltip.Content
+                            className="bg-gray-900 text-white px-4 py-2 rounded text-xs max-w-xs z-50"
+                            sideOffset={5}
+                          >
+                            The voice of the AI agent to use
+                            <Tooltip.Arrow className="fill-gray-900" />
+                          </Tooltip.Content>
+                        </Tooltip.Portal>
+                      </Tooltip.Root>
+                    </Tooltip.Provider>
+                  </div>
+                  <div className="relative mt-1">
+                    <button
+                      type="button"
+                      className="relative w-full bg-white pl-10 pr-10 py-2 text-left border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm cursor-pointer"
+                      onClick={() => setIsVoiceDropdownOpen(!isVoiceDropdownOpen)}
+                    >
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        {selectedVoice ? (
+                          voiceOptions.find(v => v.id === selectedVoice)?.gender === 'male' ? (
+                            <UserSquare2 className="h-5 w-5 text-blue-500" />
+                          ) : (
+                            <UserCircle className="h-5 w-5 text-pink-500" />
+                          )
                         ) : (
-                          <UserCircle className="h-5 w-5 text-pink-500" />
-                        )
-                      ) : (
-                        <Mic className="h-5 w-5 text-gray-400" />
-                      )}
-                    </div>
-                    <span className="block truncate">
-                      {selectedVoice ? voiceOptions.find(v => v.id === selectedVoice)?.label : 'Select a voice'}
-                    </span>
-                    <span className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                      <ChevronDown className="h-5 w-5 text-gray-400" />
-                    </span>
-                  </button>
-                  {isVoiceDropdownOpen && (
-                    <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
-                      {voiceOptions.map((voice) => (
-                        <div
-                          key={voice.id}
-                          className={`${
-                            selectedVoice === voice.id ? 'bg-indigo-50 text-indigo-900' : 'text-gray-900'
-                          } cursor-pointer select-none relative py-2 pl-10 pr-4 hover:bg-indigo-50`}
-                          onClick={() => {
-                            setSelectedVoice(voice.id);
-                            setIsVoiceDropdownOpen(false);
-                          }}
-                        >
-                          <span className="absolute inset-y-0 left-0 flex items-center pl-3">
-                            {voice.gender === 'male' ? (
-                              <UserSquare2 className="h-5 w-5 text-blue-500" />
-                            ) : (
-                              <UserCircle className="h-5 w-5 text-pink-500" />
+                          <Mic className="h-5 w-5 text-gray-400" />
+                        )}
+                      </div>
+                      <span className="block truncate">
+                        {selectedVoice ? voiceOptions.find(v => v.id === selectedVoice)?.label : 'Select a voice'}
+                      </span>
+                      <span className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                        <ChevronDown className="h-5 w-5 text-gray-400" />
+                      </span>
+                    </button>
+                    {isVoiceDropdownOpen && (
+                      <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
+                        {voiceOptions.map((voice) => (
+                          <div
+                            key={voice.id}
+                            className={`${
+                              selectedVoice === voice.id ? 'bg-indigo-50 text-indigo-900' : 'text-gray-900'
+                            } cursor-pointer select-none relative py-2 pl-10 pr-4 hover:bg-indigo-50`}
+                            onClick={() => {
+                              setSelectedVoice(voice.id);
+                              setIsVoiceDropdownOpen(false);
+                            }}
+                          >
+                            <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+                              {voice.gender === 'male' ? (
+                                <UserSquare2 className="h-5 w-5 text-blue-500" />
+                              ) : (
+                                <UserCircle className="h-5 w-5 text-pink-500" />
+                              )}
+                            </span>
+                            <span className={`block truncate ${selectedVoice === voice.id ? 'font-semibold' : 'font-normal'}`}>
+                              {voice.label}
+                            </span>
+                            {selectedVoice === voice.id && (
+                              <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-indigo-600">
+                                <Check className="h-5 w-5" />
+                              </span>
                             )}
-                          </span>
-                          <span className={`block truncate ${selectedVoice === voice.id ? 'font-semibold' : 'font-normal'}`}>
-                            {voice.label}
-                          </span>
-                          {selectedVoice === voice.id && (
-                            <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-indigo-600">
-                              <Check className="h-5 w-5" />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <label htmlFor="language" className="block text-sm font-medium text-gray-700">
+                      Language
+                    </label>
+                    <Tooltip.Provider>
+                      <Tooltip.Root>
+                        <Tooltip.Trigger asChild>
+                          <button
+                            type="button"
+                            className="inline-flex items-center text-gray-400 hover:text-gray-500"
+                          >
+                            <Info className="h-4 w-4" />
+                          </button>
+                        </Tooltip.Trigger>
+                        <Tooltip.Portal>
+                          <Tooltip.Content
+                            className="bg-gray-900 text-white px-4 py-2 rounded text-xs max-w-xs z-50"
+                            sideOffset={5}
+                          >
+                            Select a supported language of your choice
+                            <Tooltip.Arrow className="fill-gray-900" />
+                          </Tooltip.Content>
+                        </Tooltip.Portal>
+                      </Tooltip.Root>
+                    </Tooltip.Provider>
+                  </div>
+                  <div className="relative mt-1">
+                    <button
+                      type="button"
+                      className="relative w-full bg-white pl-10 pr-10 py-2 text-left border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm cursor-pointer"
+                      onClick={() => setIsLanguageDropdownOpen(!isLanguageDropdownOpen)}
+                    >
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Globe2 className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <span className="block truncate">
+                        {(() => {
+                          const lang = languageOptions.find(l => l.id === selectedLanguage);
+                          if (!lang) return 'Select language';
+                          return lang.region ? `${lang.label} (${lang.region})` : lang.label;
+                        })()}
+                      </span>
+                      <span className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                        <ChevronDown className="h-5 w-5 text-gray-400" />
+                      </span>
+                    </button>
+                    {isLanguageDropdownOpen && (
+                      <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
+                        {languageOptions.map((language) => (
+                          <div
+                            key={language.id}
+                            className={`${
+                              selectedLanguage === language.id ? 'bg-indigo-50 text-indigo-900' : 'text-gray-900'
+                            } cursor-pointer select-none relative py-2 pl-10 pr-4 hover:bg-indigo-50`}
+                            onClick={() => {
+                              setSelectedLanguage(language.id);
+                              setIsLanguageDropdownOpen(false);
+                            }}
+                          >
+                            <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+                              <Globe2 className="h-5 w-5 text-gray-400" />
                             </span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                            <span className={`block truncate ${selectedLanguage === language.id ? 'font-semibold' : 'font-normal'}`}>
+                              {language.region ? `${language.label} (${language.region})` : language.label}
+                            </span>
+                            {selectedLanguage === language.id && (
+                              <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-indigo-600">
+                                <Check className="h-5 w-5" />
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <div>
-                <div className="flex items-center space-x-2">
-                  <label htmlFor="language" className="block text-sm font-medium text-gray-700">
-                    Language
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <label htmlFor="background" className="block text-sm font-medium text-gray-700">
+                      Background Track
+                    </label>
+                    <Tooltip.Provider>
+                      <Tooltip.Root>
+                        <Tooltip.Trigger asChild>
+                          <button
+                            type="button"
+                            className="inline-flex items-center text-gray-400 hover:text-gray-500"
+                          >
+                            <Info className="h-4 w-4" />
+                          </button>
+                        </Tooltip.Trigger>
+                        <Tooltip.Portal>
+                          <Tooltip.Content
+                            className="bg-gray-900 text-white px-4 py-2 rounded text-xs max-w-xs z-50"
+                            sideOffset={5}
+                          >
+                            Select an audio track that you'd like to play in the background during the call.
+                            <Tooltip.Arrow className="fill-gray-900" />
+                          </Tooltip.Content>
+                        </Tooltip.Portal>
+                      </Tooltip.Root>
+                    </Tooltip.Provider>
+                  </div>
+                  <div className="relative mt-1">
+                    <button
+                      type="button"
+                      className="relative w-full bg-white pl-10 pr-10 py-2 text-left border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm cursor-pointer"
+                      onClick={() => setIsBackgroundDropdownOpen(!isBackgroundDropdownOpen)}
+                    >
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Volume2 className={`h-5 w-5 ${selectedBackground === 'none' ? 'text-gray-400' : 'text-indigo-500'}`} />
+                      </div>
+                      <span className="block truncate">
+                        {backgroundOptions.find(b => b.id === selectedBackground)?.label || 'Select background'}
+                      </span>
+                      <span className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                        <ChevronDown className="h-5 w-5 text-gray-400" />
+                      </span>
+                    </button>
+                    {isBackgroundDropdownOpen && (
+                      <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
+                        {backgroundOptions.map((background) => (
+                          <div
+                            key={background.id}
+                            className={`${
+                              selectedBackground === background.id ? 'bg-indigo-50 text-indigo-900' : 'text-gray-900'
+                            } cursor-pointer select-none relative py-2 pl-10 pr-4 hover:bg-indigo-50`}
+                            onClick={() => {
+                              setSelectedBackground(background.id);
+                              setIsBackgroundDropdownOpen(false);
+                            }}
+                          >
+                            <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+                              <Volume2 className={`h-5 w-5 ${background.id === 'none' ? 'text-gray-400' : 'text-indigo-500'}`} />
+                            </span>
+                            <span className={`block truncate ${selectedBackground === background.id ? 'font-semibold' : 'font-normal'}`}>
+                              {background.label}
+                            </span>
+                            {selectedBackground === background.id && (
+                              <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-indigo-600">
+                                <Check className="h-5 w-5" />
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <label htmlFor="temperature" className="block text-sm font-medium text-gray-700">
+                      Temperature
+                    </label>
+                    <Tooltip.Provider>
+                      <Tooltip.Root>
+                        <Tooltip.Trigger asChild>
+                          <button
+                            type="button"
+                            className="inline-flex items-center text-gray-400 hover:text-gray-500"
+                          >
+                            <Info className="h-4 w-4" />
+                          </button>
+                        </Tooltip.Trigger>
+                        <Tooltip.Portal>
+                          <Tooltip.Content
+                            className="bg-gray-900 text-white px-4 py-2 rounded text-xs max-w-xs z-50"
+                            sideOffset={5}
+                          >
+                            A value between 0 and 1 that controls the randomness of the LLM. 0 will cause more deterministic outputs while 1 will cause more random.
+                            <Tooltip.Arrow className="fill-gray-900" />
+                          </Tooltip.Content>
+                        </Tooltip.Portal>
+                      </Tooltip.Root>
+                    </Tooltip.Provider>
+                  </div>
+                  <div className="relative mt-1">
+                    <input
+                      type="number"
+                      id="temperature"
+                      name="temperature"
+                      min="0"
+                      max="1"
+                      step="0.1"
+                      value={temperature}
+                      onChange={(e) => {
+                        const value = parseFloat(e.target.value);
+                        if (value >= 0 && value <= 1) {
+                          setTemperature(e.target.value);
+                        }
+                      }}
+                      className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      placeholder="0.7"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label htmlFor="script" className="block text-sm font-medium text-gray-700 mb-1">
+                    Prompt
                   </label>
-                  <Tooltip.Provider>
-                    <Tooltip.Root>
-                      <Tooltip.Trigger asChild>
-                        <button
-                          type="button"
-                          className="inline-flex items-center text-gray-400 hover:text-gray-500"
-                        >
-                          <Info className="h-4 w-4" />
-                        </button>
-                      </Tooltip.Trigger>
-                      <Tooltip.Portal>
-                        <Tooltip.Content
-                          className="bg-gray-900 text-white px-4 py-2 rounded text-xs max-w-xs z-50"
-                          sideOffset={5}
-                        >
-                          Select a supported language of your choice
-                          <Tooltip.Arrow className="fill-gray-900" />
-                        </Tooltip.Content>
-                      </Tooltip.Portal>
-                    </Tooltip.Root>
-                  </Tooltip.Provider>
+                  <div className="relative">
+                    <textarea
+                      id="script"
+                      name="script"
+                      rows={4}
+                      value={prompt}
+                      onChange={(e) => setPrompt(e.target.value)}
+                      className="appearance-none block w-full px-3 py-2 text-base border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-lg bg-white placeholder-gray-500"
+                      placeholder="e.g. You are Alex, a sales representative agent at Acme contacting prospect for a demo"
+                    />
+                  </div>
                 </div>
-                <div className="relative mt-1">
+                <div className="flex justify-end">
                   <button
                     type="button"
-                    className="relative w-full bg-white pl-10 pr-10 py-2 text-left border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm cursor-pointer"
-                    onClick={() => setIsLanguageDropdownOpen(!isLanguageDropdownOpen)}
+                    disabled={isSavingVoiceSettings}
+                    onClick={handleVoiceSettingsSave}
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Globe2 className="h-5 w-5 text-gray-400" />
-                    </div>
-                    <span className="block truncate">
-                      {(() => {
-                        const lang = languageOptions.find(l => l.id === selectedLanguage);
-                        if (!lang) return 'Select language';
-                        return lang.region ? `${lang.label} (${lang.region})` : lang.label;
-                      })()}
-                    </span>
-                    <span className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                      <ChevronDown className="h-5 w-5 text-gray-400" />
-                    </span>
+                    {isSavingVoiceSettings ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Saving...
+                      </>
+                    ) : (
+                      'Save Voice Settings'
+                    )}
                   </button>
-                  {isLanguageDropdownOpen && (
-                    <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
-                      {languageOptions.map((language) => (
-                        <div
-                          key={language.id}
-                          className={`${
-                            selectedLanguage === language.id ? 'bg-indigo-50 text-indigo-900' : 'text-gray-900'
-                          } cursor-pointer select-none relative py-2 pl-10 pr-4 hover:bg-indigo-50`}
-                          onClick={() => {
-                            setSelectedLanguage(language.id);
-                            setIsLanguageDropdownOpen(false);
-                          }}
-                        >
-                          <span className="absolute inset-y-0 left-0 flex items-center pl-3">
-                            <Globe2 className="h-5 w-5 text-gray-400" />
-                          </span>
-                          <span className={`block truncate ${selectedLanguage === language.id ? 'font-semibold' : 'font-normal'}`}>
-                            {language.region ? `${language.label} (${language.region})` : language.label}
-                          </span>
-                          {selectedLanguage === language.id && (
-                            <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-indigo-600">
-                              <Check className="h-5 w-5" />
-                            </span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </div>
-              </div>
-              <div>
-                <div className="flex items-center space-x-2">
-                  <label htmlFor="background" className="block text-sm font-medium text-gray-700">
-                    Background Track
-                  </label>
-                  <Tooltip.Provider>
-                    <Tooltip.Root>
-                      <Tooltip.Trigger asChild>
-                        <button
-                          type="button"
-                          className="inline-flex items-center text-gray-400 hover:text-gray-500"
-                        >
-                          <Info className="h-4 w-4" />
-                        </button>
-                      </Tooltip.Trigger>
-                      <Tooltip.Portal>
-                        <Tooltip.Content
-                          className="bg-gray-900 text-white px-4 py-2 rounded text-xs max-w-xs z-50"
-                          sideOffset={5}
-                        >
-                          Select an audio track that you'd like to play in the background during the call.
-                          <Tooltip.Arrow className="fill-gray-900" />
-                        </Tooltip.Content>
-                      </Tooltip.Portal>
-                    </Tooltip.Root>
-                  </Tooltip.Provider>
-                </div>
-                <div className="relative mt-1">
-                  <button
-                    type="button"
-                    className="relative w-full bg-white pl-10 pr-10 py-2 text-left border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm cursor-pointer"
-                    onClick={() => setIsBackgroundDropdownOpen(!isBackgroundDropdownOpen)}
-                  >
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Volume2 className={`h-5 w-5 ${selectedBackground === 'none' ? 'text-gray-400' : 'text-indigo-500'}`} />
-                    </div>
-                    <span className="block truncate">
-                      {backgroundOptions.find(b => b.id === selectedBackground)?.label || 'Select background'}
-                    </span>
-                    <span className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                      <ChevronDown className="h-5 w-5 text-gray-400" />
-                    </span>
-                  </button>
-                  {isBackgroundDropdownOpen && (
-                    <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
-                      {backgroundOptions.map((background) => (
-                        <div
-                          key={background.id}
-                          className={`${
-                            selectedBackground === background.id ? 'bg-indigo-50 text-indigo-900' : 'text-gray-900'
-                          } cursor-pointer select-none relative py-2 pl-10 pr-4 hover:bg-indigo-50`}
-                          onClick={() => {
-                            setSelectedBackground(background.id);
-                            setIsBackgroundDropdownOpen(false);
-                          }}
-                        >
-                          <span className="absolute inset-y-0 left-0 flex items-center pl-3">
-                            <Volume2 className={`h-5 w-5 ${background.id === 'none' ? 'text-gray-400' : 'text-indigo-500'}`} />
-                          </span>
-                          <span className={`block truncate ${selectedBackground === background.id ? 'font-semibold' : 'font-normal'}`}>
-                            {background.label}
-                          </span>
-                          {selectedBackground === background.id && (
-                            <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-indigo-600">
-                              <Check className="h-5 w-5" />
-                            </span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div>
-                <div className="flex items-center space-x-2">
-                  <label htmlFor="temperature" className="block text-sm font-medium text-gray-700">
-                    Temperature
-                  </label>
-                  <Tooltip.Provider>
-                    <Tooltip.Root>
-                      <Tooltip.Trigger asChild>
-                        <button
-                          type="button"
-                          className="inline-flex items-center text-gray-400 hover:text-gray-500"
-                        >
-                          <Info className="h-4 w-4" />
-                        </button>
-                      </Tooltip.Trigger>
-                      <Tooltip.Portal>
-                        <Tooltip.Content
-                          className="bg-gray-900 text-white px-4 py-2 rounded text-xs max-w-xs z-50"
-                          sideOffset={5}
-                        >
-                          A value between 0 and 1 that controls the randomness of the LLM. 0 will cause more deterministic outputs while 1 will cause more random.
-                          <Tooltip.Arrow className="fill-gray-900" />
-                        </Tooltip.Content>
-                      </Tooltip.Portal>
-                    </Tooltip.Root>
-                  </Tooltip.Provider>
-                </div>
-                <div className="relative mt-1">
-                  <input
-                    type="number"
-                    id="temperature"
-                    name="temperature"
-                    min="0"
-                    max="1"
-                    step="0.1"
-                    value={temperature}
-                    onChange={(e) => {
-                      const value = parseFloat(e.target.value);
-                      if (value >= 0 && value <= 1) {
-                        setTemperature(e.target.value);
-                      }
-                    }}
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    placeholder="0.7"
-                  />
-                </div>
-              </div>
-              <div>
-                <label htmlFor="script" className="block text-sm font-medium text-gray-700 mb-1">
-                  Prompt
-                </label>
-                <div className="relative">
-                  <textarea
-                    id="script"
-                    name="script"
-                    rows={4}
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
-                    className="appearance-none block w-full px-3 py-2 text-base border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-lg bg-white placeholder-gray-500"
-                    placeholder="e.g. You are Alex, a sales representative agent at Acme contacting prospect for a demo"
-                  />
-                </div>
-              </div>
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  disabled={isSavingVoiceSettings}
-                  onClick={handleVoiceSettingsSave}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isSavingVoiceSettings ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Saving...
-                    </>
-                  ) : (
-                    'Save Voice Settings'
-                  )}
-                </button>
               </div>
             </div>
           </div>
         );
-
-      case 'invite_users':
-        return renderInviteUsersTab();
     }
   };
 
