@@ -5,6 +5,7 @@ import { useToast } from '../../context/ToastContext';
 import { getCompanyById, Company } from '../../services/companies';
 import { createCampaign, CampaignCreate } from '../../services/emailCampaigns';
 import { getCompanyProducts, ProductInDB } from '../../services/products';
+import { Mail, MessageSquare, Package, FileText, ChevronDown } from 'lucide-react';
 
 export function AddEmailCampaign() {
   const { companyId } = useParams();
@@ -137,10 +138,13 @@ export function AddEmailCampaign() {
 
         <div className="space-y-4">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
               Campaign Name
             </label>
-            <div className="mt-1">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <MessageSquare className="h-5 w-5 text-gray-400" />
+              </div>
               <input
                 type="text"
                 name="name"
@@ -148,24 +152,30 @@ export function AddEmailCampaign() {
                 required
                 value={formData.name}
                 onChange={handleChange}
-                className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                className="form-input"
                 placeholder="Enter campaign name"
               />
             </div>
           </div>
 
           <div>
-            <label htmlFor="type" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-1">
               Campaign Type
             </label>
-            <div className="mt-1">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Mail className="h-5 w-5 text-gray-400" />
+              </div>
+              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <ChevronDown className="h-5 w-5 text-gray-400" />
+              </div>
               <select
                 name="type"
                 id="type"
                 required
                 value={formData.type}
                 onChange={handleChange}
-                className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                className="form-input appearance-none"
               >
                 <option value="email">Email</option>
                 <option value="call">Call</option>
@@ -174,17 +184,23 @@ export function AddEmailCampaign() {
           </div>
 
           <div>
-            <label htmlFor="product_id" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="product_id" className="block text-sm font-medium text-gray-700 mb-1">
               Product
             </label>
-            <div className="mt-1">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Package className="h-5 w-5 text-gray-400" />
+              </div>
+              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <ChevronDown className="h-5 w-5 text-gray-400" />
+              </div>
               <select
                 name="product_id"
                 id="product_id"
                 required
                 value={formData.product_id}
                 onChange={handleChange}
-                className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                className="form-input appearance-none"
               >
                 {products.map(product => (
                   <option key={product.id} value={product.id}>
@@ -196,17 +212,21 @@ export function AddEmailCampaign() {
           </div>
 
           <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-              Description (Optional)
+            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+              Description
+              <span className="text-gray-500 font-normal"> (Optional)</span>
             </label>
-            <div className="mt-1">
-              <input
-                type="text"
+            <div className="relative">
+              <div className="absolute top-3 left-0 pl-3 flex items-center pointer-events-none">
+                <FileText className="h-5 w-5 text-gray-400" />
+              </div>
+              <textarea
                 name="description"
                 id="description"
                 value={formData.description}
                 onChange={handleChange}
-                className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                rows={4}
+                className="form-input !pt-2 !pb-2 min-h-[100px]"
                 placeholder="Enter campaign description"
               />
             </div>
