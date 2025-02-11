@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Calendar, Check, X, Mail, Mic, Lock, ChevronDown, User, Info, MessageSquare, UserSquare2, UserCircle, Volume2, Globe2 } from 'lucide-react';
+import { Calendar, Check, X, Mail, Mic, Lock, ChevronDown, User, Info, MessageSquare, UserSquare2, UserCircle, Volume2, Globe2, UserPlus, AlertCircle, Loader2 } from 'lucide-react';
 import { getToken } from '../../utils/auth';
 import { Company, getCompanyById, disconnectCalendar } from '../../services/companies';
 import { AccountCredentials, updateAccountCredentials } from '../../services/companySettings';
@@ -10,6 +10,8 @@ import { Dialog } from '../shared/Dialog';
 import { PageHeader } from '../shared/PageHeader';
 import clsx from 'clsx';
 import { apiEndpoints } from '../../config';
+import { toast } from 'react-hot-toast';
+import { v4 as uuidv4 } from 'uuid';
 
 type VoiceType = 'josh' | 'florian' | 'derek' | 'june' | 'nat' | 'paige';
 type BackgroundTrackType = 'office' | 'cafe' | 'restaurant' | 'none';
@@ -72,7 +74,7 @@ const calendarProviders: CalendarProvider[] = [
   }
 ];
 
-type SettingsTab = 'calendar' | 'email' | 'voice';
+type SettingsTab = 'calendar' | 'email' | 'voice' | 'invite_users';
 
 interface VoiceOption {
   id: string;
@@ -165,6 +167,22 @@ declare module '../../services/companies' {
   }
 }
 
+interface InviteUserRow {
+  id: string;
+  name: string;
+  email: string;
+  role: 'Admin' | 'SDR';
+}
+
+interface InviteResponse {
+  message: string;
+  results: Array<{
+    email: string;
+    status: string;
+    message: string;
+  }>;
+}
+
 export function CompanySettings() {
   const { companyId } = useParams<{ companyId: string }>();
   const { showToast } = useToast();
@@ -190,6 +208,10 @@ export function CompanySettings() {
   const [temperature, setTemperature] = useState<string>('0.7');
   const [prompt, setPrompt] = useState<string>('');
   const [isSavingVoiceSettings, setIsSavingVoiceSettings] = useState(false);
+  const [inviteUsers, setInviteUsers] = useState<InviteUserRow[]>([
+    { id: '1', name: '', email: '', role: 'SDR' }
+  ]);
+  const [isSendingInvites, setIsSendingInvites] = useState(false);
 
   useEffect(() => {
     setCredentials(prev => ({
@@ -349,6 +371,102 @@ export function CompanySettings() {
     }
   };
 
+  const addInviteUserRow = () => {
+    setInviteUsers([
+      ...inviteUsers,
+      { id: Date.now().toString(), name: '', email: '', role: 'SDR' }
+    ]);
+  };
+
+  const removeInviteUserRow = (id: string) => {
+    setInviteUsers(inviteUsers.filter(user => user.id !== id));
+  };
+
+  const updateInviteUserRow = (id: string, field: keyof InviteUserRow, value: string) => {
+    setInviteUsers(inviteUsers.map(user => 
+      user.id === id ? { ...user, [field]: value } : user
+    ));
+  };
+
+  const isValidEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const sendInvites = async () => {
+    if (!companyId) return;
+
+    // Validate all email fields
+    const invalidEmails = inviteUsers.filter(user => !isValidEmail(user.email));
+    if (invalidEmails.length > 0) {
+      showToast('Please fix invalid email addresses before sending invites', 'error');
+      return;
+    }
+
+    // Validate all roles are selected
+    const missingRoles = inviteUsers.filter(user => !user.role);
+    if (missingRoles.length > 0) {
+      showToast('Please select a role for all users', 'error');
+      return;
+    }
+
+    setIsSendingInvites(true);
+    try {
+      const token = getToken();
+      if (!token) {
+        showToast('Authentication failed. Please try logging in again.', 'error');
+        return;
+      }
+
+      const response = await fetch(apiEndpoints.companies.invite(companyId), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          invites: inviteUsers.map(user => ({
+            email: user.email,
+            name: user.name || undefined,
+            role: user.role.toLowerCase() // Convert role to lowercase
+          }))
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send invites');
+      }
+
+      const data: InviteResponse = await response.json();
+
+      // Show success message
+      showToast(data.message, 'success');
+
+      // Show individual results if there are any failures
+      const failures = data.results.filter(result => result.status !== 'success');
+      if (failures.length > 0) {
+        failures.forEach(failure => {
+          showToast(`${failure.email}: ${failure.message}`, 'error');
+        });
+      }
+
+      // Reset form if all successful
+      if (failures.length === 0) {
+        setInviteUsers([{
+          id: uuidv4(),
+          name: '',
+          email: '',
+          role: 'SDR'
+        }]);
+      }
+    } catch (error) {
+      console.error('Error sending invites:', error);
+      showToast('Failed to send invites. Please try again.', 'error');
+    } finally {
+      setIsSendingInvites(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -378,6 +496,7 @@ export function CompanySettings() {
     { id: 'calendar', name: 'Calendar', icon: Calendar },
     { id: 'email', name: 'Email', icon: Mail },
     { id: 'voice', name: 'Voice Agent', icon: Mic },
+    { id: 'invite_users', name: 'Invite Users', icon: UserPlus },
   ];
 
   const renderEmailSettings = () => (
@@ -511,6 +630,168 @@ export function CompanySettings() {
           </div>
         </div>
       </form>
+    </div>
+  );
+
+  const renderInviteUsersTab = () => (
+    <div className="bg-white shadow rounded-lg">
+      <div className="px-6 py-5 border-b border-gray-200">
+        <div className="flex items-center">
+          <UserPlus className="h-6 w-6 text-gray-400" />
+          <h2 className="ml-3 text-lg font-medium text-gray-900">Invite Users</h2>
+        </div>
+        <p className="mt-1 text-sm text-gray-500">
+          Invite team members to join your company
+        </p>
+      </div>
+      <div className="px-6 py-6">
+        <div className="space-y-6">
+          {inviteUsers.map((user, index) => (
+            <div key={user.id} className="flex items-start space-x-4">
+              <div className="flex-1 grid grid-cols-3 gap-6">
+                <div>
+                  <label htmlFor={`name-${user.id}`} className="block text-sm font-medium text-gray-700">
+                    Name
+                  </label>
+                  <div className="relative mt-1">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <User className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      type="text"
+                      id={`name-${user.id}`}
+                      value={user.name}
+                      onChange={(e) => updateInviteUserRow(user.id, 'name', e.target.value)}
+                      className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      placeholder="John Doe"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label htmlFor={`email-${user.id}`} className="block text-sm font-medium text-gray-700">
+                    Email <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative mt-1">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Mail className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      type="email"
+                      id={`email-${user.id}`}
+                      value={user.email}
+                      onChange={(e) => updateInviteUserRow(user.id, 'email', e.target.value)}
+                      className={clsx(
+                        "appearance-none block w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-indigo-500 sm:text-sm",
+                        user.email && !isValidEmail(user.email)
+                          ? "border-red-300 focus:border-red-500 text-red-900 placeholder-red-300"
+                          : "border-gray-300 focus:border-indigo-500"
+                      )}
+                      placeholder="john@example.com"
+                      required
+                    />
+                    {user.email && !isValidEmail(user.email) && (
+                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                        <AlertCircle className="h-5 w-5 text-red-500" />
+                      </div>
+                    )}
+                  </div>
+                  {user.email && !isValidEmail(user.email) && (
+                    <p className="mt-1 text-xs text-red-600">Please enter a valid email address</p>
+                  )}
+                </div>
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <label htmlFor={`role-${user.id}`} className="block text-sm font-medium text-gray-700">
+                      Role <span className="text-red-500">*</span>
+                    </label>
+                    <Tooltip.Provider>
+                      <Tooltip.Root>
+                        <Tooltip.Trigger asChild>
+                          <button
+                            type="button"
+                            className="inline-flex items-center text-gray-400 hover:text-gray-500"
+                          >
+                            <Info className="h-4 w-4" />
+                          </button>
+                        </Tooltip.Trigger>
+                        <Tooltip.Portal>
+                          <Tooltip.Content
+                            className="bg-gray-900 text-white px-4 py-2 rounded text-xs max-w-xs z-50"
+                            sideOffset={5}
+                          >
+                            <div className="space-y-2">
+                              <p>
+                                <span className="font-semibold">Admin:</span> Has full access to manage users, campaigns, leads, company settings, and configurations.
+                              </p>
+                              <p>
+                                <span className="font-semibold">SDR:</span> Can manage leads and campaigns but cannot invite users, delete the company, or change company settings.
+                              </p>
+                            </div>
+                            <Tooltip.Arrow className="fill-gray-900" />
+                          </Tooltip.Content>
+                        </Tooltip.Portal>
+                      </Tooltip.Root>
+                    </Tooltip.Provider>
+                  </div>
+                  <div className="relative mt-1">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <UserCircle className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                      <ChevronDown className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <select
+                      id={`role-${user.id}`}
+                      value={user.role}
+                      onChange={(e) => updateInviteUserRow(user.id, 'role', e.target.value as 'Admin' | 'SDR')}
+                      className="appearance-none block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      required
+                    >
+                      <option value="Admin">Admin</option>
+                      <option value="SDR">SDR</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              {inviteUsers.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removeInviteUserRow(user.id)}
+                  className="mt-7 inline-flex items-center p-1.5 border border-transparent rounded-full text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              )}
+            </div>
+          ))}
+          <div className="flex items-center justify-between">
+            <button
+              type="button"
+              className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              onClick={addInviteUserRow}
+              disabled={isSendingInvites}
+            >
+              <UserPlus className="h-4 w-4 mr-2" />
+              Add Another User
+            </button>
+            <button
+              type="button"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              onClick={sendInvites}
+              disabled={isSendingInvites}
+            >
+              {isSendingInvites ? (
+                <>
+                  <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
+                  Sending Invites...
+                </>
+              ) : (
+                'Send Invites'
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 
@@ -980,6 +1261,9 @@ export function CompanySettings() {
             </div>
           </div>
         );
+
+      case 'invite_users':
+        return renderInviteUsersTab();
     }
   };
 
