@@ -6,7 +6,11 @@ import { Users, Mail, Shield, Trash2, Loader2 } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 import { Dialog } from '../shared/Dialog';
 
-export function CompanyUsers() {
+interface CompanyUsersProps {
+  onRefreshNeeded?: (refreshFn: () => void) => void;
+}
+
+export function CompanyUsers({ onRefreshNeeded }: CompanyUsersProps) {
   const { companyId } = useParams<{ companyId: string }>();
   const { showToast } = useToast();
   const [users, setUsers] = useState<CompanyUserResponse[]>([]);
@@ -15,30 +19,37 @@ export function CompanyUsers() {
   const [userToDelete, setUserToDelete] = useState<CompanyUserResponse | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  useEffect(() => {
-    async function fetchUsers() {
-      try {
-        const token = getToken();
-        if (!token) {
-          setError('Authentication token not found');
-          return;
-        }
-        if (!companyId) {
-          setError('Company ID not found');
-          return;
-        }
-        const usersData = await getCompanyUsers(token, companyId);
-        setUsers(usersData);
-      } catch (err) {
-        console.error('Error fetching users:', err);
-        setError('Failed to fetch users');
-      } finally {
-        setIsLoading(false);
+  const fetchUsers = async () => {
+    try {
+      const token = getToken();
+      if (!token) {
+        setError('Authentication token not found');
+        return;
       }
+      if (!companyId) {
+        setError('Company ID not found');
+        return;
+      }
+      const usersData = await getCompanyUsers(token, companyId);
+      setUsers(usersData);
+    } catch (err) {
+      console.error('Error fetching users:', err);
+      setError('Failed to fetch users');
+    } finally {
+      setIsLoading(false);
     }
+  };
 
+  useEffect(() => {
     fetchUsers();
   }, [companyId]);
+
+  // Register the refresh callback
+  useEffect(() => {
+    if (onRefreshNeeded) {
+      onRefreshNeeded(fetchUsers);
+    }
+  }, [onRefreshNeeded]);
 
   const handleDeleteClick = (user: CompanyUserResponse) => {
     setUserToDelete(user);
@@ -158,7 +169,7 @@ export function CompanyUsers() {
       >
         <div className="space-y-6">
           <p className="text-sm text-gray-500">
-            Are you sure you want to remove {userToDelete?.name || userToDelete?.email} from the company? This action cannot be undone.
+            Are you sure you want to remove "{userToDelete?.name || userToDelete?.email}" from the company? This action cannot be undone.
           </p>
           <div className="flex justify-end space-x-3">
             <button

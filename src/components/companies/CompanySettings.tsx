@@ -213,6 +213,7 @@ export function CompanySettings() {
     { id: '1', name: '', email: '', role: 'SDR' }
   ]);
   const [isSendingInvites, setIsSendingInvites] = useState(false);
+  const [refreshUsersList, setRefreshUsersList] = useState<(() => void) | undefined>();
 
   useEffect(() => {
     setCredentials(prev => ({
@@ -459,6 +460,11 @@ export function CompanySettings() {
           email: '',
           role: 'SDR'
         }]);
+
+        // Refresh the users list
+        if (refreshUsersList) {
+          refreshUsersList();
+        }
       }
     } catch (error) {
       console.error('Error sending invites:', error);
@@ -921,7 +927,7 @@ export function CompanySettings() {
       case 'invite_users':
         return (
           <div className="space-y-6">
-            <CompanyUsers />
+            <CompanyUsers onRefreshNeeded={(refreshFn) => setRefreshUsersList(() => refreshFn)} />
             {renderInviteUsersTab()}
           </div>
         );
