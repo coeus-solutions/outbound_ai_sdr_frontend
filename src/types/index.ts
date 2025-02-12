@@ -12,3 +12,17 @@ export interface CallLog {
   sentiment: 'positive' | 'neutral' | 'negative';
   summary: string;
 }
+
+export interface UserCompanyRole {
+  company_id: string;
+  role: string;
+}
+
+export interface UserInDB {
+  email: string;
+  id: string;
+  name: string | null;
+  verified: boolean;
+  created_at: string;
+  company_roles: UserCompanyRole[] | null;
+}

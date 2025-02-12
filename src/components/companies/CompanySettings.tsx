@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Calendar, Check, X, Mail, Mic, Lock, ChevronDown, User, Info, MessageSquare, UserSquare2, UserCircle, Volume2, Globe2, UserPlus, AlertCircle, Loader2 } from 'lucide-react';
 import { getToken } from '../../utils/auth';
 import { Company, getCompanyById, disconnectCalendar } from '../../services/companies';
@@ -13,6 +13,7 @@ import { apiEndpoints } from '../../config';
 import { toast } from 'react-hot-toast';
 import { v4 as uuidv4 } from 'uuid';
 import { CompanyUsers } from './CompanyUsers';
+import { useUserRole } from '../../hooks/useUserRole';
 
 type VoiceType = 'josh' | 'florian' | 'derek' | 'june' | 'nat' | 'paige';
 type BackgroundTrackType = 'office' | 'cafe' | 'restaurant' | 'none';
@@ -187,6 +188,8 @@ interface InviteResponse {
 export function CompanySettings() {
   const { companyId } = useParams<{ companyId: string }>();
   const { showToast } = useToast();
+  const navigate = useNavigate();
+  const { isAdmin, isLoading: isRoleLoading, error: roleError } = useUserRole(companyId);
   const [company, setCompany] = useState<Company | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -216,56 +219,60 @@ export function CompanySettings() {
   const [refreshUsersList, setRefreshUsersList] = useState<(() => void) | undefined>();
 
   useEffect(() => {
+    // Check if user has admin role
+    if (!isRoleLoading && !isAdmin) {
+      showToast('You do not have permission to access this page. Only admins can access company settings.', 'error');
+      navigate(`/companies/${companyId}`);
+      return;
+    }
+
+    // Only fetch company data if user is admin
+    if (!isRoleLoading && isAdmin && companyId) {
+      const fetchCompany = async () => {
+        try {
+          const token = getToken();
+          if (!token) {
+            setError('Authentication token not found');
+            return;
+          }
+
+          const companyData = await getCompanyById(token, companyId);
+          setCompany(companyData);
+
+          // Set voice agent settings if they exist
+          if (companyData.voice_agent_settings) {
+            const settings = companyData.voice_agent_settings;
+            setSelectedVoice(settings.voice);
+            setSelectedBackground(settings.background_track);
+            setSelectedLanguage(settings.language);
+            setTemperature(settings.temperature.toString());
+            setPrompt(settings.prompt);
+          }
+
+          if (companyData.account_email) {
+            setCredentials(prev => ({
+              ...prev,
+              account_email: companyData.account_email || ''
+            }));
+          }
+        } catch (err) {
+          console.error('Error fetching company:', err);
+          setError(err instanceof Error ? err.message : 'Failed to fetch company details');
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      fetchCompany();
+    }
+  }, [companyId, isAdmin, isRoleLoading, navigate, showToast]);
+
+  useEffect(() => {
     setCredentials(prev => ({
       ...prev,
       type: selectedEmailProvider
     }));
   }, [selectedEmailProvider]);
-
-  useEffect(() => {
-    async function fetchData() {
-      if (!companyId) return;
-
-      try {
-        const token = getToken();
-        if (!token) {
-          setError('Authentication token not found');
-          showToast('Authentication failed. Please try logging in again.', 'error');
-          return;
-        }
-
-        const companyData = await getCompanyById(token, companyId);
-        setCompany(companyData);
-        
-        // Set voice agent settings if they exist
-        if (companyData.voice_agent_settings) {
-          const settings = companyData.voice_agent_settings;
-          setSelectedVoice(settings.voice);
-          setSelectedBackground(settings.background_track);
-          setSelectedLanguage(settings.language);
-          setTemperature(settings.temperature.toString());
-          setPrompt(settings.prompt);
-        }
-
-        if (companyData.account_email) {
-          setCredentials(prev => ({
-            ...prev,
-            account_email: companyData.account_email || ''
-          }));
-        }
-        setError(null);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        const errorMessage = 'Failed to fetch company details';
-        setError(errorMessage);
-        showToast(errorMessage, 'error');
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchData();
-  }, [companyId, showToast]);
 
   const handleCredentialsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -474,7 +481,7 @@ export function CompanySettings() {
     }
   };
 
-  if (isLoading) {
+  if (isRoleLoading || isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
@@ -482,16 +489,10 @@ export function CompanySettings() {
     );
   }
 
-  if (error) {
+  if (error || roleError) {
     return (
-      <div className="text-center py-12">
-        <div className="text-red-600 mb-4">{error}</div>
-        <button
-          onClick={() => window.location.reload()}
-          className="text-indigo-600 hover:text-indigo-500"
-        >
-          Try again
-        </button>
+      <div className="text-center text-red-600 mt-8">
+        {error || roleError}
       </div>
     );
   }
