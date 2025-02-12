@@ -25,6 +25,8 @@ export const apiEndpoints = {
     resetPassword: `${config.apiUrl}/api/auth/reset-password` as const,
     forgotPassword: `${config.apiUrl}/api/auth/forgot-password` as const,
     verify: `${config.apiUrl}/api/auth/verify` as const,
+    inviteToken: (token: string) => `${config.apiUrl}/api/auth/invite-token/${token}` as const,
+    invitePassword: `${config.apiUrl}/api/auth/invite-password` as const,
   },
   users: {
     me: `${config.apiUrl}/api/users/me` as const,
@@ -49,6 +51,8 @@ export const apiEndpoints = {
     },
     accountCredentials: (companyId: string) => `${config.apiUrl}/api/companies/${companyId}/account-credentials`,
     voiceAgentSettings: (companyId: string) => `${config.apiUrl}/api/companies/${companyId}/voice_agent_settings`,
+    invite: (companyId: string) => `${config.apiUrl}/api/companies/${companyId}/invite`,
+    users: (companyId: string) => `${config.apiUrl}/api/companies/${companyId}/users`,
   },
   calls: {
     details: (callId: string) => `${config.apiUrl}/api/calls/${callId}`,

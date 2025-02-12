@@ -20,6 +20,7 @@ import { CronofyCallback } from './components/auth/CronofyCallback';
 import { GettingStarted } from './components/dashboard/GettingStarted';
 import { UserProfile } from './components/user/UserProfile';
 import { VerifyAccount } from './components/auth/VerifyAccount';
+import { InviteSignup } from './components/auth/InviteSignup';
 
 export function App() {
   const { isAuthenticated, logout } = useAuth();
@@ -49,7 +50,8 @@ export function App() {
         !location.pathname.startsWith('/signup') && 
         !location.pathname.startsWith('/forgot-password') && 
         !location.pathname.startsWith('/reset-password') && 
-        !location.pathname.startsWith('/verify-account')) {
+        !location.pathname.startsWith('/verify-account') &&
+        !location.pathname.startsWith('/invite')) {
       navigate('/login');
     } 
     // Only redirect to companies if on auth routes
@@ -76,6 +78,7 @@ export function App() {
             <Route path="/verify-account" element={<VerifyAccount />} />
             <Route path="/cronofy-auth" element={<CronofyCallback />} />
             <Route path="/getting-started" element={<GettingStarted />} />
+            <Route path="/invite" element={<InviteSignup />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </>
         ) : (

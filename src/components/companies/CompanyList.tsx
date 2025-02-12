@@ -14,6 +14,7 @@ import { useToast } from '../../context/ToastContext';
 import { SkeletonLoader } from '../shared/SkeletonLoader';
 import { LoadingButton } from '../shared/LoadingButton';
 import { CardSkeletonLoader } from '../shared/CardSkeletonLoader';
+import { useUserRole } from '../../hooks/useUserRole';
 
 interface ProductStats extends Product {
   leads: {
@@ -356,6 +357,7 @@ export function CompanyList() {
 
 function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: CompanyCardProps) {
   const [isExpanded, setIsExpanded] = useState(true);
+  const { isAdmin } = useUserRole(company.id);
 
   if (isLoadingDetails) {
     return <CardSkeletonLoader hasHeader={true} hasActions={true} actionCount={4} contentSections={2} />;
@@ -402,16 +404,20 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
                 <Eye className="w-5 h-5" />
               )}
             </button>
-            <Link to={`/companies/${company.id}/settings`}>
-              <Settings className="w-5 h-5 text-gray-400 hover:text-gray-600" />
-            </Link>
-            <button
-              onClick={onDelete}
-              className="p-2 text-gray-400 hover:text-red-600"
-              title="Delete company"
-            >
-              <Trash2 className="w-5 h-5" />
-            </button>
+            {isAdmin && (
+              <>
+                <Link to={`/companies/${company.id}/settings`}>
+                  <Settings className="w-5 h-5 text-gray-400 hover:text-gray-600" />
+                </Link>
+                <button
+                  onClick={onDelete}
+                  className="p-2 text-gray-400 hover:text-red-600"
+                  title="Delete company"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </button>
+              </>
+            )}
             <button 
               onClick={() => setIsExpanded(!isExpanded)}
               className="p-2 text-gray-400 hover:text-gray-600"
