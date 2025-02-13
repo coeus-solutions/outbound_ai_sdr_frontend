@@ -393,6 +393,13 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
             >
               <Package className="w-5 h-5" />
             </Link>
+            <Link 
+              to={`/companies/${company.id}/leads`}
+              className="p-2 text-gray-400 hover:text-blue-600"
+              title="Manage leads"
+            >
+              <Target className="w-5 h-5" />
+            </Link>
             <button
               onClick={onViewDetails}
               className="p-2 text-gray-400 hover:text-gray-600"
@@ -498,13 +505,6 @@ function ProductCard({ product, companyId }: ProductCardProps) {
                 <Target className="w-4 h-4 mr-2" />
                 <span className="text-sm font-medium">Leads</span>
               </div>
-              <Link 
-                to={`/companies/${companyId}/leads`}
-                className="text-sm text-blue-600 hover:text-blue-700 flex items-center"
-              >
-                Manage leads
-                <ArrowRight className="w-4 h-4 ml-1" />
-              </Link>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
