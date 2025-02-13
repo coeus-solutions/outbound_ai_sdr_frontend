@@ -575,11 +575,11 @@ function ProductCard({ product, companyId }: ProductCardProps) {
                 <div className="text-lg font-semibold">{product.emails.total}</div>
               </div>
               <div>
-                <div className="text-sm text-gray-500">Opens</div>
+                <div className="text-sm text-gray-500">Opened</div>
                 <div className="text-lg font-semibold">{product.emails.opens}</div>
               </div>
               <div>
-                <div className="text-sm text-gray-500">Replies</div>
+                <div className="text-sm text-gray-500">Replied</div>
                 <div className="text-lg font-semibold">{product.emails.replies}</div>
               </div>
             </div>
