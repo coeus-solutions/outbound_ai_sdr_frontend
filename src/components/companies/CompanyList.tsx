@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Building2, Plus, Package, Phone, Mail, Settings, Eye, ChevronDown, ChevronUp, Target, Linkedin, Lock, ArrowRight, Search, ExternalLink, Trash2 } from 'lucide-react';
+import { Building2, Plus, Package, Phone, Mail, Settings, Eye, ChevronDown, ChevronUp, Target, Linkedin, Lock, ArrowRight, Search, ExternalLink, Trash2, Volume2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getToken } from '../../utils/auth';
 import { Company, getCompanies, getCompanyById, deleteCompany } from '../../services/companies';
@@ -400,6 +400,13 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
             >
               <Target className="w-5 h-5" />
             </Link>
+            <Link 
+              to={`/companies/${company.id}/campaigns`}
+              className="p-2 text-gray-400 hover:text-purple-600"
+              title="Manage campaigns"
+            >
+              <Volume2 className="w-5 h-5" />
+            </Link>
             <button
               onClick={onViewDetails}
               className="p-2 text-gray-400 hover:text-gray-600"
@@ -533,7 +540,7 @@ function ProductCard({ product, companyId }: ProductCardProps) {
                 <ArrowRight className="w-4 h-4 ml-1" />
               </Link>
             </div>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <div className="text-sm text-gray-500">Total</div>
                 <div className="text-lg font-semibold">{product.calls.total}</div>
@@ -541,10 +548,6 @@ function ProductCard({ product, companyId }: ProductCardProps) {
               <div>
                 <div className="text-sm text-gray-500">Conversations</div>
                 <div className="text-lg font-semibold">{product.calls.conversations}</div>
-              </div>
-              <div>
-                <div className="text-sm text-gray-500">Meetings</div>
-                <div className="text-lg font-semibold">{product.calls.meetings}</div>
               </div>
             </div>
           </div>
@@ -564,16 +567,9 @@ function ProductCard({ product, companyId }: ProductCardProps) {
                   View emails
                   <ArrowRight className="w-4 h-4 ml-1" />
                 </Link>
-                <Link 
-                  to={`/companies/${companyId}/campaigns`}
-                  className="text-sm text-purple-600 hover:text-purple-700 flex items-center"
-                >
-                  Manage campaigns
-                  <ArrowRight className="w-4 h-4 ml-1" />
-                </Link>
               </div>
             </div>
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div>
                 <div className="text-sm text-gray-500">Total</div>
                 <div className="text-lg font-semibold">{product.emails.total}</div>
@@ -585,10 +581,6 @@ function ProductCard({ product, companyId }: ProductCardProps) {
               <div>
                 <div className="text-sm text-gray-500">Replies</div>
                 <div className="text-lg font-semibold">{product.emails.replies}</div>
-              </div>
-              <div>
-                <div className="text-sm text-gray-500">Meetings</div>
-                <div className="text-lg font-semibold">{product.emails.meetings}</div>
               </div>
             </div>
           </div>
