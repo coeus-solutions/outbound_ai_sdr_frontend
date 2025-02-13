@@ -542,7 +542,7 @@ function ProductCard({ product, companyId }: ProductCardProps) {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <div className="text-sm text-gray-500">Total</div>
+                <div className="text-sm text-gray-500">Dialed</div>
                 <div className="text-lg font-semibold">{product.calls.total}</div>
               </div>
               <div>
@@ -571,7 +571,7 @@ function ProductCard({ product, companyId }: ProductCardProps) {
             </div>
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <div className="text-sm text-gray-500">Total</div>
+                <div className="text-sm text-gray-500">Sent</div>
                 <div className="text-lg font-semibold">{product.emails.total}</div>
               </div>
               <div>
