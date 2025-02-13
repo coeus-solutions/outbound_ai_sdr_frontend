@@ -32,7 +32,10 @@ export const apiEndpoints = {
     me: `${config.apiUrl}/api/users/me` as const,
   },
   companies: {
-    list: `${config.apiUrl}/api/companies`,
+    list: (showStats?: boolean) => {
+      const url = `${config.apiUrl}/api/companies`;
+      return showStats ? `${url}?show_stats=true` : url;
+    },
     create: `${config.apiUrl}/api/companies`,
     products: (companyId: string) => `${config.apiUrl}/api/companies/${companyId}/products`,
     leads: {

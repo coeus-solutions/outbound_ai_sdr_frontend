@@ -16,7 +16,11 @@ import { LoadingButton } from '../shared/LoadingButton';
 import { CardSkeletonLoader } from '../shared/CardSkeletonLoader';
 import { useUserRole } from '../../hooks/useUserRole';
 
-interface ProductStats extends Product {
+interface ProductStats {
+  id: string;
+  name: string;
+  product_name: string;
+  total_campaigns: number;
   leads: {
     total: number;
     contacted: number;
@@ -35,7 +39,7 @@ interface ProductStats extends Product {
   campaigns: number;
 }
 
-interface CompanyWithStats extends Company {
+interface CompanyWithStats extends Omit<Company, 'products'> {
   products: ProductStats[];
 }
 
@@ -68,62 +72,34 @@ export function CompanyList() {
         }
         const companiesData = await getCompanies(token);
         
-        // Fetch products and stats for each company
-        const companiesWithStats = await Promise.all(
-          companiesData.map(async (company) => {
-            try {
-              const products = await getCompanyProducts(token, company.id);
-              const campaigns = await getCompanyCampaigns(token, company.id);
-              const emails = await getCompanyEmails(token, company.id);
-              const calls = await getCompanyCalls(token, company.id);
-              const leads = await getLeads(token, company.id);
-
-              // Map products with their stats
-              const productsWithStats: ProductStats[] = products.map(product => {
-                const productCampaigns = campaigns.filter(c => c.product_id === product.id);
-                const productEmails = emails.filter(e => productCampaigns.some(c => c.id === e.campaign_id));
-                // For now, we'll count all leads since we don't have product-specific leads
-                const totalLeads = leads.length;
-                // We'll assume a lead is contacted if they have any calls or emails
-                const contactedLeads = leads.filter(lead => 
-                  calls.some(call => call.lead_id === lead.id) || 
-                  emails.some(email => email.lead_id === lead.id)
-                );
-                
-                return {
-                  ...product,
-                  leads: {
-                    total: totalLeads,
-                    contacted: contactedLeads.length,
-                  },
-                  calls: {
-                    total: calls.filter(c => c.product_id === product.id).length,
-                    conversations: 0, // TODO: Add when API provides this data
-                    meetings: 0,
-                  },
-                  emails: {
-                    total: productEmails.length,
-                    opens: 0, // TODO: Add when API provides this data
-                    replies: 0,
-                    meetings: 0,
-                  },
-                  campaigns: productCampaigns.length,
-                };
-              });
-
-              return {
-                ...company,
-                products: productsWithStats,
-              };
-            } catch (error) {
-              console.error(`Error fetching data for company ${company.id}:`, error);
-              return {
-                ...company,
-                products: [],
-              };
-            }
-          })
-        );
+        // Transform the companies data to include the required stats structure
+        const companiesWithStats = companiesData.map((company) => {
+          return {
+            ...company,
+            products: company.products?.map(product => ({
+              id: product.id,
+              name: product.name,
+              product_name: product.name,
+              total_campaigns: product.total_campaigns,
+              leads: {
+                total: 0,
+                contacted: 0,
+              },
+              calls: {
+                total: 0,
+                conversations: 0,
+                meetings: 0,
+              },
+              emails: {
+                total: 0,
+                opens: 0,
+                replies: 0,
+                meetings: 0,
+              },
+              campaigns: product.total_campaigns,
+            })) || []
+          };
+        });
 
         setCompanies(companiesWithStats);
         setError(null);

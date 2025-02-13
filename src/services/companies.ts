@@ -15,6 +15,11 @@ export interface Company {
   products_services?: string;
   background?: string;
   overview?: string;
+  products?: Array<{
+    id: string;
+    name: string;
+    total_campaigns: number;
+  }>;
 }
 
 export interface CompanyCreate {
@@ -36,7 +41,7 @@ export interface CompanyUserResponse {
 }
 
 export async function getCompanies(token: string): Promise<Company[]> {
-  const response = await fetch(apiEndpoints.companies.list, {
+  const response = await fetch(apiEndpoints.companies.list(true), {
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -51,7 +56,7 @@ export async function getCompanies(token: string): Promise<Company[]> {
 }
 
 export async function getCompanyById(token: string, companyId: string): Promise<Company> {
-  const response = await fetch(`${apiEndpoints.companies.list}/${companyId}`, {
+  const response = await fetch(`${apiEndpoints.companies.list()}/${companyId}`, {
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -83,7 +88,7 @@ export async function createCompany(token: string, company: CompanyCreate): Prom
 }
 
 export async function cronofyAuth(token: string, companyId: string, code: string, redirectUrl: string): Promise<CronofyAuthResponse> {
-  const response = await fetch(`${apiEndpoints.companies.list}/${companyId}/cronofy-auth?code=${encodeURIComponent(code)}&redirect_url=${encodeURIComponent(redirectUrl)}`, {
+  const response = await fetch(`${apiEndpoints.companies.list()}/${companyId}/cronofy-auth?code=${encodeURIComponent(code)}&redirect_url=${encodeURIComponent(redirectUrl)}`, {
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -100,7 +105,7 @@ export async function cronofyAuth(token: string, companyId: string, code: string
 }
 
 export async function disconnectCalendar(token: string, companyId: string): Promise<void> {
-  const response = await fetch(`${apiEndpoints.companies.list}/${companyId}/calendar`, {
+  const response = await fetch(`${apiEndpoints.companies.list()}/${companyId}/calendar`, {
     method: 'DELETE',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -117,7 +122,7 @@ export async function disconnectCalendar(token: string, companyId: string): Prom
 }
 
 export async function deleteCompany(token: string, companyId: string): Promise<void> {
-  const response = await fetch(`${apiEndpoints.companies.list}/${companyId}`, {
+  const response = await fetch(`${apiEndpoints.companies.list()}/${companyId}`, {
     method: 'DELETE',
     headers: {
       'Authorization': `Bearer ${token}`,
