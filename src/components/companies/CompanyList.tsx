@@ -469,6 +469,22 @@ interface ProductCardProps {
 function ProductCard({ product, companyId }: ProductCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
+  const getPercentageColor = (percentage: number) => {
+    if (percentage >= 80) return 'text-green-600';
+    if (percentage >= 40) return 'text-yellow-600';
+    return 'text-red-600';
+  };
+
+  const calculatePercentage = (value: number, total: number) => {
+    if (total === 0) return 0;
+    return Math.round((value / total) * 100);
+  };
+
+  // Calculate percentages
+  const callSuccessRate = calculatePercentage(product.calls.conversations, product.calls.total);
+  const emailOpenRate = calculatePercentage(product.emails.opens, product.emails.total);
+  const emailReplyRate = calculatePercentage(product.emails.replies, product.emails.total);
+
   return (
     <div className="bg-gray-50 rounded-lg p-4">
       <div className="flex justify-between items-start">
@@ -537,11 +553,8 @@ function ProductCard({ product, companyId }: ProductCardProps) {
               </div>
               <div>
                 <div className="text-sm text-gray-500">Success Rate</div>
-                <div className="text-lg font-semibold">
-                  {product.calls.total > 0 
-                    ? `${Math.round((product.calls.conversations / product.calls.total) * 100)}%`
-                    : '0%'
-                  }
+                <div className={`text-lg font-semibold ${getPercentageColor(callSuccessRate)}`}>
+                  {callSuccessRate}%
                 </div>
               </div>
             </div>
@@ -564,7 +577,7 @@ function ProductCard({ product, companyId }: ProductCardProps) {
                 </Link>
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-5 gap-4">
               <div>
                 <div className="text-sm text-gray-500">Sent</div>
                 <div className="text-lg font-semibold">{product.emails.total}</div>
@@ -574,8 +587,20 @@ function ProductCard({ product, companyId }: ProductCardProps) {
                 <div className="text-lg font-semibold">{product.emails.opens}</div>
               </div>
               <div>
+                <div className="text-sm text-gray-500">Open Rate</div>
+                <div className={`text-lg font-semibold ${getPercentageColor(emailOpenRate)}`}>
+                  {emailOpenRate}%
+                </div>
+              </div>
+              <div>
                 <div className="text-sm text-gray-500">Replied</div>
                 <div className="text-lg font-semibold">{product.emails.replies}</div>
+              </div>
+              <div>
+                <div className="text-sm text-gray-500">Reply Rate</div>
+                <div className={`text-lg font-semibold ${getPercentageColor(emailReplyRate)}`}>
+                  {emailReplyRate}%
+                </div>
               </div>
             </div>
           </div>
