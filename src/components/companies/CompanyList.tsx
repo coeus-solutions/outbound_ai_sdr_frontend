@@ -526,7 +526,7 @@ function ProductCard({ product, companyId }: ProductCardProps) {
                 <ArrowRight className="w-4 h-4 ml-1" />
               </Link>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div>
                 <div className="text-sm text-gray-500">Dialed</div>
                 <div className="text-lg font-semibold">{product.calls.total}</div>
@@ -534,6 +534,15 @@ function ProductCard({ product, companyId }: ProductCardProps) {
               <div>
                 <div className="text-sm text-gray-500">Conversations</div>
                 <div className="text-lg font-semibold">{product.calls.conversations}</div>
+              </div>
+              <div>
+                <div className="text-sm text-gray-500">Success Rate</div>
+                <div className="text-lg font-semibold">
+                  {product.calls.total > 0 
+                    ? `${Math.round((product.calls.conversations / product.calls.total) * 100)}%`
+                    : '0%'
+                  }
+                </div>
               </div>
             </div>
           </div>
