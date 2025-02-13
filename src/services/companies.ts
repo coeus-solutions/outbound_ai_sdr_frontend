@@ -15,10 +15,16 @@ export interface Company {
   products_services?: string;
   background?: string;
   overview?: string;
+  total_leads?: number;
   products?: Array<{
     id: string;
     name: string;
     total_campaigns: number;
+    total_calls: number;
+    total_positive_calls: number;
+    total_sent_emails: number;
+    total_opened_emails: number;
+    total_replied_emails: number;
   }>;
 }
 

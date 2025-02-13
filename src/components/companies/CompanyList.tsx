@@ -21,6 +21,11 @@ interface ProductStats {
   name: string;
   product_name: string;
   total_campaigns: number;
+  total_calls: number;
+  total_positive_calls: number;
+  total_sent_emails: number;
+  total_opened_emails: number;
+  total_replied_emails: number;
   leads: {
     total: number;
     contacted: number;
@@ -81,19 +86,24 @@ export function CompanyList() {
               name: product.name,
               product_name: product.name,
               total_campaigns: product.total_campaigns,
+              total_calls: product.total_calls || 0,
+              total_positive_calls: product.total_positive_calls || 0,
+              total_sent_emails: product.total_sent_emails || 0,
+              total_opened_emails: product.total_opened_emails || 0,
+              total_replied_emails: product.total_replied_emails || 0,
               leads: {
-                total: 0,
+                total: company.total_leads || 0,
                 contacted: 0,
               },
               calls: {
-                total: 0,
-                conversations: 0,
+                total: product.total_calls || 0,
+                conversations: product.total_positive_calls || 0,
                 meetings: 0,
               },
               emails: {
-                total: 0,
-                opens: 0,
-                replies: 0,
+                total: product.total_sent_emails || 0,
+                opens: product.total_opened_emails || 0,
+                replies: product.total_replied_emails || 0,
                 meetings: 0,
               },
               campaigns: product.total_campaigns,
