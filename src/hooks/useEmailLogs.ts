@@ -4,6 +4,7 @@ import { useToast } from '../context/ToastContext';
 
 export interface EmailLogFilters {
   campaign_id?: string;
+  lead_id?: string;
 }
 
 export function useEmailLogs(companyId: string) {
@@ -25,7 +26,7 @@ export function useEmailLogs(companyId: string) {
           return;
         }
 
-        const logs = await getCompanyEmails(token, companyId, filters.campaign_id);
+        const logs = await getCompanyEmails(token, companyId, filters.campaign_id, filters.lead_id);
         setEmailLogs(logs);
         setError(null);
       } catch (err) {
@@ -39,7 +40,7 @@ export function useEmailLogs(companyId: string) {
     }
 
     fetchEmailLogs();
-  }, [companyId, filters.campaign_id, showToast]);
+  }, [companyId, filters.campaign_id, filters.lead_id, showToast]);
 
   return {
     emailLogs,

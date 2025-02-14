@@ -15,6 +15,18 @@ export interface Company {
   products_services?: string;
   background?: string;
   overview?: string;
+  total_leads?: number;
+  products?: Array<{
+    id: string;
+    name: string;
+    total_campaigns: number;
+    total_calls: number;
+    total_positive_calls: number;
+    total_sent_emails: number;
+    total_opened_emails: number;
+    total_replied_emails: number;
+    unique_leads_contacted: number;
+  }>;
 }
 
 export interface CompanyCreate {
@@ -35,8 +47,14 @@ export interface CompanyUserResponse {
   user_company_profile_id: string;
 }
 
+export interface Lead {
+  id: string;
+  name: string;
+  email: string;
+}
+
 export async function getCompanies(token: string): Promise<Company[]> {
-  const response = await fetch(apiEndpoints.companies.list, {
+  const response = await fetch(apiEndpoints.companies.list(true), {
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -51,7 +69,7 @@ export async function getCompanies(token: string): Promise<Company[]> {
 }
 
 export async function getCompanyById(token: string, companyId: string): Promise<Company> {
-  const response = await fetch(`${apiEndpoints.companies.list}/${companyId}`, {
+  const response = await fetch(`${apiEndpoints.companies.list()}/${companyId}`, {
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -83,7 +101,7 @@ export async function createCompany(token: string, company: CompanyCreate): Prom
 }
 
 export async function cronofyAuth(token: string, companyId: string, code: string, redirectUrl: string): Promise<CronofyAuthResponse> {
-  const response = await fetch(`${apiEndpoints.companies.list}/${companyId}/cronofy-auth?code=${encodeURIComponent(code)}&redirect_url=${encodeURIComponent(redirectUrl)}`, {
+  const response = await fetch(`${apiEndpoints.companies.list()}/${companyId}/cronofy-auth?code=${encodeURIComponent(code)}&redirect_url=${encodeURIComponent(redirectUrl)}`, {
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -100,7 +118,7 @@ export async function cronofyAuth(token: string, companyId: string, code: string
 }
 
 export async function disconnectCalendar(token: string, companyId: string): Promise<void> {
-  const response = await fetch(`${apiEndpoints.companies.list}/${companyId}/calendar`, {
+  const response = await fetch(`${apiEndpoints.companies.list()}/${companyId}/calendar`, {
     method: 'DELETE',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -117,7 +135,7 @@ export async function disconnectCalendar(token: string, companyId: string): Prom
 }
 
 export async function deleteCompany(token: string, companyId: string): Promise<void> {
-  const response = await fetch(`${apiEndpoints.companies.list}/${companyId}`, {
+  const response = await fetch(`${apiEndpoints.companies.list()}/${companyId}`, {
     method: 'DELETE',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -158,4 +176,19 @@ export async function deleteUserCompanyProfile(token: string, userCompanyProfile
     const error = await response.json();
     throw new Error(error.detail || 'Failed to delete user from company');
   }
+}
+
+export async function getCompanyLeads(token: string, companyId: string): Promise<Lead[]> {
+  const response = await fetch(apiEndpoints.companies.leads.list(companyId), {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch company leads');
+  }
+
+  return response.json();
 } 

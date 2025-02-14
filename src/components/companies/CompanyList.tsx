@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Building2, Plus, Package, Phone, Mail, Settings, Eye, ChevronDown, ChevronUp, Target, Linkedin, Lock, ArrowRight, Search, ExternalLink, Trash2 } from 'lucide-react';
+import { Building2, Plus, Package, Phone, Mail, Settings, Eye, ChevronDown, ChevronUp, Target, Linkedin, Lock, ArrowRight, Search, ExternalLink, Trash2, Volume2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getToken } from '../../utils/auth';
 import { Company, getCompanies, getCompanyById, deleteCompany } from '../../services/companies';
@@ -15,8 +15,19 @@ import { SkeletonLoader } from '../shared/SkeletonLoader';
 import { LoadingButton } from '../shared/LoadingButton';
 import { CardSkeletonLoader } from '../shared/CardSkeletonLoader';
 import { useUserRole } from '../../hooks/useUserRole';
+import * as Tooltip from '@radix-ui/react-tooltip';
 
-interface ProductStats extends Product {
+interface ProductStats {
+  id: string;
+  name: string;
+  product_name: string;
+  total_campaigns: number;
+  total_calls: number;
+  total_positive_calls: number;
+  total_sent_emails: number;
+  total_opened_emails: number;
+  total_replied_emails: number;
+  unique_leads_contacted: number;
   leads: {
     total: number;
     contacted: number;
@@ -35,7 +46,7 @@ interface ProductStats extends Product {
   campaigns: number;
 }
 
-interface CompanyWithStats extends Company {
+interface CompanyWithStats extends Omit<Company, 'products'> {
   products: ProductStats[];
 }
 
@@ -68,62 +79,40 @@ export function CompanyList() {
         }
         const companiesData = await getCompanies(token);
         
-        // Fetch products and stats for each company
-        const companiesWithStats = await Promise.all(
-          companiesData.map(async (company) => {
-            try {
-              const products = await getCompanyProducts(token, company.id);
-              const campaigns = await getCompanyCampaigns(token, company.id);
-              const emails = await getCompanyEmails(token, company.id);
-              const calls = await getCompanyCalls(token, company.id);
-              const leads = await getLeads(token, company.id);
-
-              // Map products with their stats
-              const productsWithStats: ProductStats[] = products.map(product => {
-                const productCampaigns = campaigns.filter(c => c.product_id === product.id);
-                const productEmails = emails.filter(e => productCampaigns.some(c => c.id === e.campaign_id));
-                // For now, we'll count all leads since we don't have product-specific leads
-                const totalLeads = leads.length;
-                // We'll assume a lead is contacted if they have any calls or emails
-                const contactedLeads = leads.filter(lead => 
-                  calls.some(call => call.lead_id === lead.id) || 
-                  emails.some(email => email.lead_id === lead.id)
-                );
-                
-                return {
-                  ...product,
-                  leads: {
-                    total: totalLeads,
-                    contacted: contactedLeads.length,
-                  },
-                  calls: {
-                    total: calls.filter(c => c.product_id === product.id).length,
-                    conversations: 0, // TODO: Add when API provides this data
-                    meetings: 0,
-                  },
-                  emails: {
-                    total: productEmails.length,
-                    opens: 0, // TODO: Add when API provides this data
-                    replies: 0,
-                    meetings: 0,
-                  },
-                  campaigns: productCampaigns.length,
-                };
-              });
-
-              return {
-                ...company,
-                products: productsWithStats,
-              };
-            } catch (error) {
-              console.error(`Error fetching data for company ${company.id}:`, error);
-              return {
-                ...company,
-                products: [],
-              };
-            }
-          })
-        );
+        // Transform the companies data to include the required stats structure
+        const companiesWithStats = companiesData.map((company) => {
+          return {
+            ...company,
+            products: company.products?.map(product => ({
+              id: product.id,
+              name: product.name,
+              product_name: product.name,
+              total_campaigns: product.total_campaigns,
+              total_calls: product.total_calls || 0,
+              total_positive_calls: product.total_positive_calls || 0,
+              total_sent_emails: product.total_sent_emails || 0,
+              total_opened_emails: product.total_opened_emails || 0,
+              total_replied_emails: product.total_replied_emails || 0,
+              unique_leads_contacted: product.unique_leads_contacted || 0,
+              leads: {
+                total: company.total_leads || 0,
+                contacted: product.unique_leads_contacted || 0,
+              },
+              calls: {
+                total: product.total_calls || 0,
+                conversations: product.total_positive_calls || 0,
+                meetings: 0,
+              },
+              emails: {
+                total: product.total_sent_emails || 0,
+                opens: product.total_opened_emails || 0,
+                replies: product.total_replied_emails || 0,
+                meetings: 0,
+              },
+              campaigns: product.total_campaigns,
+            })) || []
+          };
+        });
 
         setCompanies(companiesWithStats);
         setError(null);
@@ -386,44 +375,165 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
             )}
           </div>
           <div className="flex items-center space-x-2">
-            <Link
-              to={`/companies/${company.id}/products/new`}
-              className="p-2 text-gray-400 hover:text-indigo-600"
-              title="Add product"
-            >
-              <Package className="w-5 h-5" />
-            </Link>
-            <button
-              onClick={onViewDetails}
-              className="p-2 text-gray-400 hover:text-gray-600"
-              disabled={isLoadingDetails}
-            >
-              {isLoadingDetails ? (
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-400"></div>
-              ) : (
-                <Eye className="w-5 h-5" />
-              )}
-            </button>
+            <Tooltip.Provider>
+              <Tooltip.Root>
+                <Tooltip.Trigger asChild>
+                  <Link
+                    to={`/companies/${company.id}/products/new`}
+                    className="p-2 text-gray-400 hover:text-indigo-600"
+                  >
+                    <Package className="w-5 h-5" />
+                  </Link>
+                </Tooltip.Trigger>
+                <Tooltip.Portal>
+                  <Tooltip.Content
+                    className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
+                    sideOffset={5}
+                  >
+                    Add product
+                    <Tooltip.Arrow className="fill-gray-900" />
+                  </Tooltip.Content>
+                </Tooltip.Portal>
+              </Tooltip.Root>
+            </Tooltip.Provider>
+
+            <Tooltip.Provider>
+              <Tooltip.Root>
+                <Tooltip.Trigger asChild>
+                  <Link 
+                    to={`/companies/${company.id}/leads`}
+                    className="p-2 text-gray-400 hover:text-blue-600"
+                  >
+                    <Target className="w-5 h-5" />
+                  </Link>
+                </Tooltip.Trigger>
+                <Tooltip.Portal>
+                  <Tooltip.Content
+                    className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
+                    sideOffset={5}
+                  >
+                    Manage leads
+                    <Tooltip.Arrow className="fill-gray-900" />
+                  </Tooltip.Content>
+                </Tooltip.Portal>
+              </Tooltip.Root>
+            </Tooltip.Provider>
+
+            <Tooltip.Provider>
+              <Tooltip.Root>
+                <Tooltip.Trigger asChild>
+                  <Link 
+                    to={`/companies/${company.id}/campaigns`}
+                    className="p-2 text-gray-400 hover:text-purple-600"
+                  >
+                    <Volume2 className="w-5 h-5" />
+                  </Link>
+                </Tooltip.Trigger>
+                <Tooltip.Portal>
+                  <Tooltip.Content
+                    className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
+                    sideOffset={5}
+                  >
+                    Manage campaigns
+                    <Tooltip.Arrow className="fill-gray-900" />
+                  </Tooltip.Content>
+                </Tooltip.Portal>
+              </Tooltip.Root>
+            </Tooltip.Provider>
+
+            <Tooltip.Provider>
+              <Tooltip.Root>
+                <Tooltip.Trigger asChild>
+                  <button
+                    onClick={onViewDetails}
+                    className="p-2 text-gray-400 hover:text-gray-600"
+                    disabled={isLoadingDetails}
+                  >
+                    {isLoadingDetails ? (
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-400"></div>
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
+                  </button>
+                </Tooltip.Trigger>
+                <Tooltip.Portal>
+                  <Tooltip.Content
+                    className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
+                    sideOffset={5}
+                  >
+                    View details
+                    <Tooltip.Arrow className="fill-gray-900" />
+                  </Tooltip.Content>
+                </Tooltip.Portal>
+              </Tooltip.Root>
+            </Tooltip.Provider>
+
             {isAdmin && (
               <>
-                <Link to={`/companies/${company.id}/settings`}>
-                  <Settings className="w-5 h-5 text-gray-400 hover:text-gray-600" />
-                </Link>
-                <button
-                  onClick={onDelete}
-                  className="p-2 text-gray-400 hover:text-red-600"
-                  title="Delete company"
-                >
-                  <Trash2 className="w-5 h-5" />
-                </button>
+                <Tooltip.Provider>
+                  <Tooltip.Root>
+                    <Tooltip.Trigger asChild>
+                      <Link to={`/companies/${company.id}/settings`} className="p-2 text-gray-400 hover:text-gray-600">
+                        <Settings className="w-5 h-5" />
+                      </Link>
+                    </Tooltip.Trigger>
+                    <Tooltip.Portal>
+                      <Tooltip.Content
+                        className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
+                        sideOffset={5}
+                      >
+                        Settings
+                        <Tooltip.Arrow className="fill-gray-900" />
+                      </Tooltip.Content>
+                    </Tooltip.Portal>
+                  </Tooltip.Root>
+                </Tooltip.Provider>
+
+                <Tooltip.Provider>
+                  <Tooltip.Root>
+                    <Tooltip.Trigger asChild>
+                      <button
+                        onClick={onDelete}
+                        className="p-2 text-gray-400 hover:text-red-600"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </Tooltip.Trigger>
+                    <Tooltip.Portal>
+                      <Tooltip.Content
+                        className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
+                        sideOffset={5}
+                      >
+                        Delete company
+                        <Tooltip.Arrow className="fill-gray-900" />
+                      </Tooltip.Content>
+                    </Tooltip.Portal>
+                  </Tooltip.Root>
+                </Tooltip.Provider>
               </>
             )}
-            <button 
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="p-2 text-gray-400 hover:text-gray-600"
-            >
-              {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-            </button>
+
+            <Tooltip.Provider>
+              <Tooltip.Root>
+                <Tooltip.Trigger asChild>
+                  <button 
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    className="p-2 text-gray-400 hover:text-gray-600"
+                  >
+                    {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                  </button>
+                </Tooltip.Trigger>
+                <Tooltip.Portal>
+                  <Tooltip.Content
+                    className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
+                    sideOffset={5}
+                  >
+                    {isExpanded ? 'Collapse' : 'Expand'}
+                    <Tooltip.Arrow className="fill-gray-900" />
+                  </Tooltip.Content>
+                </Tooltip.Portal>
+              </Tooltip.Root>
+            </Tooltip.Provider>
           </div>
         </div>
 
@@ -469,6 +579,25 @@ interface ProductCardProps {
 function ProductCard({ product, companyId }: ProductCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
+  const getPercentageColor = (percentage: number) => {
+    if (percentage >= 80) return 'text-green-600';
+    if (percentage >= 40) return 'text-yellow-600';
+    return 'text-red-600';
+  };
+
+  const calculatePercentage = (value: number, total: number) => {
+    if (total === 0) return 0;
+    return Math.round((value / total) * 100);
+  };
+
+  // Calculate percentages
+  const callSuccessRate = calculatePercentage(product.calls.conversations, product.calls.total);
+  const emailOpenRate = calculatePercentage(product.emails.opens, product.emails.total);
+  const emailReplyRate = calculatePercentage(product.emails.replies, product.emails.total);
+
+  const metricBoxStyle = "bg-gray-50 rounded-lg";
+  const metricBoxInnerStyle = "p-3 flex flex-col items-center justify-center min-h-[80px]";
+
   return (
     <div className="bg-gray-50 rounded-lg p-4">
       <div className="flex justify-between items-start">
@@ -498,22 +627,27 @@ function ProductCard({ product, companyId }: ProductCardProps) {
                 <Target className="w-4 h-4 mr-2" />
                 <span className="text-sm font-medium">Leads</span>
               </div>
-              <Link 
-                to={`/companies/${companyId}/leads`}
-                className="text-sm text-blue-600 hover:text-blue-700 flex items-center"
-              >
-                Manage leads
-                <ArrowRight className="w-4 h-4 ml-1" />
-              </Link>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <div className="text-sm text-gray-500">Total</div>
-                <div className="text-lg font-semibold">{product.leads.total}</div>
+            <div className="grid grid-cols-3 gap-4">
+              <div className={metricBoxStyle}>
+                <div className={metricBoxInnerStyle}>
+                  <div className="text-sm text-gray-500">Total</div>
+                  <div className="text-lg font-semibold mt-1">{product.leads.total}</div>
+                </div>
               </div>
-              <div>
-                <div className="text-sm text-gray-500">Contacted</div>
-                <div className="text-lg font-semibold">{product.leads.contacted}</div>
+              <div className={metricBoxStyle}>
+                <div className={metricBoxInnerStyle}>
+                  <div className="text-sm text-gray-500">Contacted</div>
+                  <div className="text-lg font-semibold mt-1">{product.leads.contacted}</div>
+                </div>
+              </div>
+              <div className={metricBoxStyle}>
+                <div className={metricBoxInnerStyle}>
+                  <div className="text-sm text-gray-500">Contact Rate</div>
+                  <div className={`text-lg font-semibold mt-1 ${getPercentageColor(calculatePercentage(product.leads.contacted, product.leads.total))}`}>
+                    {calculatePercentage(product.leads.contacted, product.leads.total)}%
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -534,17 +668,25 @@ function ProductCard({ product, companyId }: ProductCardProps) {
               </Link>
             </div>
             <div className="grid grid-cols-3 gap-4">
-              <div>
-                <div className="text-sm text-gray-500">Total</div>
-                <div className="text-lg font-semibold">{product.calls.total}</div>
+              <div className={metricBoxStyle}>
+                <div className={metricBoxInnerStyle}>
+                  <div className="text-sm text-gray-500">Dialed</div>
+                  <div className="text-lg font-semibold mt-1">{product.calls.total}</div>
+                </div>
               </div>
-              <div>
-                <div className="text-sm text-gray-500">Conversations</div>
-                <div className="text-lg font-semibold">{product.calls.conversations}</div>
+              <div className={metricBoxStyle}>
+                <div className={metricBoxInnerStyle}>
+                  <div className="text-sm text-gray-500">Conversations</div>
+                  <div className="text-lg font-semibold mt-1">{product.calls.conversations}</div>
+                </div>
               </div>
-              <div>
-                <div className="text-sm text-gray-500">Meetings</div>
-                <div className="text-lg font-semibold">{product.calls.meetings}</div>
+              <div className={metricBoxStyle}>
+                <div className={metricBoxInnerStyle}>
+                  <div className="text-sm text-gray-500">Conversation Rate</div>
+                  <div className={`text-lg font-semibold mt-1 ${getPercentageColor(callSuccessRate)}`}>
+                    {callSuccessRate}%
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -564,31 +706,42 @@ function ProductCard({ product, companyId }: ProductCardProps) {
                   View emails
                   <ArrowRight className="w-4 h-4 ml-1" />
                 </Link>
-                <Link 
-                  to={`/companies/${companyId}/campaigns`}
-                  className="text-sm text-purple-600 hover:text-purple-700 flex items-center"
-                >
-                  Manage campaigns
-                  <ArrowRight className="w-4 h-4 ml-1" />
-                </Link>
               </div>
             </div>
-            <div className="grid grid-cols-4 gap-4">
-              <div>
-                <div className="text-sm text-gray-500">Total</div>
-                <div className="text-lg font-semibold">{product.emails.total}</div>
+            <div className="grid grid-cols-5 gap-4">
+              <div className={metricBoxStyle}>
+                <div className={metricBoxInnerStyle}>
+                  <div className="text-sm text-gray-500">Sent</div>
+                  <div className="text-lg font-semibold mt-1">{product.emails.total}</div>
+                </div>
               </div>
-              <div>
-                <div className="text-sm text-gray-500">Opens</div>
-                <div className="text-lg font-semibold">{product.emails.opens}</div>
+              <div className={metricBoxStyle}>
+                <div className={metricBoxInnerStyle}>
+                  <div className="text-sm text-gray-500">Opened</div>
+                  <div className="text-lg font-semibold mt-1">{product.emails.opens}</div>
+                </div>
               </div>
-              <div>
-                <div className="text-sm text-gray-500">Replies</div>
-                <div className="text-lg font-semibold">{product.emails.replies}</div>
+              <div className={metricBoxStyle}>
+                <div className={metricBoxInnerStyle}>
+                  <div className="text-sm text-gray-500">Open Rate</div>
+                  <div className={`text-lg font-semibold mt-1 ${getPercentageColor(emailOpenRate)}`}>
+                    {emailOpenRate}%
+                  </div>
+                </div>
               </div>
-              <div>
-                <div className="text-sm text-gray-500">Meetings</div>
-                <div className="text-lg font-semibold">{product.emails.meetings}</div>
+              <div className={metricBoxStyle}>
+                <div className={metricBoxInnerStyle}>
+                  <div className="text-sm text-gray-500">Replied</div>
+                  <div className="text-lg font-semibold mt-1">{product.emails.replies}</div>
+                </div>
+              </div>
+              <div className={metricBoxStyle}>
+                <div className={metricBoxInnerStyle}>
+                  <div className="text-sm text-gray-500">Reply Rate</div>
+                  <div className={`text-lg font-semibold mt-1 ${getPercentageColor(emailReplyRate)}`}>
+                    {emailReplyRate}%
+                  </div>
+                </div>
               </div>
             </div>
           </div>
