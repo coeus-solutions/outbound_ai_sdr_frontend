@@ -47,6 +47,12 @@ export interface CompanyUserResponse {
   user_company_profile_id: string;
 }
 
+export interface Lead {
+  id: string;
+  name: string;
+  email: string;
+}
+
 export async function getCompanies(token: string): Promise<Company[]> {
   const response = await fetch(apiEndpoints.companies.list(true), {
     headers: {
@@ -170,4 +176,19 @@ export async function deleteUserCompanyProfile(token: string, userCompanyProfile
     const error = await response.json();
     throw new Error(error.detail || 'Failed to delete user from company');
   }
+}
+
+export async function getCompanyLeads(token: string, companyId: string): Promise<Lead[]> {
+  const response = await fetch(apiEndpoints.companies.leads.list(companyId), {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch company leads');
+  }
+
+  return response.json();
 } 

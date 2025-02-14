@@ -22,10 +22,18 @@ export interface EmailHistory {
   to_email: string | null;
 }
 
-export async function getCompanyEmails(token: string, companyId: string, campaignId?: string): Promise<EmailLog[]> {
+export async function getCompanyEmails(
+  token: string,
+  companyId: string,
+  campaignId?: string,
+  leadId?: string
+): Promise<EmailLog[]> {
   const url = new URL(apiEndpoints.companies.emails.list(companyId));
   if (campaignId) {
     url.searchParams.append('campaign_id', campaignId);
+  }
+  if (leadId) {
+    url.searchParams.append('lead_id', leadId);
   }
 
   const response = await fetch(url.toString(), {
