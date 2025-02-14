@@ -15,6 +15,7 @@ import { SkeletonLoader } from '../shared/SkeletonLoader';
 import { LoadingButton } from '../shared/LoadingButton';
 import { CardSkeletonLoader } from '../shared/CardSkeletonLoader';
 import { useUserRole } from '../../hooks/useUserRole';
+import * as Tooltip from '@radix-ui/react-tooltip';
 
 interface ProductStats {
   id: string;
@@ -374,58 +375,165 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
             )}
           </div>
           <div className="flex items-center space-x-2">
-            <Link
-              to={`/companies/${company.id}/products/new`}
-              className="p-2 text-gray-400 hover:text-indigo-600"
-              title="Add product"
-            >
-              <Package className="w-5 h-5" />
-            </Link>
-            <Link 
-              to={`/companies/${company.id}/leads`}
-              className="p-2 text-gray-400 hover:text-blue-600"
-              title="Manage leads"
-            >
-              <Target className="w-5 h-5" />
-            </Link>
-            <Link 
-              to={`/companies/${company.id}/campaigns`}
-              className="p-2 text-gray-400 hover:text-purple-600"
-              title="Manage campaigns"
-            >
-              <Volume2 className="w-5 h-5" />
-            </Link>
-            <button
-              onClick={onViewDetails}
-              className="p-2 text-gray-400 hover:text-gray-600"
-              disabled={isLoadingDetails}
-            >
-              {isLoadingDetails ? (
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-400"></div>
-              ) : (
-                <Eye className="w-5 h-5" />
-              )}
-            </button>
+            <Tooltip.Provider>
+              <Tooltip.Root>
+                <Tooltip.Trigger asChild>
+                  <Link
+                    to={`/companies/${company.id}/products/new`}
+                    className="p-2 text-gray-400 hover:text-indigo-600"
+                  >
+                    <Package className="w-5 h-5" />
+                  </Link>
+                </Tooltip.Trigger>
+                <Tooltip.Portal>
+                  <Tooltip.Content
+                    className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
+                    sideOffset={5}
+                  >
+                    Add product
+                    <Tooltip.Arrow className="fill-gray-900" />
+                  </Tooltip.Content>
+                </Tooltip.Portal>
+              </Tooltip.Root>
+            </Tooltip.Provider>
+
+            <Tooltip.Provider>
+              <Tooltip.Root>
+                <Tooltip.Trigger asChild>
+                  <Link 
+                    to={`/companies/${company.id}/leads`}
+                    className="p-2 text-gray-400 hover:text-blue-600"
+                  >
+                    <Target className="w-5 h-5" />
+                  </Link>
+                </Tooltip.Trigger>
+                <Tooltip.Portal>
+                  <Tooltip.Content
+                    className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
+                    sideOffset={5}
+                  >
+                    Manage leads
+                    <Tooltip.Arrow className="fill-gray-900" />
+                  </Tooltip.Content>
+                </Tooltip.Portal>
+              </Tooltip.Root>
+            </Tooltip.Provider>
+
+            <Tooltip.Provider>
+              <Tooltip.Root>
+                <Tooltip.Trigger asChild>
+                  <Link 
+                    to={`/companies/${company.id}/campaigns`}
+                    className="p-2 text-gray-400 hover:text-purple-600"
+                  >
+                    <Volume2 className="w-5 h-5" />
+                  </Link>
+                </Tooltip.Trigger>
+                <Tooltip.Portal>
+                  <Tooltip.Content
+                    className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
+                    sideOffset={5}
+                  >
+                    Manage campaigns
+                    <Tooltip.Arrow className="fill-gray-900" />
+                  </Tooltip.Content>
+                </Tooltip.Portal>
+              </Tooltip.Root>
+            </Tooltip.Provider>
+
+            <Tooltip.Provider>
+              <Tooltip.Root>
+                <Tooltip.Trigger asChild>
+                  <button
+                    onClick={onViewDetails}
+                    className="p-2 text-gray-400 hover:text-gray-600"
+                    disabled={isLoadingDetails}
+                  >
+                    {isLoadingDetails ? (
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-400"></div>
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
+                  </button>
+                </Tooltip.Trigger>
+                <Tooltip.Portal>
+                  <Tooltip.Content
+                    className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
+                    sideOffset={5}
+                  >
+                    View details
+                    <Tooltip.Arrow className="fill-gray-900" />
+                  </Tooltip.Content>
+                </Tooltip.Portal>
+              </Tooltip.Root>
+            </Tooltip.Provider>
+
             {isAdmin && (
               <>
-                <Link to={`/companies/${company.id}/settings`}>
-                  <Settings className="w-5 h-5 text-gray-400 hover:text-gray-600" />
-                </Link>
-                <button
-                  onClick={onDelete}
-                  className="p-2 text-gray-400 hover:text-red-600"
-                  title="Delete company"
-                >
-                  <Trash2 className="w-5 h-5" />
-                </button>
+                <Tooltip.Provider>
+                  <Tooltip.Root>
+                    <Tooltip.Trigger asChild>
+                      <Link to={`/companies/${company.id}/settings`} className="p-2 text-gray-400 hover:text-gray-600">
+                        <Settings className="w-5 h-5" />
+                      </Link>
+                    </Tooltip.Trigger>
+                    <Tooltip.Portal>
+                      <Tooltip.Content
+                        className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
+                        sideOffset={5}
+                      >
+                        Settings
+                        <Tooltip.Arrow className="fill-gray-900" />
+                      </Tooltip.Content>
+                    </Tooltip.Portal>
+                  </Tooltip.Root>
+                </Tooltip.Provider>
+
+                <Tooltip.Provider>
+                  <Tooltip.Root>
+                    <Tooltip.Trigger asChild>
+                      <button
+                        onClick={onDelete}
+                        className="p-2 text-gray-400 hover:text-red-600"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </Tooltip.Trigger>
+                    <Tooltip.Portal>
+                      <Tooltip.Content
+                        className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
+                        sideOffset={5}
+                      >
+                        Delete company
+                        <Tooltip.Arrow className="fill-gray-900" />
+                      </Tooltip.Content>
+                    </Tooltip.Portal>
+                  </Tooltip.Root>
+                </Tooltip.Provider>
               </>
             )}
-            <button 
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="p-2 text-gray-400 hover:text-gray-600"
-            >
-              {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-            </button>
+
+            <Tooltip.Provider>
+              <Tooltip.Root>
+                <Tooltip.Trigger asChild>
+                  <button 
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    className="p-2 text-gray-400 hover:text-gray-600"
+                  >
+                    {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                  </button>
+                </Tooltip.Trigger>
+                <Tooltip.Portal>
+                  <Tooltip.Content
+                    className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
+                    sideOffset={5}
+                  >
+                    {isExpanded ? 'Collapse' : 'Expand'}
+                    <Tooltip.Arrow className="fill-gray-900" />
+                  </Tooltip.Content>
+                </Tooltip.Portal>
+              </Tooltip.Root>
+            </Tooltip.Provider>
           </div>
         </div>
 
