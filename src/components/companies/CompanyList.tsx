@@ -564,7 +564,7 @@ function ProductCard({ product, companyId }: ProductCardProps) {
               </div>
               <div className={`${metricBoxStyle} from-yellow-500 to-yellow-300`}>
                 <div className={metricBoxInnerStyle}>
-                  <div className="text-sm text-gray-500">Success Rate</div>
+                  <div className="text-sm text-gray-500">Conversation Rate</div>
                   <div className={`text-lg font-semibold mt-1 ${getPercentageColor(callSuccessRate)}`}>
                     {callSuccessRate}%
                   </div>
