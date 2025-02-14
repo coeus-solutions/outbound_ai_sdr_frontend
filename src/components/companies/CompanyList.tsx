@@ -487,8 +487,8 @@ function ProductCard({ product, companyId }: ProductCardProps) {
   const emailOpenRate = calculatePercentage(product.emails.opens, product.emails.total);
   const emailReplyRate = calculatePercentage(product.emails.replies, product.emails.total);
 
-  const metricBoxStyle = "bg-gradient-to-r p-[1px] rounded-lg relative";
-  const metricBoxInnerStyle = "bg-white p-3 rounded-lg relative z-10 flex flex-col items-center justify-center min-h-[80px]";
+  const metricBoxStyle = "bg-gray-50 rounded-lg";
+  const metricBoxInnerStyle = "p-3 flex flex-col items-center justify-center min-h-[80px]";
 
   return (
     <div className="bg-gray-50 rounded-lg p-4">
@@ -521,19 +521,19 @@ function ProductCard({ product, companyId }: ProductCardProps) {
               </div>
             </div>
             <div className="grid grid-cols-3 gap-4">
-              <div className={`${metricBoxStyle} from-blue-500 to-blue-300`}>
+              <div className={metricBoxStyle}>
                 <div className={metricBoxInnerStyle}>
                   <div className="text-sm text-gray-500">Total</div>
                   <div className="text-lg font-semibold mt-1">{product.leads.total}</div>
                 </div>
               </div>
-              <div className={`${metricBoxStyle} from-blue-500 to-blue-300`}>
+              <div className={metricBoxStyle}>
                 <div className={metricBoxInnerStyle}>
                   <div className="text-sm text-gray-500">Contacted</div>
                   <div className="text-lg font-semibold mt-1">{product.leads.contacted}</div>
                 </div>
               </div>
-              <div className={`${metricBoxStyle} from-blue-500 to-blue-300`}>
+              <div className={metricBoxStyle}>
                 <div className={metricBoxInnerStyle}>
                   <div className="text-sm text-gray-500">Contact Rate</div>
                   <div className={`text-lg font-semibold mt-1 ${getPercentageColor(calculatePercentage(product.leads.contacted, product.leads.total))}`}>
@@ -560,19 +560,19 @@ function ProductCard({ product, companyId }: ProductCardProps) {
               </Link>
             </div>
             <div className="grid grid-cols-3 gap-4">
-              <div className={`${metricBoxStyle} from-yellow-500 to-yellow-300`}>
+              <div className={metricBoxStyle}>
                 <div className={metricBoxInnerStyle}>
                   <div className="text-sm text-gray-500">Dialed</div>
                   <div className="text-lg font-semibold mt-1">{product.calls.total}</div>
                 </div>
               </div>
-              <div className={`${metricBoxStyle} from-yellow-500 to-yellow-300`}>
+              <div className={metricBoxStyle}>
                 <div className={metricBoxInnerStyle}>
                   <div className="text-sm text-gray-500">Conversations</div>
                   <div className="text-lg font-semibold mt-1">{product.calls.conversations}</div>
                 </div>
               </div>
-              <div className={`${metricBoxStyle} from-yellow-500 to-yellow-300`}>
+              <div className={metricBoxStyle}>
                 <div className={metricBoxInnerStyle}>
                   <div className="text-sm text-gray-500">Conversation Rate</div>
                   <div className={`text-lg font-semibold mt-1 ${getPercentageColor(callSuccessRate)}`}>
@@ -601,19 +601,19 @@ function ProductCard({ product, companyId }: ProductCardProps) {
               </div>
             </div>
             <div className="grid grid-cols-5 gap-4">
-              <div className={`${metricBoxStyle} from-purple-500 to-purple-300`}>
+              <div className={metricBoxStyle}>
                 <div className={metricBoxInnerStyle}>
                   <div className="text-sm text-gray-500">Sent</div>
                   <div className="text-lg font-semibold mt-1">{product.emails.total}</div>
                 </div>
               </div>
-              <div className={`${metricBoxStyle} from-purple-500 to-purple-300`}>
+              <div className={metricBoxStyle}>
                 <div className={metricBoxInnerStyle}>
                   <div className="text-sm text-gray-500">Opened</div>
                   <div className="text-lg font-semibold mt-1">{product.emails.opens}</div>
                 </div>
               </div>
-              <div className={`${metricBoxStyle} from-purple-500 to-purple-300`}>
+              <div className={metricBoxStyle}>
                 <div className={metricBoxInnerStyle}>
                   <div className="text-sm text-gray-500">Open Rate</div>
                   <div className={`text-lg font-semibold mt-1 ${getPercentageColor(emailOpenRate)}`}>
@@ -621,13 +621,13 @@ function ProductCard({ product, companyId }: ProductCardProps) {
                   </div>
                 </div>
               </div>
-              <div className={`${metricBoxStyle} from-purple-500 to-purple-300`}>
+              <div className={metricBoxStyle}>
                 <div className={metricBoxInnerStyle}>
                   <div className="text-sm text-gray-500">Replied</div>
                   <div className="text-lg font-semibold mt-1">{product.emails.replies}</div>
                 </div>
               </div>
-              <div className={`${metricBoxStyle} from-purple-500 to-purple-300`}>
+              <div className={metricBoxStyle}>
                 <div className={metricBoxInnerStyle}>
                   <div className="text-sm text-gray-500">Reply Rate</div>
                   <div className={`text-lg font-semibold mt-1 ${getPercentageColor(emailReplyRate)}`}>
