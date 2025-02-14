@@ -26,6 +26,7 @@ interface ProductStats {
   total_sent_emails: number;
   total_opened_emails: number;
   total_replied_emails: number;
+  unique_leads_contacted: number;
   leads: {
     total: number;
     contacted: number;
@@ -91,9 +92,10 @@ export function CompanyList() {
               total_sent_emails: product.total_sent_emails || 0,
               total_opened_emails: product.total_opened_emails || 0,
               total_replied_emails: product.total_replied_emails || 0,
+              unique_leads_contacted: product.unique_leads_contacted || 0,
               leads: {
                 total: company.total_leads || 0,
-                contacted: 0,
+                contacted: product.unique_leads_contacted || 0,
               },
               calls: {
                 total: product.total_calls || 0,
@@ -518,7 +520,7 @@ function ProductCard({ product, companyId }: ProductCardProps) {
                 <span className="text-sm font-medium">Leads</span>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div className={`${metricBoxStyle} from-blue-500 to-blue-300`}>
                 <div className={metricBoxInnerStyle}>
                   <div className="text-sm text-gray-500">Total</div>
@@ -529,6 +531,14 @@ function ProductCard({ product, companyId }: ProductCardProps) {
                 <div className={metricBoxInnerStyle}>
                   <div className="text-sm text-gray-500">Contacted</div>
                   <div className="text-lg font-semibold mt-1">{product.leads.contacted}</div>
+                </div>
+              </div>
+              <div className={`${metricBoxStyle} from-blue-500 to-blue-300`}>
+                <div className={metricBoxInnerStyle}>
+                  <div className="text-sm text-gray-500">Contact Rate</div>
+                  <div className={`text-lg font-semibold mt-1 ${getPercentageColor(calculatePercentage(product.leads.contacted, product.leads.total))}`}>
+                    {calculatePercentage(product.leads.contacted, product.leads.total)}%
+                  </div>
                 </div>
               </div>
             </div>

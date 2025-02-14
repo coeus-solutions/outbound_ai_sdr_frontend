@@ -25,6 +25,7 @@ export interface Company {
     total_sent_emails: number;
     total_opened_emails: number;
     total_replied_emails: number;
+    unique_leads_contacted: number;
   }>;
 }
 
