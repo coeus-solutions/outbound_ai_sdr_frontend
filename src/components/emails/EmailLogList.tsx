@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, User, Calendar, History } from 'lucide-react';
+import { Mail, User, Calendar, History, Eye, MessageSquare } from 'lucide-react';
 import { EmailLog } from '../../services/emails';
 import { formatDateTime } from '../../utils/formatters';
 import { EmailHistoryDialog } from './EmailHistoryDialog';
@@ -35,6 +35,7 @@ export function EmailLogList({ emailLogs, isLoading }: EmailLogListProps) {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lead</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Campaign</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sent at</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
@@ -57,6 +58,18 @@ export function EmailLogList({ emailLogs, isLoading }: EmailLogListProps) {
                       <div className="flex items-center text-sm text-gray-900">
                         <Calendar className="h-4 w-4 mr-1 text-gray-400" />
                         {formatDateTime(log.sent_at)}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center space-x-2">
+                        <div className={`flex items-center ${log.has_opened ? 'text-green-600' : 'text-gray-400'}`}>
+                          <Eye className="h-4 w-4 mr-1" />
+                          <span className="text-sm">{log.has_opened ? 'Opened' : 'Not opened'}</span>
+                        </div>
+                        <div className={`flex items-center ${log.has_replied ? 'text-blue-600' : 'text-gray-400'}`}>
+                          <MessageSquare className="h-4 w-4 mr-1" />
+                          <span className="text-sm">{log.has_replied ? 'Replied' : 'No reply'}</span>
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

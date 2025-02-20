@@ -8,6 +8,8 @@ export interface EmailLog {
   campaign_name: string | null;
   lead_name: string | null;
   lead_email: string | null;
+  has_opened: boolean;
+  has_replied: boolean;
 }
 
 export interface EmailHistory {
