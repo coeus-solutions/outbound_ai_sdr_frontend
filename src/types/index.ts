@@ -11,6 +11,7 @@ export interface CallLog {
   duration: number; // in seconds
   sentiment: 'positive' | 'neutral' | 'negative';
   summary: string;
+  has_meeting_booked: boolean;
 }
 
 export interface UserCompanyRole {
