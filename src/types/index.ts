@@ -27,3 +27,12 @@ export interface UserInDB {
   created_at: string;
   company_roles: UserCompanyRole[] | null;
 }
+
+export interface VoiceAgentSettings {
+  enabled: boolean;
+  voice_id?: string;
+  language?: string;
+  accent?: string;
+  speaking_rate?: number;
+  pitch?: number;
+}
