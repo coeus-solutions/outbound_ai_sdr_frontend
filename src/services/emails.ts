@@ -10,6 +10,7 @@ export interface EmailLog {
   lead_email: string | null;
   has_opened: boolean;
   has_replied: boolean;
+  has_meeting_booked: boolean;
 }
 
 export interface EmailHistory {
