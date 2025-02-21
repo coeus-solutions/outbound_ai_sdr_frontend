@@ -1,7 +1,7 @@
 /** @jsxImportSource @emotion/react */
 import { jsx } from '@emotion/react';
 import React from 'react';
-import { Building, ChevronLeft, ChevronRight, LogOut, User, HelpCircle, Moon, Sun } from 'lucide-react';
+import { Building, ChevronLeft, ChevronRight, LogOut, User, HelpCircle, Moon, Sun, Mail } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '../../utils/cn';
 import { getToken } from '../../utils/auth';
@@ -18,22 +18,25 @@ interface SidebarProps {
 export function Sidebar({ isCollapsed, onToggle, onLogout }: SidebarProps) {
   const location = useLocation();
   const [userName, setUserName] = React.useState<string>('');
+  const [userEmail, setUserEmail] = React.useState<string>('');
   const { isDark, toggleTheme } = useTheme();
   
   React.useEffect(() => {
-    const fetchUserName = async () => {
+    const fetchUserData = async () => {
       try {
         const token = getToken();
         if (token) {
           const userData = await getUser(token);
+          console.log('Fetched user data:', userData);
           setUserName(userData.name || '');
+          setUserEmail(userData.email || '');
         }
       } catch (error) {
-        console.error('Failed to fetch user name:', error);
+        console.error('Failed to fetch user data:', error);
       }
     };
 
-    fetchUserName();
+    fetchUserData();
   }, []);
 
   const isActive = (path: string) => {
@@ -147,11 +150,19 @@ export function Sidebar({ isCollapsed, onToggle, onLogout }: SidebarProps) {
       <div className="p-4 border-t dark:border-gray-800">
         {!isCollapsed && (
           <>
-            {userName && (
+            {(userName || userEmail) && (
               <div className="px-4 py-2">
-                <div className="text-sm font-medium tracking-tight text-gray-700 dark:text-gray-300">
-                  {userName}
-                </div>
+                {userName && (
+                  <div className="text-sm font-medium tracking-tight text-gray-700 dark:text-gray-300">
+                    {userName}
+                  </div>
+                )}
+                {userEmail && (
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 flex items-center">
+                    <Mail className="h-3 w-3 mr-1 flex-shrink-0" />
+                    {userEmail}
+                  </div>
+                )}
               </div>
             )}
           </>
