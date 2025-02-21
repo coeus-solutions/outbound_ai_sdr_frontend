@@ -2,9 +2,19 @@ import { apiEndpoints } from '../config';
 
 export interface Product {
   id: string;
+  name: string;
   product_name: string;
   description?: string;
   company_id: string;
+  total_campaigns: number;
+  total_calls: number;
+  total_positive_calls: number;
+  total_sent_emails: number;
+  total_opened_emails: number;
+  total_replied_emails: number;
+  unique_leads_contacted: number;
+  total_meetings_booked_in_calls: number;
+  total_meetings_booked_in_emails: number;
 }
 
 export interface ProductCreate {

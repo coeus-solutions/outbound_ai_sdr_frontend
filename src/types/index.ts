@@ -11,6 +11,7 @@ export interface CallLog {
   duration: number; // in seconds
   sentiment: 'positive' | 'neutral' | 'negative';
   summary: string;
+  has_meeting_booked: boolean;
 }
 
 export interface UserCompanyRole {
@@ -25,4 +26,13 @@ export interface UserInDB {
   verified: boolean;
   created_at: string;
   company_roles: UserCompanyRole[] | null;
+}
+
+export interface VoiceAgentSettings {
+  enabled: boolean;
+  voice_id?: string;
+  language?: string;
+  accent?: string;
+  speaking_rate?: number;
+  pitch?: number;
 }

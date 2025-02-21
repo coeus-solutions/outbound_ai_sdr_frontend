@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, User, Calendar, History, Eye, MessageSquare } from 'lucide-react';
+import { Mail, User, Calendar, History, Eye, MessageSquare, CalendarCheck } from 'lucide-react';
 import { EmailLog } from '../../services/emails';
 import { formatDateTime } from '../../utils/formatters';
 import { EmailHistoryDialog } from './EmailHistoryDialog';
@@ -69,6 +69,10 @@ export function EmailLogList({ emailLogs, isLoading }: EmailLogListProps) {
                         <div className={`flex items-center ${log.has_replied ? 'text-blue-600' : 'text-gray-400'}`}>
                           <MessageSquare className="h-4 w-4 mr-1" />
                           <span className="text-sm">{log.has_replied ? 'Replied' : 'No reply'}</span>
+                        </div>
+                        <div className={`flex items-center ${log.has_meeting_booked ? 'text-purple-600' : 'text-gray-400'}`}>
+                          <CalendarCheck className="h-4 w-4 mr-1" />
+                          <span className="text-sm">{log.has_meeting_booked ? 'Meeting Booked' : 'No Meeting'}</span>
                         </div>
                       </div>
                     </td>

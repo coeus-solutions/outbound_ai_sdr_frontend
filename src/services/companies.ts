@@ -1,4 +1,6 @@
 import { apiEndpoints, config } from '../config';
+import { Product } from './products';
+import { VoiceAgentSettings } from '../types';
 
 export interface Company {
   id: string;
@@ -15,18 +17,9 @@ export interface Company {
   products_services?: string;
   background?: string;
   overview?: string;
-  total_leads?: number;
-  products?: Array<{
-    id: string;
-    name: string;
-    total_campaigns: number;
-    total_calls: number;
-    total_positive_calls: number;
-    total_sent_emails: number;
-    total_opened_emails: number;
-    total_replied_emails: number;
-    unique_leads_contacted: number;
-  }>;
+  total_leads: number;
+  products: Product[];
+  voice_agent_settings?: VoiceAgentSettings;
 }
 
 export interface CompanyCreate {

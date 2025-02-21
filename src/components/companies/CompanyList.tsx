@@ -28,6 +28,8 @@ interface ProductStats {
   total_opened_emails: number;
   total_replied_emails: number;
   unique_leads_contacted: number;
+  total_meetings_booked_in_calls: number;
+  total_meetings_booked_in_emails: number;
   leads: {
     total: number;
     contacted: number;
@@ -83,31 +85,33 @@ export function CompanyList() {
         const companiesWithStats = companiesData.map((company) => {
           return {
             ...company,
-            products: company.products?.map(product => ({
+            products: company.products?.map((product: Product) => ({
               id: product.id,
               name: product.name,
-              product_name: product.name,
+              product_name: product.product_name,
               total_campaigns: product.total_campaigns,
-              total_calls: product.total_calls || 0,
-              total_positive_calls: product.total_positive_calls || 0,
-              total_sent_emails: product.total_sent_emails || 0,
-              total_opened_emails: product.total_opened_emails || 0,
-              total_replied_emails: product.total_replied_emails || 0,
-              unique_leads_contacted: product.unique_leads_contacted || 0,
+              total_calls: product.total_calls,
+              total_positive_calls: product.total_positive_calls,
+              total_sent_emails: product.total_sent_emails,
+              total_opened_emails: product.total_opened_emails,
+              total_replied_emails: product.total_replied_emails,
+              unique_leads_contacted: product.unique_leads_contacted,
+              total_meetings_booked_in_calls: product.total_meetings_booked_in_calls,
+              total_meetings_booked_in_emails: product.total_meetings_booked_in_emails,
               leads: {
                 total: company.total_leads || 0,
-                contacted: product.unique_leads_contacted || 0,
+                contacted: product.unique_leads_contacted,
               },
               calls: {
-                total: product.total_calls || 0,
-                conversations: product.total_positive_calls || 0,
-                meetings: 0,
+                total: product.total_calls,
+                conversations: product.total_positive_calls,
+                meetings: product.total_meetings_booked_in_calls,
               },
               emails: {
-                total: product.total_sent_emails || 0,
-                opens: product.total_opened_emails || 0,
-                replies: product.total_replied_emails || 0,
-                meetings: 0,
+                total: product.total_sent_emails,
+                opens: product.total_opened_emails,
+                replies: product.total_replied_emails,
+                meetings: product.total_meetings_booked_in_emails,
               },
               campaigns: product.total_campaigns,
             })) || []
@@ -667,7 +671,7 @@ function ProductCard({ product, companyId }: ProductCardProps) {
                 <ArrowRight className="w-4 h-4 ml-1" />
               </Link>
             </div>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-4 gap-4">
               <div className={metricBoxStyle}>
                 <div className={metricBoxInnerStyle}>
                   <div className="text-sm text-gray-500">Dialed</div>
@@ -678,6 +682,12 @@ function ProductCard({ product, companyId }: ProductCardProps) {
                 <div className={metricBoxInnerStyle}>
                   <div className="text-sm text-gray-500">Conversations</div>
                   <div className="text-lg font-semibold mt-1">{product.calls.conversations}</div>
+                </div>
+              </div>
+              <div className={metricBoxStyle}>
+                <div className={metricBoxInnerStyle}>
+                  <div className="text-sm text-gray-500">Meetings Booked</div>
+                  <div className="text-lg font-semibold mt-1">{product.calls.meetings}</div>
                 </div>
               </div>
               <div className={metricBoxStyle}>
@@ -708,7 +718,7 @@ function ProductCard({ product, companyId }: ProductCardProps) {
                 </Link>
               </div>
             </div>
-            <div className="grid grid-cols-5 gap-4">
+            <div className="grid grid-cols-6 gap-4">
               <div className={metricBoxStyle}>
                 <div className={metricBoxInnerStyle}>
                   <div className="text-sm text-gray-500">Sent</div>
@@ -741,6 +751,12 @@ function ProductCard({ product, companyId }: ProductCardProps) {
                   <div className={`text-lg font-semibold mt-1 ${getPercentageColor(emailReplyRate)}`}>
                     {emailReplyRate}%
                   </div>
+                </div>
+              </div>
+              <div className={metricBoxStyle}>
+                <div className={metricBoxInnerStyle}>
+                  <div className="text-sm text-gray-500">Meetings Booked</div>
+                  <div className="text-lg font-semibold mt-1">{product.emails.meetings}</div>
                 </div>
               </div>
             </div>

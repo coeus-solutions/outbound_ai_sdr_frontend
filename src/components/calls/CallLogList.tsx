@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Phone, Clock, ThumbsUp, ThumbsDown, Minus, FileText } from 'lucide-react';
+import { Phone, Clock, ThumbsUp, ThumbsDown, Minus, FileText, CalendarCheck } from 'lucide-react';
 import { CallLog } from '../../types';
 import { formatDuration, formatDateTime } from '../../utils/formatters';
 import { CallSummaryDialog } from './CallSummaryDialog';
@@ -38,6 +38,7 @@ export function CallLogList({ callLogs, isLoading }: CallLogListProps) {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Called at</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sentiment</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
@@ -73,6 +74,12 @@ export function CallLogList({ callLogs, isLoading }: CallLogListProps) {
                       {log.sentiment === 'neutral' && <Minus className="h-3 w-3 mr-1" />}
                       {log.sentiment}
                     </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className={`flex items-center ${log.has_meeting_booked ? 'text-purple-600' : 'text-gray-400'}`}>
+                      <CalendarCheck className="h-4 w-4 mr-1" />
+                      <span className="text-sm">{log.has_meeting_booked ? 'Meeting Booked' : 'No Meeting'}</span>
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <button
