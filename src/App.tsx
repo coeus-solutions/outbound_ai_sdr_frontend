@@ -5,6 +5,7 @@ import { ToastProvider } from './context/ToastContext';
 import { DashboardLayout } from './components/dashboard/DashboardLayout';
 import { LandingPage } from './components/landing/LandingPage';
 import { CognismLandingPage } from './components/landing/CognismLandingPage';
+import { SaasGroupLandingPage } from './components/landing/SaasGroupLandingPage';
 import { UnauthenticatedApp } from './components/UnauthenticatedApp';
 import { CompanyList } from './components/companies/CompanyList';
 import { AddCompany } from './components/companies/AddCompany';
@@ -46,6 +47,7 @@ export function App() {
     if (!isAuthenticated && 
         location.pathname !== '/' && 
         location.pathname !== '/cognism' && 
+        location.pathname !== '/saas-group' && 
         !location.pathname.startsWith('/login') && 
         !location.pathname.startsWith('/signup') && 
         !location.pathname.startsWith('/forgot-password') && 
@@ -68,6 +70,7 @@ export function App() {
     <ToastProvider>
       <Routes>
         <Route path="/cognism" element={<CognismLandingPage />} />
+        <Route path="/saas-group" element={<SaasGroupLandingPage />} />
         {!isAuthenticated ? (
           <>
             <Route path="/" element={<LandingPage />} />
