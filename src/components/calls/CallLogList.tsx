@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { Phone, Clock, ThumbsUp, ThumbsDown, Minus, FileText, CalendarCheck } from 'lucide-react';
+import { Phone, Clock, ThumbsUp, ThumbsDown, Minus, FileText, CalendarCheck, ChevronDown } from 'lucide-react';
 import { CallLog } from '../../types';
 import { formatDuration, formatDateTime } from '../../utils/formatters';
 import { CallSummaryDialog } from './CallSummaryDialog';
+import { CallTranscriptsDialog } from './CallTranscriptsDialog';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 
 interface CallLogListProps {
   callLogs: CallLog[];
@@ -11,6 +13,7 @@ interface CallLogListProps {
 
 export function CallLogList({ callLogs, isLoading }: CallLogListProps) {
   const [selectedLog, setSelectedLog] = useState<CallLog | null>(null);
+  const [dialogType, setDialogType] = useState<'summary' | 'transcripts' | null>(null);
 
   if (isLoading) {
     return <div className="text-center py-8">Loading call logs...</div>;
@@ -25,6 +28,11 @@ export function CallLogList({ callLogs, isLoading }: CallLogListProps) {
       </div>
     );
   }
+
+  const handleCloseDialog = () => {
+    setSelectedLog(null);
+    setDialogType(null);
+  };
 
   return (
     <>
@@ -82,13 +90,46 @@ export function CallLogList({ callLogs, isLoading }: CallLogListProps) {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <button
-                      onClick={() => setSelectedLog(log)}
-                      className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    >
-                      <FileText className="h-4 w-4 mr-1" />
-                      View Summary
-                    </button>
+                    <DropdownMenu.Root>
+                      <DropdownMenu.Trigger asChild>
+                        <button className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                          <FileText className="h-4 w-4 mr-1" />
+                          Actions
+                          <ChevronDown className="h-4 w-4 ml-1" />
+                        </button>
+                      </DropdownMenu.Trigger>
+
+                      <DropdownMenu.Portal>
+                        <DropdownMenu.Content
+                          className="min-w-[160px] bg-white rounded-md shadow-lg p-1 z-50"
+                          sideOffset={5}
+                        >
+                          <DropdownMenu.Item
+                            className="text-xs text-gray-700 hover:bg-gray-100 px-3 py-2 rounded cursor-pointer flex items-center"
+                            onClick={() => {
+                              setSelectedLog(log);
+                              setDialogType('summary');
+                            }}
+                          >
+                            <FileText className="h-4 w-4 mr-2" />
+                            View Summary
+                          </DropdownMenu.Item>
+                          
+                          {log.transcripts && log.transcripts.length > 0 && (
+                            <DropdownMenu.Item
+                              className="text-xs text-gray-700 hover:bg-gray-100 px-3 py-2 rounded cursor-pointer flex items-center"
+                              onClick={() => {
+                                setSelectedLog(log);
+                                setDialogType('transcripts');
+                              }}
+                            >
+                              <FileText className="h-4 w-4 mr-2" />
+                              View Transcripts
+                            </DropdownMenu.Item>
+                          )}
+                        </DropdownMenu.Content>
+                      </DropdownMenu.Portal>
+                    </DropdownMenu.Root>
                   </td>
                 </tr>
               ))}
@@ -98,8 +139,14 @@ export function CallLogList({ callLogs, isLoading }: CallLogListProps) {
       </div>
 
       <CallSummaryDialog
-        isOpen={selectedLog !== null}
-        onClose={() => setSelectedLog(null)}
+        isOpen={dialogType === 'summary' && selectedLog !== null}
+        onClose={handleCloseDialog}
+        callLog={selectedLog}
+      />
+
+      <CallTranscriptsDialog
+        isOpen={dialogType === 'transcripts' && selectedLog !== null}
+        onClose={handleCloseDialog}
         callLog={selectedLog}
       />
     </>
