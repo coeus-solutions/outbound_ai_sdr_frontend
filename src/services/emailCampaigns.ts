@@ -8,6 +8,7 @@ export interface Campaign {
   product_id: string;
   company_id: string;
   created_at: string;
+  template?: string;
 }
 
 interface CampaignsResponse {
