@@ -1,4 +1,4 @@
-import { apiEndpoints } from '../config/index';
+import { apiEndpoints } from '../config';
 
 export interface Product {
   id: string;
@@ -32,6 +32,23 @@ export interface ProductInDB {
   original_filename?: string;
 }
 
+interface ProductResponse {
+  id: string;
+  name?: string;
+  product_name: string;
+  description?: string;
+  company_id: string;
+  total_campaigns?: number;
+  total_calls?: number;
+  total_positive_calls?: number;
+  total_sent_emails?: number;
+  total_opened_emails?: number;
+  total_replied_emails?: number;
+  unique_leads_contacted?: number;
+  total_meetings_booked_in_calls?: number;
+  total_meetings_booked_in_emails?: number;
+}
+
 export async function getProducts(token: string, companyId: string): Promise<Product[]> {
   const response = await fetch(apiEndpoints.companies.products(companyId), {
     headers: {
@@ -44,12 +61,34 @@ export async function getProducts(token: string, companyId: string): Promise<Pro
     throw new Error('Failed to fetch products');
   }
 
-  return response.json();
+  const products = await response.json() as ProductResponse[];
+  return products.map((product) => ({
+    id: product.id,
+    name: product.name || product.product_name,
+    product_name: product.product_name,
+    description: product.description,
+    company_id: product.company_id,
+    total_campaigns: product.total_campaigns || 0,
+    total_calls: product.total_calls || 0,
+    total_positive_calls: product.total_positive_calls || 0,
+    total_sent_emails: product.total_sent_emails || 0,
+    total_opened_emails: product.total_opened_emails || 0,
+    total_replied_emails: product.total_replied_emails || 0,
+    unique_leads_contacted: product.unique_leads_contacted || 0,
+    total_meetings_booked_in_calls: product.total_meetings_booked_in_calls || 0,
+    total_meetings_booked_in_emails: product.total_meetings_booked_in_emails || 0,
+  }));
 }
 
 export async function createProduct(token: string, companyId: string, product: ProductCreate): Promise<Product> {
   const formData = new FormData();
   formData.append('product_name', product.product_name);
+  if (product.description) {
+    formData.append('description', product.description);
+  }
+  if (product.url) {
+    formData.append('url', product.url);
+  }
   if (product.file) {
     formData.append('file', product.file);
   }
@@ -111,4 +150,35 @@ export async function getCompanyProducts(token: string, companyId: string): Prom
   }
 
   return response.json();
+}
+
+export async function getProduct(token: string, companyId: string, productId: string): Promise<Product> {
+  const response = await fetch(`${apiEndpoints.companies.products(companyId)}/${productId}`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch product');
+  }
+
+  const product = await response.json();
+  return {
+    id: product.id,
+    name: product.name || product.product_name,
+    product_name: product.product_name,
+    description: product.description,
+    company_id: product.company_id,
+    total_campaigns: product.total_campaigns || 0,
+    total_calls: product.total_calls || 0,
+    total_positive_calls: product.total_positive_calls || 0,
+    total_sent_emails: product.total_sent_emails || 0,
+    total_opened_emails: product.total_opened_emails || 0,
+    total_replied_emails: product.total_replied_emails || 0,
+    unique_leads_contacted: product.unique_leads_contacted || 0,
+    total_meetings_booked_in_calls: product.total_meetings_booked_in_calls || 0,
+    total_meetings_booked_in_emails: product.total_meetings_booked_in_emails || 0,
+  };
 } 

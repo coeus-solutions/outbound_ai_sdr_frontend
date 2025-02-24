@@ -2,26 +2,29 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Package, Upload } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getToken } from '../../utils/auth';
-import { createProduct } from '../../services/products';
+import { createProduct, getProduct, updateProduct } from '../../services/products';
 import { useToast } from '../../context/ToastContext';
 import { getCompanyById } from '../../services/companies';
 import { PageHeader } from '../shared/PageHeader';
 
 export function AddProduct() {
   const navigate = useNavigate();
-  const { companyId } = useParams();
+  const { companyId, productId } = useParams();
   const { showToast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(!!productId);
   const [error, setError] = useState<string | null>(null);
   const [companyName, setCompanyName] = useState('');
   const [formData, setFormData] = useState({
     product_name: '',
+    description: '',
+    url: '',
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    async function fetchCompany() {
+    async function fetchData() {
       if (!companyId) return;
       try {
         const token = getToken();
@@ -29,23 +32,33 @@ export function AddProduct() {
           setError('Authentication token not found');
           return;
         }
+
+        // Fetch company name
         const company = await getCompanyById(token, companyId);
         setCompanyName(company.name);
+
+        // If editing, fetch product details
+        if (productId) {
+          const product = await getProduct(token, companyId, productId);
+          setFormData({
+            product_name: product.product_name,
+            description: product.description || '',
+            url: '',  // URL is not returned by the API
+          });
+        }
       } catch (err) {
-        console.error('Error fetching company:', err);
+        console.error('Error fetching data:', err);
+        showToast('Failed to fetch data', 'error');
+      } finally {
+        setIsFetching(false);
       }
     }
-    fetchCompany();
-  }, [companyId]);
+    fetchData();
+  }, [companyId, productId, showToast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!companyId) return;
-
-    if (!selectedFile) {
-      showToast('Please select a file to upload', 'error');
-      return;
-    }
 
     setIsLoading(true);
     setError(null);
@@ -58,17 +71,30 @@ export function AddProduct() {
         return;
       }
 
-      await createProduct(token, companyId, {
-        product_name: formData.product_name,
-        file: selectedFile,
-      });
+      if (productId) {
+        // Update existing product
+        await updateProduct(token, companyId, productId, {
+          product_name: formData.product_name,
+          description: formData.description,
+        });
+        showToast('Product updated successfully!', 'success');
+      } else {
+        // Create new product
+        await createProduct(token, companyId, {
+          product_name: formData.product_name,
+          description: formData.description,
+          url: formData.url,
+          file: selectedFile || undefined,
+        });
+        showToast('Product created successfully!', 'success');
+      }
 
-      showToast('Product created successfully!', 'success');
       navigate(`/companies/${companyId}/products`);
-    } catch (err) {
-      const errorMessage = 'Failed to create product. Please try again.';
+    } catch (error) {
+      const errorMessage = productId ? 'Failed to update product' : 'Failed to create product';
       setError(errorMessage);
-      showToast(errorMessage, 'error');
+      showToast(`${errorMessage}. Please try again.`, 'error');
+      console.error(errorMessage, error);
     } finally {
       setIsLoading(false);
     }
@@ -104,10 +130,18 @@ export function AddProduct() {
     }));
   };
 
+  if (isFetching) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-2xl mx-auto">
       <PageHeader
-        title="Add New Product"
+        title={productId ? "Edit Product" : "Add New Product/Value Prop"}
         subtitle={`for ${companyName}`}
       />
       <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6 space-y-6">
@@ -118,57 +152,109 @@ export function AddProduct() {
         )}
 
         <div className="space-y-4">
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Package className="h-5 w-5 text-gray-400" />
+          <div>
+            <label htmlFor="product_name" className="block text-sm font-medium text-gray-700 mb-1">
+              Product/Value Proposition Name
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Package className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                type="text"
+                id="product_name"
+                name="product_name"
+                required
+                value={formData.product_name}
+                onChange={handleChange}
+                className="form-input"
+                placeholder="Enter your product or value proposition name"
+              />
             </div>
-            <input
-              type="text"
-              name="product_name"
-              required
-              value={formData.product_name}
-              onChange={handleChange}
-              className="form-input"
-              placeholder="Product name"
-            />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Product Documentation
+            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+              Description
+              <span className="text-gray-500 font-normal"> (Optional)</span>
             </label>
-            <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg">
-              <div className="space-y-1 text-center">
-                <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                <div className="flex text-sm text-gray-600">
-                  <label
-                    htmlFor="file-upload"
-                    className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500"
-                  >
-                    <span>Upload a file</span>
-                    <input
-                      id="file-upload"
-                      name="file-upload"
-                      type="file"
-                      ref={fileInputRef}
-                      className="sr-only"
-                      onChange={handleFileChange}
-                      accept=".docx,.pdf,.txt"
-                    />
-                  </label>
-                  <p className="pl-1">or drag and drop</p>
-                </div>
-                <p className="text-xs text-gray-500">
-                  Only .docx, .pdf, and .txt files are allowed
-                </p>
-                {selectedFile && (
-                  <p className="text-sm text-gray-600">
-                    Selected file: {selectedFile.name}
-                  </p>
-                )}
-              </div>
-            </div>
+            <textarea
+              id="description"
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              rows={4}
+              className="form-input !pt-2 !pb-2 min-h-[100px]"
+              placeholder="Describe your product or value proposition in detail"
+            />
+            <p className="mt-1 text-sm text-gray-500">
+              Explain what makes your product/service unique and what value it brings to potential customers.
+            </p>
           </div>
+
+          {!productId && (
+            <>
+              <div>
+                <label htmlFor="url" className="block text-sm font-medium text-gray-700 mb-1">
+                  Product URL
+                  <span className="text-gray-500 font-normal"> (Optional)</span>
+                </label>
+                <input
+                  type="url"
+                  id="url"
+                  name="url"
+                  value={formData.url}
+                  onChange={handleChange}
+                  className="form-input"
+                  placeholder="https://example.com/product"
+                />
+                <p className="mt-1 text-sm text-gray-500">
+                  Link to your product page or relevant information
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Documentation
+                  <span className="text-gray-500 font-normal"> (Optional)</span>
+                </label>
+                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg">
+                  <div className="space-y-1 text-center">
+                    <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                    <div className="flex text-sm text-gray-600">
+                      <label
+                        htmlFor="file-upload"
+                        className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500"
+                      >
+                        <span>Upload documentation</span>
+                        <input
+                          id="file-upload"
+                          name="file-upload"
+                          type="file"
+                          ref={fileInputRef}
+                          className="sr-only"
+                          onChange={handleFileChange}
+                          accept=".docx,.pdf,.txt"
+                        />
+                      </label>
+                      <p className="pl-1">or drag and drop</p>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      Upload product documentation, sales materials, or value proposition details (.docx, .pdf, .txt)
+                    </p>
+                    {selectedFile && (
+                      <p className="text-sm text-gray-600">
+                        Selected file: {selectedFile.name}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <p className="mt-1 text-sm text-gray-500">
+                  Add documentation to help your AI sales team better understand and present your value proposition
+                </p>
+              </div>
+            </>
+          )}
         </div>
 
         <div className="flex justify-end space-x-4">
@@ -185,7 +271,7 @@ export function AddProduct() {
             className="px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={isLoading}
           >
-            {isLoading ? 'Creating...' : 'Add Product'}
+            {isLoading ? (productId ? 'Saving...' : 'Creating...') : (productId ? 'Save Changes' : 'Add Product/Value Prop')}
           </button>
         </div>
       </form>

@@ -5,6 +5,7 @@ import { CompanyList } from './companies/CompanyList';
 import { AddCompany } from './companies/AddCompany';
 import { CompanyProducts } from './companies/CompanyProducts';
 import { AddProduct } from './companies/AddProduct';
+import { EditProduct } from './companies/EditProduct';
 import { LeadList } from './leads/LeadList';
 import { CompanyCallLogs } from './companies/CompanyCallLogs';
 import { UserProfile } from './user/UserProfile';
@@ -26,7 +27,8 @@ export function AuthenticatedApp() {
         <Route path="/companies/new" element={<AddCompany />} />
         <Route path="/companies/:companyId/products" element={<CompanyProducts />} />
         <Route path="/companies/:companyId/products/new" element={<AddProduct />} />
-        <Route path="/companies/:companyId/leads" element={<LeadList />} />
+        <Route path="/companies/:companyId/products/:productId/edit" element={<EditProduct />} />
+        <Route path="/companies/:companyId/products/:productId/leads" element={<LeadList />} />
         <Route path="/companies/:companyId/calls" element={<CompanyCallLogs />} />
         <Route path="/profile" element={<UserProfile />} />
         <Route path="*" element={<Navigate to="/" replace />} />

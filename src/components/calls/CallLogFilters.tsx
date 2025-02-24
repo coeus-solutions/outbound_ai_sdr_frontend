@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Filter } from 'lucide-react';
+import { Calendar, Filter, Search } from 'lucide-react';
 import { getCompanyCampaigns, Campaign } from '../../services/emailCampaigns';
 import { getToken } from '../../utils/auth';
+import { Lead, getLeads } from '../../services/leads';
+import { Autocomplete } from '../shared/Autocomplete';
 
 interface CallLogFilters {
   dateRange: 'all' | 'today' | 'week' | 'month';
-  sentiment?: 'positive' | 'negative' | 'neutral';
   campaign_id?: string;
+  lead_id?: string;
 }
 
 interface CallLogFiltersProps {
@@ -17,7 +19,10 @@ interface CallLogFiltersProps {
 
 export function CallLogFilters({ filters, onFilterChange, companyId }: CallLogFiltersProps) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [isLoadingCampaigns, setIsLoadingCampaigns] = useState(true);
+  const [isLoadingLeads, setIsLoadingLeads] = useState(true);
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
 
   useEffect(() => {
     async function fetchCampaigns() {
@@ -30,12 +35,40 @@ export function CallLogFilters({ filters, onFilterChange, companyId }: CallLogFi
       } catch (error) {
         console.error('Error fetching campaigns:', error);
       } finally {
-        setIsLoading(false);
+        setIsLoadingCampaigns(false);
+      }
+    }
+
+    async function fetchLeads() {
+      try {
+        const token = getToken();
+        if (!token) return;
+
+        const leadsData = await getLeads(token, companyId);
+        setLeads(leadsData);
+        
+        // Set the selected lead if there's a lead_id in filters
+        if (filters.lead_id) {
+          const lead = leadsData.find(l => l.id === filters.lead_id);
+          if (lead) {
+            setSelectedLead(lead);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching leads:', error);
+      } finally {
+        setIsLoadingLeads(false);
       }
     }
 
     fetchCampaigns();
-  }, [companyId]);
+    fetchLeads();
+  }, [companyId, filters.lead_id]);
+
+  const handleLeadChange = (lead: Lead | null) => {
+    setSelectedLead(lead);
+    onFilterChange({ ...filters, lead_id: lead?.id });
+  };
 
   return (
     <div className="bg-white p-4 rounded-lg shadow-sm flex items-center space-x-4">
@@ -59,7 +92,7 @@ export function CallLogFilters({ filters, onFilterChange, companyId }: CallLogFi
           value={filters.campaign_id || ''}
           onChange={(e) => onFilterChange({ ...filters, campaign_id: e.target.value || undefined })}
           className="block min-w-[250px] pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-          disabled={isLoading}
+          disabled={isLoadingCampaigns}
         >
           <option value="">All campaigns</option>
           {campaigns.map((campaign) => (
@@ -70,19 +103,20 @@ export function CallLogFilters({ filters, onFilterChange, companyId }: CallLogFi
         </select>
       </div>
 
-      <select
-        value={filters.sentiment || ''}
-        onChange={(e) => onFilterChange({ 
-          ...filters, 
-          sentiment: e.target.value as CallLogFilters['sentiment'] || undefined 
-        })}
-        className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-      >
-        <option value="">All sentiments</option>
-        <option value="positive">Positive</option>
-        <option value="neutral">Neutral</option>
-        <option value="negative">Negative</option>
-      </select>
+      <div className="flex items-center space-x-2">
+        <Search className="h-5 w-5 text-gray-400" />
+        <Autocomplete<Lead>
+          items={leads}
+          value={selectedLead}
+          onChange={handleLeadChange}
+          getItemLabel={(lead) => lead.name}
+          getItemValue={(lead) => lead.id}
+          getItemSubLabel={(lead) => lead.phone_number}
+          placeholder="Search leads..."
+          isLoading={isLoadingLeads}
+          className="min-w-[300px]"
+        />
+      </div>
     </div>
   );
 }

@@ -20,12 +20,14 @@ export function CompanyProducts() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [productForm, setProductForm] = useState({
     product_name: '',
+    description: '',
   });
 
   useEffect(() => {
     if (editingProduct) {
       setProductForm({
         product_name: editingProduct.product_name,
+        description: editingProduct.description || '',
       });
     }
   }, [editingProduct]);
@@ -80,7 +82,7 @@ export function CompanyProducts() {
 
   const handleCloseDialog = () => {
     setEditingProduct(null);
-    setProductForm({ product_name: '' });
+    setProductForm({ product_name: '', description: '' });
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -105,7 +107,7 @@ export function CompanyProducts() {
 
       const updatedProduct = await updateProduct(token, companyId, editingProduct.id, {
         product_name: productForm.product_name,
-        description: '', // Provide an empty string since the API still requires it
+        description: productForm.description,
       });
       
       // Update the products list with the updated product
@@ -169,10 +171,33 @@ export function CompanyProducts() {
           {products.map((product) => (
             <div key={product.id} className="bg-white rounded-lg shadow-md p-6 space-y-4">
               <div className="flex items-start justify-between">
-                <div className="flex items-start space-x-3">
+                <div className="flex items-start space-x-3 flex-grow">
                   <Package className="h-6 w-6 text-indigo-600 flex-shrink-0" />
-                  <div>
-                    <h3 className="text-lg font-semibold">{product.product_name}</h3>
+                  <div className="space-y-2 flex-grow">
+                    <h3 className="text-lg font-semibold text-gray-900">{product.product_name}</h3>
+                    {product.description && (
+                      <p className="text-sm text-gray-600 line-clamp-2">{product.description}</p>
+                    )}
+                    <div className="grid grid-cols-2 gap-4 mt-4">
+                      <div className="space-y-1">
+                        <p className="text-xs text-gray-500">Active Campaigns</p>
+                        <p className="text-sm font-medium text-gray-900">{product.total_campaigns}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-xs text-gray-500">Total Calls</p>
+                        <p className="text-sm font-medium text-gray-900">{product.total_calls}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-xs text-gray-500">Emails Sent</p>
+                        <p className="text-sm font-medium text-gray-900">{product.total_sent_emails}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-xs text-gray-500">Meetings Booked</p>
+                        <p className="text-sm font-medium text-gray-900">
+                          {product.total_meetings_booked_in_calls + product.total_meetings_booked_in_emails}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <button
@@ -208,18 +233,32 @@ export function CompanyProducts() {
               required
             />
           </div>
-          <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3">
+          <div>
+            <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+              Description
+            </label>
+            <textarea
+              id="description"
+              name="description"
+              value={productForm.description}
+              onChange={handleInputChange}
+              rows={3}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              placeholder="Enter product description..."
+            />
+          </div>
+          <div className="flex justify-end space-x-3">
             <button
               type="button"
               onClick={handleCloseDialog}
-              className="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm"
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isUpdating}
-              className="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
             >
               {isUpdating ? 'Saving...' : 'Save Changes'}
             </button>

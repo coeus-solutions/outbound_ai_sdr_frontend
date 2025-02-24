@@ -1,15 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Building2, Plus, Package, Phone, Mail, Settings, Eye, ChevronDown, ChevronUp, Target, Linkedin, Lock, ArrowRight, Search, ExternalLink, Trash2, Volume2 } from 'lucide-react';
+import { Building2, Plus, Package, Phone, Mail, Settings, Eye, ChevronDown, ChevronUp, Search, ExternalLink, Trash2, Pencil } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getToken } from '../../utils/auth';
 import { Company, getCompanies, getCompanyById, deleteCompany } from '../../services/companies';
-import { CompanyDetailsDialog } from './CompanyDetailsDialog';
 import { Dialog } from '../shared/Dialog';
-import { getCompanyProducts, Product } from '../../services/products';
-import { getCompanyCampaigns } from '../../services/emailCampaigns';
-import { getCompanyEmails } from '../../services/emails';
-import { getCompanyCalls } from '../../services/calls';
-import { getLeads } from '../../services/leads';
+import { Product } from '../../services/products';
+import { Campaign, getCompanyCampaigns } from '../../services/emailCampaigns';
 import { useToast } from '../../context/ToastContext';
 import { SkeletonLoader } from '../shared/SkeletonLoader';
 import { LoadingButton } from '../shared/LoadingButton';
@@ -21,6 +17,9 @@ interface ProductStats {
   id: string;
   name: string;
   product_name: string;
+  description?: string;
+  url?: string;
+  file_name?: string;
   total_campaigns: number;
   total_calls: number;
   total_positive_calls: number;
@@ -30,22 +29,6 @@ interface ProductStats {
   unique_leads_contacted: number;
   total_meetings_booked_in_calls: number;
   total_meetings_booked_in_emails: number;
-  leads: {
-    total: number;
-    contacted: number;
-  };
-  calls: {
-    total: number;
-    conversations: number;
-    meetings: number;
-  };
-  emails: {
-    total: number;
-    opens: number;
-    replies: number;
-    meetings: number;
-  };
-  campaigns: number;
 }
 
 interface CompanyWithStats extends Omit<Company, 'products'> {
@@ -54,9 +37,14 @@ interface CompanyWithStats extends Omit<Company, 'products'> {
 
 interface CompanyCardProps {
   company: CompanyWithStats;
-  onViewDetails: () => void;
+  onViewDetails: (company: CompanyWithStats) => void;
   isLoadingDetails?: boolean;
   onDelete: () => void;
+}
+
+interface ProductCardProps {
+  product: ProductStats;
+  companyId: string;
 }
 
 export function CompanyList() {
@@ -64,8 +52,6 @@ export function CompanyList() {
   const [companies, setCompanies] = useState<CompanyWithStats[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [loadingCompanyId, setLoadingCompanyId] = useState<string | null>(null);
   const [companyToDelete, setCompanyToDelete] = useState<Company | null>(null);
@@ -81,44 +67,28 @@ export function CompanyList() {
         }
         const companiesData = await getCompanies(token);
         
-        // Transform the companies data to include the required stats structure
-        const companiesWithStats = companiesData.map((company) => {
-          return {
-            ...company,
-            products: company.products?.map((product: Product) => ({
-              id: product.id,
-              name: product.name,
-              product_name: product.product_name,
-              total_campaigns: product.total_campaigns,
-              total_calls: product.total_calls,
-              total_positive_calls: product.total_positive_calls,
-              total_sent_emails: product.total_sent_emails,
-              total_opened_emails: product.total_opened_emails,
-              total_replied_emails: product.total_replied_emails,
-              unique_leads_contacted: product.unique_leads_contacted,
-              total_meetings_booked_in_calls: product.total_meetings_booked_in_calls,
-              total_meetings_booked_in_emails: product.total_meetings_booked_in_emails,
-              leads: {
-                total: company.total_leads || 0,
-                contacted: product.unique_leads_contacted,
-              },
-              calls: {
-                total: product.total_calls,
-                conversations: product.total_positive_calls,
-                meetings: product.total_meetings_booked_in_calls,
-              },
-              emails: {
-                total: product.total_sent_emails,
-                opens: product.total_opened_emails,
-                replies: product.total_replied_emails,
-                meetings: product.total_meetings_booked_in_emails,
-              },
-              campaigns: product.total_campaigns,
-            })) || []
-          };
-        });
+        // Map companies with their products and stats
+        const companiesWithProducts = companiesData.map(company => ({
+          ...company,
+          products: company.products.map(product => ({
+            id: product.id,
+            name: product.name,
+            product_name: product.product_name,
+            description: product.description,
+            company_id: product.company_id,
+            total_campaigns: product.total_campaigns,
+            total_calls: product.total_calls,
+            total_positive_calls: product.total_positive_calls,
+            total_sent_emails: product.total_sent_emails,
+            total_opened_emails: product.total_opened_emails,
+            total_replied_emails: product.total_replied_emails,
+            unique_leads_contacted: product.unique_leads_contacted,
+            total_meetings_booked_in_calls: product.total_meetings_booked_in_calls,
+            total_meetings_booked_in_emails: product.total_meetings_booked_in_emails
+          }))
+        }));
 
-        setCompanies(companiesWithStats);
+        setCompanies(companiesWithProducts);
         setError(null);
       } catch (err) {
         setError('Failed to fetch companies');
@@ -129,7 +99,7 @@ export function CompanyList() {
     }
 
     fetchCompanies();
-  }, []); // Only run once on mount
+  }, []);
 
   const filteredCompanies = companies.filter(company => 
     company.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -138,7 +108,7 @@ export function CompanyList() {
     )
   );
 
-  const handleViewDetails = async (company: Company) => {
+  const handleViewDetails = async (company: CompanyWithStats) => {
     try {
       setLoadingCompanyId(company.id);
       const token = getToken();
@@ -146,21 +116,19 @@ export function CompanyList() {
         setError('Authentication token not found');
         return;
       }
-      const fullCompanyDetails = await getCompanyById(token, company.id);
-      setSelectedCompany(fullCompanyDetails);
-      setIsDetailsOpen(true);
+      await getCompanyById(token, company.id);
     } catch (error) {
       console.error('Error fetching company details:', error);
-      // Still show the dialog with basic company info if fetching details fails
-      setSelectedCompany(company);
-      setIsDetailsOpen(true);
     } finally {
       setLoadingCompanyId(null);
     }
   };
 
-  const handleDeleteCompany = async (company: Company) => {
-    setCompanyToDelete(company);
+  const handleDeleteCompany = async (company: CompanyWithStats) => {
+    setCompanyToDelete({
+      ...company,
+      products: company.products as unknown as Product[]
+    });
   };
 
   const handleConfirmDelete = async () => {
@@ -264,7 +232,7 @@ export function CompanyList() {
                 placeholder="Search companies or products..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="form-input"
+                className="form-input pl-10 w-full"
               />
             </div>
           </div>
@@ -302,15 +270,6 @@ export function CompanyList() {
           </div>
         )}
       </div>
-
-      <CompanyDetailsDialog
-        isOpen={isDetailsOpen}
-        onClose={() => {
-          setIsDetailsOpen(false);
-          setSelectedCompany(null);
-        }}
-        company={selectedCompany}
-      />
 
       <Dialog
         isOpen={Boolean(companyToDelete)}
@@ -404,52 +363,8 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
             <Tooltip.Provider>
               <Tooltip.Root>
                 <Tooltip.Trigger asChild>
-                  <Link 
-                    to={`/companies/${company.id}/leads`}
-                    className="p-2 text-gray-400 hover:text-blue-600"
-                  >
-                    <Target className="w-5 h-5" />
-                  </Link>
-                </Tooltip.Trigger>
-                <Tooltip.Portal>
-                  <Tooltip.Content
-                    className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
-                    sideOffset={5}
-                  >
-                    Manage leads
-                    <Tooltip.Arrow className="fill-gray-900" />
-                  </Tooltip.Content>
-                </Tooltip.Portal>
-              </Tooltip.Root>
-            </Tooltip.Provider>
-
-            <Tooltip.Provider>
-              <Tooltip.Root>
-                <Tooltip.Trigger asChild>
-                  <Link 
-                    to={`/companies/${company.id}/campaigns`}
-                    className="p-2 text-gray-400 hover:text-purple-600"
-                  >
-                    <Volume2 className="w-5 h-5" />
-                  </Link>
-                </Tooltip.Trigger>
-                <Tooltip.Portal>
-                  <Tooltip.Content
-                    className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
-                    sideOffset={5}
-                  >
-                    Manage campaigns
-                    <Tooltip.Arrow className="fill-gray-900" />
-                  </Tooltip.Content>
-                </Tooltip.Portal>
-              </Tooltip.Root>
-            </Tooltip.Provider>
-
-            <Tooltip.Provider>
-              <Tooltip.Root>
-                <Tooltip.Trigger asChild>
                   <button
-                    onClick={onViewDetails}
+                    onClick={() => onViewDetails(company)}
                     className="p-2 text-gray-400 hover:text-gray-600"
                     disabled={isLoadingDetails}
                   >
@@ -472,72 +387,58 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
               </Tooltip.Root>
             </Tooltip.Provider>
 
-            {isAdmin && (
-              <>
-                <Tooltip.Provider>
-                  <Tooltip.Root>
-                    <Tooltip.Trigger asChild>
-                      <Link to={`/companies/${company.id}/settings`} className="p-2 text-gray-400 hover:text-gray-600">
-                        <Settings className="w-5 h-5" />
-                      </Link>
-                    </Tooltip.Trigger>
-                    <Tooltip.Portal>
-                      <Tooltip.Content
-                        className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
-                        sideOffset={5}
-                      >
-                        Settings
-                        <Tooltip.Arrow className="fill-gray-900" />
-                      </Tooltip.Content>
-                    </Tooltip.Portal>
-                  </Tooltip.Root>
-                </Tooltip.Provider>
-
-                <Tooltip.Provider>
-                  <Tooltip.Root>
-                    <Tooltip.Trigger asChild>
-                      <button
-                        onClick={onDelete}
-                        className="p-2 text-gray-400 hover:text-red-600"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
-                    </Tooltip.Trigger>
-                    <Tooltip.Portal>
-                      <Tooltip.Content
-                        className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
-                        sideOffset={5}
-                      >
-                        Delete company
-                        <Tooltip.Arrow className="fill-gray-900" />
-                      </Tooltip.Content>
-                    </Tooltip.Portal>
-                  </Tooltip.Root>
-                </Tooltip.Provider>
-              </>
-            )}
-
             <Tooltip.Provider>
               <Tooltip.Root>
                 <Tooltip.Trigger asChild>
-                  <button 
-                    onClick={() => setIsExpanded(!isExpanded)}
+                  <Link 
+                    to={`/companies/${company.id}/settings`}
                     className="p-2 text-gray-400 hover:text-gray-600"
                   >
-                    {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                  </button>
+                    <Settings className="w-5 h-5" />
+                  </Link>
                 </Tooltip.Trigger>
                 <Tooltip.Portal>
                   <Tooltip.Content
                     className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
                     sideOffset={5}
                   >
-                    {isExpanded ? 'Collapse' : 'Expand'}
+                    Company settings
                     <Tooltip.Arrow className="fill-gray-900" />
                   </Tooltip.Content>
                 </Tooltip.Portal>
               </Tooltip.Root>
             </Tooltip.Provider>
+
+            {isAdmin && (
+              <Tooltip.Provider>
+                <Tooltip.Root>
+                  <Tooltip.Trigger asChild>
+                    <button
+                      onClick={onDelete}
+                      className="p-2 text-gray-400 hover:text-red-600"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </Tooltip.Trigger>
+                  <Tooltip.Portal>
+                    <Tooltip.Content
+                      className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
+                      sideOffset={5}
+                    >
+                      Delete company
+                      <Tooltip.Arrow className="fill-gray-900" />
+                    </Tooltip.Content>
+                  </Tooltip.Portal>
+                </Tooltip.Root>
+              </Tooltip.Provider>
+            )}
+
+            <button 
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="p-2 text-gray-400 hover:text-gray-600"
+            >
+              {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+            </button>
           </div>
         </div>
 
@@ -555,15 +456,26 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
             ) : (
               <div className="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">
                 <Package className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No products</h3>
-                <p className="mt-1 text-sm text-gray-500">Get started by adding your first product/service</p>
+                <h3 className="mt-2 text-sm font-semibold text-gray-900">No products/value props yet</h3>
+                <div className="mt-2 px-4">
+                  <p className="text-sm text-gray-600">Products/Value Props are the foundation of your lead generation campaigns.</p>
+                  <div className="mt-3 space-y-2">
+                    <p className="text-sm text-gray-600">Here's how it works:</p>
+                    <ol className="text-left text-sm text-gray-600 space-y-2 list-decimal list-inside">
+                      <li>Add a product or service with its value proposition</li>
+                      <li>Upload your product documentation or sales materials</li>
+                      <li>Create targeted email or call campaigns</li>
+                      <li>Generate and nurture leads based on your value proposition</li>
+                    </ol>
+                  </div>
+                </div>
                 <div className="mt-6">
                   <Link
                     to={`/companies/${company.id}/products/new`}
                     className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                   >
                     <Package className="h-5 w-5 mr-2" />
-                    Add Product
+                    Add Your First Product
                   </Link>
                 </div>
               </div>
@@ -575,228 +487,190 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
   );
 }
 
-interface ProductCardProps {
-  product: ProductStats;
-  companyId: string;
-}
-
 function ProductCard({ product, companyId }: ProductCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [isLoadingCampaigns, setIsLoadingCampaigns] = useState(false);
+  const { showToast } = useToast();
 
-  const getPercentageColor = (percentage: number) => {
-    if (percentage >= 80) return 'text-green-600';
-    if (percentage >= 40) return 'text-yellow-600';
-    return 'text-red-600';
+  useEffect(() => {
+    if (isExpanded) {
+      fetchCampaigns();
+    }
+  }, [isExpanded, companyId, product.id]);
+
+  const fetchCampaigns = async () => {
+    try {
+      setIsLoadingCampaigns(true);
+      const token = getToken();
+      if (!token) {
+        showToast('Authentication failed. Please try logging in again.', 'error');
+        return;
+      }
+
+      const campaignsData = await getCompanyCampaigns(token, companyId);
+      // Filter campaigns for this product
+      const productCampaigns = campaignsData.filter(campaign => campaign.product_id === product.id);
+      setCampaigns(productCampaigns);
+    } catch (error) {
+      console.error('Error fetching campaigns:', error);
+      showToast('Failed to fetch campaigns', 'error');
+    } finally {
+      setIsLoadingCampaigns(false);
+    }
   };
-
-  const calculatePercentage = (value: number, total: number) => {
-    if (total === 0) return 0;
-    return Math.round((value / total) * 100);
-  };
-
-  // Calculate percentages
-  const callSuccessRate = calculatePercentage(product.calls.conversations, product.calls.total);
-  const emailOpenRate = calculatePercentage(product.emails.opens, product.emails.total);
-  const emailReplyRate = calculatePercentage(product.emails.replies, product.emails.total);
-
-  const metricBoxStyle = "bg-gray-50 rounded-lg";
-  const metricBoxInnerStyle = "p-3 flex flex-col items-center justify-center min-h-[80px]";
 
   return (
     <div className="bg-gray-50 rounded-lg p-4">
       <div className="flex justify-between items-start">
         <div className="flex items-start space-x-3">
           <Package className="w-5 h-5 text-green-600 mt-1" />
-          <div>
-            <h4 className="font-medium text-gray-900">{product.product_name}</h4>
-            <div className="mt-1 text-sm text-gray-500">
-              {product.campaigns} active campaigns
-            </div>
+          <div className="flex-1">
+            <Link
+              to={`/companies/${companyId}/products/${product.id}/edit`}
+              className="group"
+            >
+              <h4 className="font-medium text-gray-900 text-base group-hover:text-indigo-600 flex items-center">
+                {product.product_name || product.name}
+                <Pencil className="w-4 h-4 ml-2 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </h4>
+              {product.description && (
+                <p className="text-sm text-gray-600 mt-1">{product.description}</p>
+              )}
+            </Link>
           </div>
         </div>
-        <button 
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="p-1 text-gray-400 hover:text-gray-600"
-        >
-          {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-        </button>
+        <div className="flex items-center space-x-2">
+          <Tooltip.Provider>
+            <Tooltip.Root>
+              <Tooltip.Trigger asChild>
+                <Link
+                  to={`/companies/${companyId}/products/${product.id}/leads`}
+                  className="p-2 text-gray-400 hover:text-indigo-600"
+                >
+                  <Plus className="w-5 h-5" />
+                </Link>
+              </Tooltip.Trigger>
+              <Tooltip.Portal>
+                <Tooltip.Content
+                  className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
+                  sideOffset={5}
+                >
+                  Add/Upload leads
+                  <Tooltip.Arrow className="fill-gray-900" />
+                </Tooltip.Content>
+              </Tooltip.Portal>
+            </Tooltip.Root>
+          </Tooltip.Provider>
+
+          <button 
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="p-2 text-gray-400 hover:text-gray-600"
+          >
+            {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+          </button>
+        </div>
       </div>
 
       {isExpanded && (
         <div className="mt-4 space-y-4">
-          {/* Leads Section */}
-          <div className="bg-white p-4 rounded-md">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center text-blue-600">
-                <Target className="w-4 h-4 mr-2" />
-                <span className="text-sm font-medium">Leads</span>
-              </div>
+          {/* Stats Overview */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="bg-white p-3 rounded-lg">
+              <p className="text-xs text-gray-500">Active Campaigns</p>
+              <p className="text-lg font-semibold mt-1">{product.total_campaigns}</p>
             </div>
-            <div className="grid grid-cols-3 gap-4">
-              <div className={metricBoxStyle}>
-                <div className={metricBoxInnerStyle}>
-                  <div className="text-sm text-gray-500">Total</div>
-                  <div className="text-lg font-semibold mt-1">{product.leads.total}</div>
-                </div>
-              </div>
-              <div className={metricBoxStyle}>
-                <div className={metricBoxInnerStyle}>
-                  <div className="text-sm text-gray-500">Contacted</div>
-                  <div className="text-lg font-semibold mt-1">{product.leads.contacted}</div>
-                </div>
-              </div>
-              <div className={metricBoxStyle}>
-                <div className={metricBoxInnerStyle}>
-                  <div className="text-sm text-gray-500">Contact Rate</div>
-                  <div className={`text-lg font-semibold mt-1 ${getPercentageColor(calculatePercentage(product.leads.contacted, product.leads.total))}`}>
-                    {calculatePercentage(product.leads.contacted, product.leads.total)}%
-                  </div>
-                </div>
-              </div>
+            <div className="bg-white p-3 rounded-lg">
+              <p className="text-xs text-gray-500">Total Calls</p>
+              <p className="text-lg font-semibold mt-1">{product.total_calls}</p>
+              <p className="text-xs text-gray-500 mt-1">
+                {product.total_positive_calls} conversations
+              </p>
+            </div>
+            <div className="bg-white p-3 rounded-lg">
+              <p className="text-xs text-gray-500">Emails Sent</p>
+              <p className="text-lg font-semibold mt-1">{product.total_sent_emails}</p>
+              <p className="text-xs text-gray-500 mt-1">
+                {product.total_opened_emails} opens
+              </p>
+            </div>
+            <div className="bg-white p-3 rounded-lg">
+              <p className="text-xs text-gray-500">Meetings Booked</p>
+              <p className="text-lg font-semibold mt-1">
+                {product.total_meetings_booked_in_calls + product.total_meetings_booked_in_emails}
+              </p>
             </div>
           </div>
 
-          {/* Calls Section */}
-          <div className="bg-white p-4 rounded-md">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center text-yellow-600">
-                <Phone className="w-4 h-4 mr-2" />
-                <span className="text-sm font-medium">Calls</span>
-              </div>
-              <Link 
-                to={`/companies/${companyId}/calls`}
-                className="text-sm text-yellow-600 hover:text-yellow-700 flex items-center"
-              >
-                View call logs
-                <ArrowRight className="w-4 h-4 ml-1" />
-              </Link>
-            </div>
-            <div className="grid grid-cols-4 gap-4">
-              <div className={metricBoxStyle}>
-                <div className={metricBoxInnerStyle}>
-                  <div className="text-sm text-gray-500">Dialed</div>
-                  <div className="text-lg font-semibold mt-1">{product.calls.total}</div>
-                </div>
-              </div>
-              <div className={metricBoxStyle}>
-                <div className={metricBoxInnerStyle}>
-                  <div className="text-sm text-gray-500">Conversations</div>
-                  <div className="text-lg font-semibold mt-1">{product.calls.conversations}</div>
-                </div>
-              </div>
-              <div className={metricBoxStyle}>
-                <div className={metricBoxInnerStyle}>
-                  <div className="text-sm text-gray-500">Meetings Booked</div>
-                  <div className="text-lg font-semibold mt-1">{product.calls.meetings}</div>
-                </div>
-              </div>
-              <div className={metricBoxStyle}>
-                <div className={metricBoxInnerStyle}>
-                  <div className="text-sm text-gray-500">Conversation Rate</div>
-                  <div className={`text-lg font-semibold mt-1 ${getPercentageColor(callSuccessRate)}`}>
-                    {callSuccessRate}%
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Emails Section */}
-          <div className="bg-white p-4 rounded-md">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center text-purple-600">
-                <Mail className="w-4 h-4 mr-2" />
-                <span className="text-sm font-medium">Emails</span>
-              </div>
-              <div className="flex items-center space-x-4">
-                <Link 
-                  to={`/companies/${companyId}/emails`}
-                  className="text-sm text-purple-600 hover:text-purple-700 flex items-center"
+          {/* Campaigns Section */}
+          <div className="bg-white rounded-lg p-4">
+            <div className="flex justify-between items-center mb-4">
+              <h5 className="text-sm font-medium text-gray-900">Active Campaigns</h5>
+              <div className="flex items-center space-x-2">
+                <Link
+                  to={`/companies/${companyId}/campaigns/new`}
+                  className="text-sm text-indigo-600 hover:text-indigo-700 flex items-center"
                 >
-                  View emails
-                  <ArrowRight className="w-4 h-4 ml-1" />
+                  New Campaign
                 </Link>
               </div>
             </div>
-            <div className="grid grid-cols-6 gap-4">
-              <div className={metricBoxStyle}>
-                <div className={metricBoxInnerStyle}>
-                  <div className="text-sm text-gray-500">Sent</div>
-                  <div className="text-lg font-semibold mt-1">{product.emails.total}</div>
-                </div>
-              </div>
-              <div className={metricBoxStyle}>
-                <div className={metricBoxInnerStyle}>
-                  <div className="text-sm text-gray-500">Opened</div>
-                  <div className="text-lg font-semibold mt-1">{product.emails.opens}</div>
-                </div>
-              </div>
-              <div className={metricBoxStyle}>
-                <div className={metricBoxInnerStyle}>
-                  <div className="text-sm text-gray-500">Open Rate</div>
-                  <div className={`text-lg font-semibold mt-1 ${getPercentageColor(emailOpenRate)}`}>
-                    {emailOpenRate}%
-                  </div>
-                </div>
-              </div>
-              <div className={metricBoxStyle}>
-                <div className={metricBoxInnerStyle}>
-                  <div className="text-sm text-gray-500">Replied</div>
-                  <div className="text-lg font-semibold mt-1">{product.emails.replies}</div>
-                </div>
-              </div>
-              <div className={metricBoxStyle}>
-                <div className={metricBoxInnerStyle}>
-                  <div className="text-sm text-gray-500">Reply Rate</div>
-                  <div className={`text-lg font-semibold mt-1 ${getPercentageColor(emailReplyRate)}`}>
-                    {emailReplyRate}%
-                  </div>
-                </div>
-              </div>
-              <div className={metricBoxStyle}>
-                <div className={metricBoxInnerStyle}>
-                  <div className="text-sm text-gray-500">Meetings Booked</div>
-                  <div className="text-lg font-semibold mt-1">{product.emails.meetings}</div>
-                </div>
-              </div>
-            </div>
-          </div>
 
-          {/* LinkedIn Section */}
-          <div className="bg-white p-4 rounded-md relative overflow-hidden">
-            <div className="flex items-center text-blue-600 mb-3">
-              <Linkedin className="w-4 h-4 mr-2" />
-              <span className="text-sm font-medium">LinkedIn</span>
-            </div>
-            
-            {/* Coming Soon Overlay */}
-            <div className="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center">
-              <div className="text-center">
-                <Lock className="w-6 h-6 text-gray-400 mx-auto mb-2" />
-                <p className="text-sm font-medium text-gray-600">Coming Soon</p>
-                <p className="text-xs text-gray-500 mt-1">LinkedIn integration will be available shortly</p>
+            {isLoadingCampaigns ? (
+              <div className="flex justify-center py-4">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
               </div>
-            </div>
-
-            {/* Metrics Grid (will be visible once feature is available) */}
-            <div className="grid grid-cols-4 gap-4">
-              <div>
-                <div className="text-sm text-gray-500">Contacts</div>
-                <div className="text-lg font-semibold">-</div>
+            ) : campaigns.length > 0 ? (
+              <div className="space-y-3">
+                {campaigns.map((campaign) => (
+                  <div key={campaign.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                    <div className="flex-1">
+                      <Link 
+                        to={campaign.type === 'email' 
+                          ? `/companies/${companyId}/emails`
+                          : `/companies/${companyId}/calls`}
+                        className="text-sm font-medium text-gray-900 hover:text-indigo-600 transition-colors"
+                      >
+                        {campaign.name}
+                      </Link>
+                      {campaign.description && (
+                        <div className="text-xs text-gray-500">{campaign.description}</div>
+                      )}
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Link
+                        to={campaign.type === 'email' 
+                          ? `/companies/${companyId}/emails`
+                          : `/companies/${companyId}/calls`}
+                        className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                          campaign.type === 'email' 
+                            ? 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+                            : 'bg-purple-100 text-purple-800 hover:bg-purple-200'
+                        }`}
+                      >
+                        {campaign.type === 'email' ? (
+                          <Mail className="h-3 w-3 mr-1" />
+                        ) : (
+                          <Phone className="h-3 w-3 mr-1" />
+                        )}
+                        {campaign.type}
+                      </Link>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div>
-                <div className="text-sm text-gray-500">Engagements</div>
-                <div className="text-lg font-semibold">-</div>
+            ) : (
+              <div className="text-center py-6">
+                <p className="text-sm text-gray-500">No active campaigns</p>
+                <Link
+                  to={`/companies/${companyId}/campaigns/new`}
+                  className="mt-2 inline-flex items-center text-sm text-indigo-600 hover:text-indigo-700"
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  Create your first campaign
+                </Link>
               </div>
-              <div>
-                <div className="text-sm text-gray-500">Messages</div>
-                <div className="text-lg font-semibold">-</div>
-              </div>
-              <div>
-                <div className="text-sm text-gray-500">Meetings</div>
-                <div className="text-lg font-semibold">-</div>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       )}
