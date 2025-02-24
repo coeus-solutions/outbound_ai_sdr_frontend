@@ -1,4 +1,4 @@
-import { apiEndpoints } from '../config';
+import { apiEndpoints } from '../config/index';
 
 export interface Product {
   id: string;
@@ -20,6 +20,7 @@ export interface Product {
 export interface ProductCreate {
   product_name: string;
   description?: string;
+  url?: string;
   file?: File;
 }
 

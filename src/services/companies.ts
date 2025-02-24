@@ -55,6 +55,21 @@ export async function getCompanies(token: string): Promise<Company[]> {
   });
 
   if (!response.ok) {
+    if (response.status === 405) {
+      // If method not allowed, try without stats
+      const fallbackResponse = await fetch(apiEndpoints.companies.list(), {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!fallbackResponse.ok) {
+        throw new Error('Failed to fetch companies');
+      }
+
+      return fallbackResponse.json();
+    }
     throw new Error('Failed to fetch companies');
   }
 
