@@ -91,6 +91,14 @@ export function AddEmailCampaign() {
           placeholder: 'Start typing your email template...'
         });
 
+        // Set default content
+        quillEditorRef.current.root.innerHTML = '{email_body}';
+        // Update form data with default content
+        setFormData(prev => ({
+          ...prev,
+          template: '{email_body}'
+        }));
+
         quillEditorRef.current.on('text-change', () => {
           const content = quillEditorRef.current.root.innerHTML;
           setFormData(prev => ({
@@ -190,7 +198,13 @@ export function AddEmailCampaign() {
         return;
       }
 
-      await createCampaign(token, companyId!, formData);
+      // Create campaign data without template for Call type
+      const campaignData = {
+        ...formData,
+        template: formData.type === 'email' ? formData.template : undefined
+      };
+
+      await createCampaign(token, companyId!, campaignData);
       showToast('Campaign created successfully!', 'success');
       navigate(`/companies/${companyId}/campaigns`);
     } catch (err) {
@@ -355,6 +369,9 @@ export function AddEmailCampaign() {
               <label htmlFor="template" className="block text-sm font-medium text-gray-700 mb-1">
                 Email Template
               </label>
+              <p className="text-sm text-gray-500 mb-2">
+                Make sure to include <code className="bg-gray-100 px-1 py-0.5 rounded text-pink-600">{'{email_body}'}</code> placeholder in your template where you want the email content to appear.
+              </p>
               <div className="mt-1">
                 <div ref={editorContainerRef} style={{ minHeight: '200px' }} />
               </div>
