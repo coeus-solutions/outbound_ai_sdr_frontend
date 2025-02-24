@@ -17,6 +17,38 @@ interface APIError {
   };
 }
 
+interface TemplateDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  template: string;
+}
+
+function TemplateDialog({ isOpen, onClose, template }: TemplateDialogProps) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[80vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-semibold">Email Template Preview</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div 
+          className="prose max-w-none"
+          dangerouslySetInnerHTML={{ __html: template }}
+        />
+      </div>
+    </div>
+  );
+}
+
 export function CompanyCampaigns() {
   const { companyId } = useParams();
   const { showToast } = useToast();
@@ -25,6 +57,10 @@ export function CompanyCampaigns() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState<string | null>(null);
+  const [templateDialog, setTemplateDialog] = useState<{ isOpen: boolean; template: string }>({
+    isOpen: false,
+    template: '',
+  });
 
   useEffect(() => {
     async function fetchData() {
@@ -108,6 +144,12 @@ export function CompanyCampaigns() {
 
   return (
     <div className="space-y-6">
+      <TemplateDialog
+        isOpen={templateDialog.isOpen}
+        onClose={() => setTemplateDialog({ isOpen: false, template: '' })}
+        template={templateDialog.template}
+      />
+      
       <div className="flex justify-between items-center">
         <PageHeader
           title={company?.name || 'Company'}
@@ -177,17 +219,29 @@ export function CompanyCampaigns() {
                         {formatDateTime(campaign.created_at)}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex space-x-2">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                      <button
+                        onClick={() => handleRunCampaign(campaign)}
+                        disabled={isRunning === campaign.id}
+                        className={`inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white ${
+                          isRunning === campaign.id
+                            ? 'bg-gray-400 cursor-not-allowed'
+                            : 'bg-green-600 hover:bg-green-700'
+                        }`}
+                      >
+                        <Play className="h-3 w-3 mr-1" />
+                        {isRunning === campaign.id ? 'Running...' : 'Run'}
+                      </button>
+                      
+                      {campaign.type === 'email' && campaign.template && (
                         <button
-                          onClick={() => handleRunCampaign(campaign)}
-                          disabled={isRunning === campaign.id}
-                          className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                          onClick={() => setTemplateDialog({ isOpen: true, template: campaign.template || '' })}
+                          className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-blue-600 hover:bg-blue-700"
                         >
-                          <Play className="h-4 w-4 mr-1" />
-                          {isRunning === campaign.id ? 'Running...' : 'Run Campaign'}
+                          <Eye className="h-3 w-3 mr-1" />
+                          View Template
                         </button>
-                      </div>
+                      )}
                     </td>
                   </tr>
                 ))}

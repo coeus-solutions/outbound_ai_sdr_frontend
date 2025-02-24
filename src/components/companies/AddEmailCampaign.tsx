@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getToken } from '../../utils/auth';
 import { useToast } from '../../context/ToastContext';
@@ -16,12 +16,138 @@ export function AddEmailCampaign() {
   const [error, setError] = useState<string | null>(null);
   const [company, setCompany] = useState<Company | null>(null);
   const [products, setProducts] = useState<ProductInDB[]>([]);
+  const quillEditorRef = useRef<any>(null);
+  const editorContainerRef = useRef<HTMLDivElement>(null);
+  const [editorInitialized, setEditorInitialized] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     type: 'email' as 'email' | 'call',
-    product_id: ''
+    product_id: '',
+    template: ''
   });
+
+  const initializeEditor = async () => {
+    if (!editorContainerRef.current || editorInitialized) return;
+
+    // Load CSS
+    if (!document.querySelector('link[href*="quill.snow.css"]')) {
+      const snowCSS = document.createElement('link');
+      snowCSS.rel = 'stylesheet';
+      snowCSS.href = 'https://cdn.quilljs.com/2.0.0-dev.4/quill.snow.css';
+      document.head.appendChild(snowCSS);
+    }
+
+    if (!document.querySelector('link[href*="github.min.css"]')) {
+      const highlightCSS = document.createElement('link');
+      highlightCSS.rel = 'stylesheet';
+      highlightCSS.href = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.2/styles/github.min.css';
+      document.head.appendChild(highlightCSS);
+    }
+
+    try {
+      // Load Scripts
+      await Promise.all([
+        loadScript('https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.2/highlight.min.js'),
+        loadScript('https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.2/languages/xml.min.js'),
+        loadScript('https://cdn.quilljs.com/2.0.0-dev.4/quill.min.js'),
+        loadScript('https://unpkg.com/quill-html-edit-button@2.2.7/dist/quill.htmlEditButton.min.js')
+      ]);
+
+      // Initialize Quill
+      if (editorContainerRef.current && (window as any).Quill) {
+        const Quill = (window as any).Quill;
+        const htmlEditButton = (window as any).htmlEditButton;
+        
+        Quill.register("modules/htmlEditButton", htmlEditButton);
+
+        // Create toolbar container
+        const toolbarContainer = document.createElement('div');
+        editorContainerRef.current.parentNode?.insertBefore(toolbarContainer, editorContainerRef.current);
+
+        // Create editor container
+        const editorContainer = document.createElement('div');
+        editorContainerRef.current.parentNode?.replaceChild(editorContainer, editorContainerRef.current);
+
+        quillEditorRef.current = new Quill(editorContainer, {
+          theme: 'snow',
+          modules: {
+            toolbar: {
+              container: [
+                [{ 'header': [1, 2, 3, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                [{ 'color': [] }, { 'background': [] }],
+                [{ 'align': [] }],
+                ['link'],
+                ['clean']
+              ]
+            },
+            htmlEditButton: {
+              syntax: true,
+              buttonHTML: '&lt;/&gt;'
+            }
+          },
+          placeholder: 'Start typing your email template...'
+        });
+
+        // Set default content
+        quillEditorRef.current.root.innerHTML = '{email_body}';
+        // Update form data with default content
+        setFormData(prev => ({
+          ...prev,
+          template: '{email_body}'
+        }));
+
+        quillEditorRef.current.on('text-change', () => {
+          const content = quillEditorRef.current.root.innerHTML;
+          setFormData(prev => ({
+            ...prev,
+            template: content
+          }));
+        });
+
+        setEditorInitialized(true);
+      }
+    } catch (error) {
+      console.error('Error initializing editor:', error);
+    }
+  };
+
+  // Initialize editor when loading is complete
+  useEffect(() => {
+    if (!isLoading && formData.type === 'email') {
+      initializeEditor();
+    }
+  }, [isLoading, formData.type]);
+
+  // Cleanup effect
+  useEffect(() => {
+    return () => {
+      if (quillEditorRef.current) {
+        quillEditorRef.current = null;
+        setEditorInitialized(false);
+      }
+    };
+  }, []);
+
+  // Handle type changes
+  useEffect(() => {
+    if (formData.type !== 'email' && quillEditorRef.current) {
+      quillEditorRef.current = null;
+      setEditorInitialized(false);
+    }
+  }, [formData.type]);
+
+  const loadScript = (src: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = src;
+      script.onload = () => resolve();
+      script.onerror = () => reject();
+      document.body.appendChild(script);
+    });
+  };
 
   useEffect(() => {
     async function fetchData() {
@@ -72,7 +198,13 @@ export function AddEmailCampaign() {
         return;
       }
 
-      await createCampaign(token, companyId!, formData);
+      // Create campaign data without template for Call type
+      const campaignData = {
+        ...formData,
+        template: formData.type === 'email' ? formData.template : undefined
+      };
+
+      await createCampaign(token, companyId!, campaignData);
       showToast('Campaign created successfully!', 'success');
       navigate(`/companies/${companyId}/campaigns`);
     } catch (err) {
@@ -127,7 +259,7 @@ export function AddEmailCampaign() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-4xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">New Campaign</h1>
       <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6 space-y-6">
         {error && (
@@ -231,6 +363,20 @@ export function AddEmailCampaign() {
               />
             </div>
           </div>
+
+          {formData.type === 'email' && (
+            <div>
+              <label htmlFor="template" className="block text-sm font-medium text-gray-700 mb-1">
+                Email Template
+              </label>
+              <p className="text-sm text-gray-500 mb-2">
+                Make sure to include <code className="bg-gray-100 px-1 py-0.5 rounded text-pink-600">{'{email_body}'}</code> placeholder in your template where you want the email content to appear.
+              </p>
+              <div className="mt-1">
+                <div ref={editorContainerRef} style={{ minHeight: '200px' }} />
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="flex justify-end space-x-4">

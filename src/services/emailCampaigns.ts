@@ -8,6 +8,7 @@ export interface Campaign {
   product_id: string;
   company_id: string;
   created_at: string;
+  template?: string;
 }
 
 interface CampaignsResponse {
@@ -19,6 +20,7 @@ export interface CampaignCreate {
   description?: string;
   type: 'email' | 'call';
   product_id: string;
+  template?: string;
 }
 
 export interface RunCampaignResponse {
