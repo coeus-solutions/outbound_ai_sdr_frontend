@@ -13,6 +13,7 @@ import { CompanyProducts } from './components/companies/CompanyProducts';
 import { AddProduct } from './components/companies/AddProduct';
 import { EditProduct } from './components/companies/EditProduct';
 import { CompanyLeads } from './components/companies/CompanyLeads';
+import { LeadList } from './components/leads/LeadList';
 import { CompanyCallLogs } from './components/companies/CompanyCallLogs';
 import { CompanyEmails } from './components/companies/CompanyEmails';
 import { CompanyCampaigns } from './components/companies/CompanyCampaigns';
@@ -33,15 +34,6 @@ export function App() {
     logout();
     navigate('/');
   };
-
-  useEffect(() => {
-    // Set dark mode when authenticated
-    if (isAuthenticated) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [isAuthenticated]);
 
   useEffect(() => {
     // Only redirect to login if not on public routes
@@ -93,6 +85,7 @@ export function App() {
             <Route path="/companies/:companyId/products" element={<CompanyProducts />} />
             <Route path="/companies/:companyId/products/new" element={<AddProduct />} />
             <Route path="/companies/:companyId/products/:productId/edit" element={<EditProduct />} />
+            <Route path="/companies/:companyId/products/:productId/leads" element={<LeadList />} />
             <Route path="/companies/:companyId/leads" element={<CompanyLeads />} />
             <Route path="/companies/:companyId/calls" element={<CompanyCallLogs />} />
             <Route path="/companies/:companyId/emails" element={<CompanyEmails />} />
