@@ -1,4 +1,11 @@
 // Update CallLog type to include companyId
+export interface Transcript {
+  id: number;
+  text: string;
+  user: 'assistant' | 'user' | 'agent-action';
+  created_at: string;
+}
+
 export interface CallLog {
   id: string;
   company_id: string;
@@ -12,6 +19,7 @@ export interface CallLog {
   sentiment: 'positive' | 'neutral' | 'negative';
   summary: string;
   has_meeting_booked: boolean;
+  transcripts?: Transcript[];
 }
 
 export interface UserCompanyRole {
