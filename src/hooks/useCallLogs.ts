@@ -5,8 +5,8 @@ import { getToken } from '../utils/auth';
 
 interface CallLogFilters {
   dateRange: 'all' | 'today' | 'week' | 'month';
-  sentiment?: 'positive' | 'neutral' | 'negative';
   campaign_id?: string;
+  lead_id?: string;
 }
 
 export function useCallLogs(companyId: string) {
@@ -83,8 +83,8 @@ export function useCallLogs(companyId: string) {
       }
     }
 
-    // Sentiment filter
-    if (filters.sentiment && log.sentiment !== filters.sentiment) {
+    // Lead filter
+    if (filters.lead_id && log.lead_id !== filters.lead_id) {
       return false;
     }
 

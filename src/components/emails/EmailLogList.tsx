@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Mail, User, Calendar, History, Eye, MessageSquare, CalendarCheck } from 'lucide-react';
+import { Mail, User, Calendar, Eye, MessageSquare, CalendarCheck, ChevronRight } from 'lucide-react';
 import { EmailLog } from '../../services/emails';
 import { formatDateTime } from '../../utils/formatters';
-import { EmailHistoryDialog } from './EmailHistoryDialog';
+import { EmailSidePanel } from './EmailSidePanel';
 import { useParams } from 'react-router-dom';
 
 interface EmailLogListProps {
@@ -32,11 +32,21 @@ export function EmailLogList({ emailLogs, isLoading }: EmailLogListProps) {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lead</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Campaign</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sent at</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Lead
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Campaign
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Sent At
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -79,10 +89,9 @@ export function EmailLogList({ emailLogs, isLoading }: EmailLogListProps) {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <button
                         onClick={() => setSelectedEmailLog(log)}
-                        className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        className="p-1.5 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 rounded"
                       >
-                        <History className="h-4 w-4 mr-1" />
-                        View Email History
+                        <ChevronRight className="h-5 w-5" />
                       </button>
                     </td>
                   </tr>
@@ -93,7 +102,7 @@ export function EmailLogList({ emailLogs, isLoading }: EmailLogListProps) {
         </div>
       )}
 
-      <EmailHistoryDialog
+      <EmailSidePanel
         isOpen={selectedEmailLog !== null}
         onClose={() => setSelectedEmailLog(null)}
         companyId={companyId}
