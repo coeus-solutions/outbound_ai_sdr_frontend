@@ -20,6 +20,7 @@ export interface CampaignCreate {
   description?: string;
   type: 'email' | 'call';
   product_id: string;
+  template?: string;
 }
 
 export interface RunCampaignResponse {
