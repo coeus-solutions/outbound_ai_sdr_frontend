@@ -105,9 +105,9 @@ export function CompanyList() {
   }, []);
 
   const filteredCompanies = companies.filter(company => 
-    company.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (company.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     company.products.some(product => 
-      product.product_name.toLowerCase().includes(searchQuery.toLowerCase())
+      ((product.product_name || product.name || '')).toLowerCase().includes(searchQuery.toLowerCase())
     )
   );
 
