@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Building2, Globe, X, Package, ExternalLink, Pencil, Loader } from 'lucide-react';
-import { Company, updateCompany } from '../../services/companies';
+import type { Company } from '../../services/companies';
 import { useToast } from '../../context/ToastContext';
 import { getToken } from '../../utils/auth';
 import { Link } from 'react-router-dom';
 import { LoadingButton } from '../shared/LoadingButton';
 import { Product, getProducts } from '../../services/products';
+import { updateCompany } from '../../services/companies';
 
 interface CompanyDetailsPanelProps {
   isOpen: boolean;
