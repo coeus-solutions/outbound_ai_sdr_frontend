@@ -12,6 +12,7 @@ import { LoadingButton } from '../shared/LoadingButton';
 import { CardSkeletonLoader } from '../shared/CardSkeletonLoader';
 import { useUserRole } from '../../hooks/useUserRole';
 import * as Tooltip from '@radix-ui/react-tooltip';
+import { CompanyDetailsPanel } from './CompanyDetailsPanel';
 
 interface ProductStats {
   id: string;
@@ -56,6 +57,8 @@ export function CompanyList() {
   const [loadingCompanyId, setLoadingCompanyId] = useState<string | null>(null);
   const [companyToDelete, setCompanyToDelete] = useState<Company | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   useEffect(() => {
     async function fetchCompanies() {
@@ -116,9 +119,12 @@ export function CompanyList() {
         setError('Authentication token not found');
         return;
       }
-      await getCompanyById(token, company.id);
+      const companyDetails = await getCompanyById(token, company.id);
+      setSelectedCompany(companyDetails);
+      setIsDetailsOpen(true);
     } catch (error) {
       console.error('Error fetching company details:', error);
+      showToast('Failed to fetch company details', 'error');
     } finally {
       setLoadingCompanyId(null);
     }
@@ -152,6 +158,14 @@ export function CompanyList() {
     } finally {
       setIsDeleting(false);
     }
+  };
+
+  const handleCompanyUpdate = (updatedCompany: Company) => {
+    setCompanies(companies.map(company => 
+      company.id === updatedCompany.id 
+        ? { ...company, ...updatedCompany }
+        : company
+    ));
   };
 
   if (isLoading) {
@@ -303,6 +317,16 @@ export function CompanyList() {
           </div>
         </div>
       </Dialog>
+
+      <CompanyDetailsPanel
+        isOpen={isDetailsOpen}
+        onClose={() => {
+          setIsDetailsOpen(false);
+          setSelectedCompany(null);
+        }}
+        company={selectedCompany}
+        onCompanyUpdate={handleCompanyUpdate}
+      />
     </div>
   );
 }

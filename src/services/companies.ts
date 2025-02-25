@@ -199,4 +199,22 @@ export async function getCompanyLeads(token: string, companyId: string): Promise
   }
 
   return response.json();
+}
+
+export async function updateCompany(token: string, companyId: string, data: Partial<Company>): Promise<Company> {
+  const response = await fetch(`${apiEndpoints.companies.list()}/${companyId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to update company');
+  }
+
+  const updatedCompany: Company = await response.json();
+  return updatedCompany;
 } 
