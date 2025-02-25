@@ -6,7 +6,7 @@ import { getToken } from '../../utils/auth';
 import { Link } from 'react-router-dom';
 import { LoadingButton } from '../shared/LoadingButton';
 import { Product, getProducts } from '../../services/products';
-import { updateCompany } from '../../services/companies';
+import { apiEndpoints } from '../../config';
 
 interface CompanyDetailsPanelProps {
   isOpen: boolean;
@@ -70,7 +70,20 @@ export function CompanyDetailsPanel({ isOpen, onClose, company, onCompanyUpdate 
         return;
       }
 
-      const updatedCompany = await updateCompany(token, editedCompany.id, editedCompany);
+      const response = await fetch(`${apiEndpoints.companies.list()}/${editedCompany.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(editedCompany),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update company');
+      }
+
+      const updatedCompany: Company = await response.json();
       onCompanyUpdate(updatedCompany);
       setIsEditing(false);
       showToast('Company details updated successfully', 'success');
