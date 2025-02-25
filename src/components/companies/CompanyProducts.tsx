@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Package, Plus, Pencil } from 'lucide-react';
+import { Package, Plus, Pencil, Trash2 } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { EmptyState } from './EmptyState';
 import { PageHeader } from '../shared/PageHeader';
@@ -8,6 +8,7 @@ import { getToken } from '../../utils/auth';
 import { Product, getProducts, updateProduct } from '../../services/products';
 import { Company, getCompanyById } from '../../services/companies';
 import { useToast } from '../../context/ToastContext';
+import { DeleteProductModal } from './DeleteProductModal';
 
 export function CompanyProducts() {
   const { companyId } = useParams();
@@ -18,6 +19,7 @@ export function CompanyProducts() {
   const [error, setError] = useState<string | null>(null);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
   const [productForm, setProductForm] = useState({
     product_name: '',
     description: '',
@@ -80,6 +82,10 @@ export function CompanyProducts() {
     setEditingProduct(product);
   };
 
+  const handleDeleteClick = (product: Product) => {
+    setProductToDelete(product);
+  };
+
   const handleCloseDialog = () => {
     setEditingProduct(null);
     setProductForm({ product_name: '', description: '' });
@@ -124,6 +130,14 @@ export function CompanyProducts() {
       showToast('Failed to update product', 'error');
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handleDeleteSuccess = () => {
+    if (productToDelete) {
+      // Remove the deleted product from the list
+      setProducts(prevProducts => prevProducts.filter(p => p.id !== productToDelete.id));
+      setProductToDelete(null);
     }
   };
 
@@ -200,13 +214,24 @@ export function CompanyProducts() {
                     </div>
                   </div>
                 </div>
-                <button
-                  onClick={() => handleEditClick(product)}
-                  className="inline-flex items-center px-2.5 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                >
-                  <Pencil className="h-3.5 w-3.5 mr-1" />
-                  Edit
-                </button>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => handleEditClick(product)}
+                    className="inline-flex items-center px-2.5 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    aria-label="Edit product"
+                  >
+                    <Pencil className="h-3.5 w-3.5 mr-1" />
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDeleteClick(product)}
+                    className="inline-flex items-center px-2.5 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                    aria-label="Delete product"
+                  >
+                    <Trash2 className="h-3.5 w-3.5 mr-1" />
+                    Delete
+                  </button>
+                </div>
               </div>
             </div>
           ))}
@@ -265,6 +290,16 @@ export function CompanyProducts() {
           </div>
         </form>
       </Dialog>
+
+      {productToDelete && (
+        <DeleteProductModal
+          companyId={companyId || ''}
+          product={productToDelete}
+          isOpen={Boolean(productToDelete)}
+          onClose={() => setProductToDelete(null)}
+          onSuccess={handleDeleteSuccess}
+        />
+      )}
     </div>
   );
 }

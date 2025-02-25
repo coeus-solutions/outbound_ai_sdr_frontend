@@ -181,4 +181,21 @@ export async function getProduct(token: string, companyId: string, productId: st
     total_meetings_booked_in_calls: product.total_meetings_booked_in_calls || 0,
     total_meetings_booked_in_emails: product.total_meetings_booked_in_emails || 0,
   };
+}
+
+export async function deleteProduct(token: string, companyId: string, productId: string): Promise<void> {
+  const response = await fetch(
+    `${apiEndpoints.companies.products(companyId)}/${productId}`,
+    {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to delete product');
+  }
 } 
