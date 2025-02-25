@@ -20,6 +20,7 @@ export interface CallLog {
   summary: string;
   has_meeting_booked: boolean;
   transcripts?: Transcript[];
+  recording_url?: string;
 }
 
 export interface UserCompanyRole {
