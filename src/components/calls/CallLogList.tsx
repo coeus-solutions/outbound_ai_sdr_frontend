@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Phone, Clock, ThumbsUp, ThumbsDown, Minus, CalendarCheck, ChevronRight, Filter } from 'lucide-react';
+import { Phone, Clock, ThumbsUp, ThumbsDown, Minus, CalendarCheck, ChevronRight, Filter, PlayCircle, X } from 'lucide-react';
 import { CallLog } from '../../types';
 import { formatDuration, formatDateTime } from '../../utils/formatters';
 import { CallTranscriptsDialog } from './CallTranscriptsDialog';
@@ -20,6 +20,15 @@ export function CallLogList({ callLogs, isLoading }: CallLogListProps) {
   const [selectedLog, setSelectedLog] = useState<CallLog | null>(null);
   const [dialogType, setDialogType] = useState<'summary' | 'transcripts' | null>(null);
   const [filters, setFilters] = useState<CallLogFilters>({});
+  const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
+
+  // Add debug logging
+  console.log('Call Logs Data:', callLogs.map(log => ({
+    id: log.id,
+    lead_name: log.lead_name,
+    has_recording: !!log.recording_url,
+    recording_url: log.recording_url
+  })));
 
   if (isLoading) {
     return <div className="text-center py-8">Loading call logs...</div>;
@@ -95,6 +104,9 @@ export function CallLogList({ callLogs, isLoading }: CallLogListProps) {
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Duration
+                </th>
+                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   <div className="flex items-center space-x-2">
@@ -187,7 +199,7 @@ export function CallLogList({ callLogs, isLoading }: CallLogListProps) {
                   </div>
                 </th>
                 <th scope="col" className="relative px-6 py-3">
-                  <span className="sr-only">View Summary</span>
+                  <span className="sr-only">View Details</span>
                 </th>
               </tr>
             </thead>
@@ -208,6 +220,20 @@ export function CallLogList({ callLogs, isLoading }: CallLogListProps) {
                     <div className="text-sm text-gray-900 flex items-center">
                       <Clock className="h-4 w-4 text-gray-400 mr-1" />
                       {formatDuration(log.duration)}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <div className="flex items-center justify-end space-x-4">
+                      {log.recording_url && (
+                        <button
+                          onClick={() => setPlayingAudioId(playingAudioId === log.id ? null : log.id)}
+                          className="text-gray-400 hover:text-gray-500 focus:outline-none flex items-center space-x-2"
+                          title="Play Recording"
+                        >
+                          <PlayCircle className="h-5 w-5" />
+                          <span className="text-sm">Play</span>
+                        </button>
+                      )}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -239,6 +265,33 @@ export function CallLogList({ callLogs, isLoading }: CallLogListProps) {
           </table>
         </div>
       </div>
+
+      {/* Fixed Audio Player */}
+      {playingAudioId && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t border-gray-200 p-4 z-50">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => setPlayingAudioId(null)}
+                className="text-gray-400 hover:text-gray-500 focus:outline-none"
+              >
+                <X className="h-5 w-5" />
+              </button>
+              <span className="text-sm text-gray-600">
+                Playing recording for: {callLogs.find(log => log.id === playingAudioId)?.lead_name}
+              </span>
+            </div>
+            <audio
+              controls
+              autoPlay
+              className="w-1/2"
+              src={callLogs.find(log => log.id === playingAudioId)?.recording_url}
+              onEnded={() => setPlayingAudioId(null)}
+              key={playingAudioId} // Force audio element to re-render when changing tracks
+            />
+          </div>
+        </div>
+      )}
 
       <CallSummaryPanel
         isOpen={dialogType === 'summary' && selectedLog !== null}
