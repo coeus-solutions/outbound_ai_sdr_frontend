@@ -6,6 +6,17 @@ export interface Product {
   product_name: string;
   description?: string;
   company_id: string;
+  product_url?: string;
+  file_name?: string;
+  original_filename?: string;
+  enriched_information?: {
+    overview?: string;
+    key_value_proposition?: string;
+    pricing?: string;
+    reviews?: string[];
+    market_overview?: string;
+    competitors?: string;
+  };
   total_campaigns: number;
   total_calls: number;
   total_positive_calls: number;
@@ -20,7 +31,7 @@ export interface Product {
 export interface ProductCreate {
   product_name: string;
   description?: string;
-  url?: string;
+  product_url?: string;
   file?: File;
 }
 
@@ -38,6 +49,17 @@ interface ProductResponse {
   product_name: string;
   description?: string;
   company_id: string;
+  product_url?: string;
+  file_name?: string;
+  original_filename?: string;
+  enriched_information?: {
+    overview?: string;
+    key_value_proposition?: string;
+    pricing?: string;
+    reviews?: string[];
+    market_overview?: string;
+    competitors?: string;
+  };
   total_campaigns?: number;
   total_calls?: number;
   total_positive_calls?: number;
@@ -68,6 +90,10 @@ export async function getProducts(token: string, companyId: string): Promise<Pro
     product_name: product.product_name,
     description: product.description,
     company_id: product.company_id,
+    product_url: product.product_url,
+    file_name: product.file_name,
+    original_filename: product.original_filename,
+    enriched_information: product.enriched_information,
     total_campaigns: product.total_campaigns || 0,
     total_calls: product.total_calls || 0,
     total_positive_calls: product.total_positive_calls || 0,
@@ -86,8 +112,8 @@ export async function createProduct(token: string, companyId: string, product: P
   if (product.description) {
     formData.append('description', product.description);
   }
-  if (product.url) {
-    formData.append('url', product.url);
+  if (product.product_url) {
+    formData.append('product_url', product.product_url);
   }
   if (product.file) {
     formData.append('file', product.file);
@@ -171,6 +197,10 @@ export async function getProduct(token: string, companyId: string, productId: st
     product_name: product.product_name,
     description: product.description,
     company_id: product.company_id,
+    product_url: product.product_url,
+    file_name: product.file_name,
+    original_filename: product.original_filename,
+    enriched_information: product.enriched_information,
     total_campaigns: product.total_campaigns || 0,
     total_calls: product.total_calls || 0,
     total_positive_calls: product.total_positive_calls || 0,

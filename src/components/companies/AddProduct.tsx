@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Package, Upload } from 'lucide-react';
+import { Package, Upload, Globe } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getToken } from '../../utils/auth';
 import { createProduct, getProduct, updateProduct } from '../../services/products';
@@ -18,7 +18,7 @@ export function AddProduct() {
   const [formData, setFormData] = useState({
     product_name: '',
     description: '',
-    url: '',
+    product_url: '',
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -43,7 +43,7 @@ export function AddProduct() {
           setFormData({
             product_name: product.product_name,
             description: product.description || '',
-            url: '',  // URL is not returned by the API
+            product_url: product.product_url || '',  // Use product_url instead of url
           });
         }
       } catch (err) {
@@ -71,6 +71,12 @@ export function AddProduct() {
         return;
       }
 
+      // Normalize URL if provided (add https:// if missing)
+      let normalizedUrl = formData.product_url;
+      if (normalizedUrl && !normalizedUrl.match(/^https?:\/\//)) {
+        normalizedUrl = `https://${normalizedUrl}`;
+      }
+
       if (productId) {
         // Update existing product
         await updateProduct(token, companyId, productId, {
@@ -83,7 +89,7 @@ export function AddProduct() {
         await createProduct(token, companyId, {
           product_name: formData.product_name,
           description: formData.description,
-          url: formData.url,
+          product_url: normalizedUrl,
           file: selectedFile || undefined,
         });
         showToast('Product created successfully!', 'success');
@@ -113,6 +119,17 @@ export function AddProduct() {
     
     if (!extension || !allowedExtensions.includes(extension)) {
       showToast('Only .docx, .pdf, and .txt files are allowed', 'error');
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      setSelectedFile(null);
+      return;
+    }
+
+    // Check file size (limit to 10MB)
+    const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+    if (file.size > maxSize) {
+      showToast('File size must be less than 10MB', 'error');
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -195,21 +212,26 @@ export function AddProduct() {
           {!productId && (
             <>
               <div>
-                <label htmlFor="url" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="product_url" className="block text-sm font-medium text-gray-700 mb-1">
                   Product URL
                   <span className="text-gray-500 font-normal"> (Optional)</span>
                 </label>
-                <input
-                  type="url"
-                  id="url"
-                  name="url"
-                  value={formData.url}
-                  onChange={handleChange}
-                  className="form-input"
-                  placeholder="https://example.com/product"
-                />
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Globe className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    type="url"
+                    id="product_url"
+                    name="product_url"
+                    value={formData.product_url}
+                    onChange={handleChange}
+                    className="form-input pl-10"
+                    placeholder="https://example.com/product"
+                  />
+                </div>
                 <p className="mt-1 text-sm text-gray-500">
-                  Link to your product page or relevant information
+                  Link to your product page. Adding a URL will automatically enrich your product with additional information using AI.
                 </p>
               </div>
 
@@ -242,6 +264,9 @@ export function AddProduct() {
                     <p className="text-xs text-gray-500">
                       Upload product documentation, sales materials, or value proposition details (.docx, .pdf, .txt)
                     </p>
+                    <p className="text-xs text-gray-500">
+                      Maximum file size: 10MB
+                    </p>
                     {selectedFile && (
                       <p className="text-sm text-gray-600">
                         Selected file: {selectedFile.name}
@@ -249,9 +274,6 @@ export function AddProduct() {
                     )}
                   </div>
                 </div>
-                <p className="mt-1 text-sm text-gray-500">
-                  Add documentation to help your AI sales team better understand and present your value proposition
-                </p>
               </div>
             </>
           )}
@@ -271,7 +293,17 @@ export function AddProduct() {
             className="px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={isLoading}
           >
-            {isLoading ? (productId ? 'Saving...' : 'Creating...') : (productId ? 'Save Changes' : 'Add Product/Value Prop')}
+            {isLoading ? (
+              <div className="flex items-center">
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                {productId ? 'Saving...' : 'Creating...'}
+              </div>
+            ) : (
+              productId ? 'Save Changes' : 'Add Product/Value Prop'
+            )}
           </button>
         </div>
       </form>

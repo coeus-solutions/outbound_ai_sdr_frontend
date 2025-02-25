@@ -1,38 +1,32 @@
 import React, { useEffect, useState } from 'react';
-import { Package, Plus, Pencil, Trash2 } from 'lucide-react';
-import { Link, useParams } from 'react-router-dom';
+import { Package, Plus, Pencil, Trash2, ExternalLink, Search } from 'lucide-react';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { EmptyState } from './EmptyState';
 import { PageHeader } from '../shared/PageHeader';
-import { Dialog } from '../shared/Dialog';
 import { getToken } from '../../utils/auth';
-import { Product, getProducts, updateProduct } from '../../services/products';
+import { Product, getProducts } from '../../services/products';
 import { Company, getCompanyById } from '../../services/companies';
 import { useToast } from '../../context/ToastContext';
 import { DeleteProductModal } from './DeleteProductModal';
+import { EnrichedProductInfo } from './EnrichedProductInfo';
+
+// Extended Product type with UI state
+interface ProductWithUIState extends Product {
+  isExpanded?: boolean;
+}
 
 export function CompanyProducts() {
   const { companyId } = useParams();
+  const navigate = useNavigate();
   const { showToast } = useToast();
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductWithUIState[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<ProductWithUIState[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [company, setCompany] = useState<Company | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
-  const [productForm, setProductForm] = useState({
-    product_name: '',
-    description: '',
-  });
-
-  useEffect(() => {
-    if (editingProduct) {
-      setProductForm({
-        product_name: editingProduct.product_name,
-        description: editingProduct.description || '',
-      });
-    }
-  }, [editingProduct]);
+  const [productToDelete, setProductToDelete] = useState<ProductWithUIState | null>(null);
+  const [expandedProductId, setExpandedProductId] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -54,6 +48,7 @@ export function CompanyProducts() {
 
         setCompany(companyData);
         setProducts(productsData);
+        setFilteredProducts(productsData);
         setError(null);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -68,6 +63,20 @@ export function CompanyProducts() {
     fetchData();
   }, [companyId, showToast]);
 
+  // Filter products based on search query
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+      setFilteredProducts(products);
+    } else {
+      const query = searchQuery.toLowerCase();
+      const filtered = products.filter(product => 
+        product.product_name.toLowerCase().includes(query) || 
+        (product.description && product.description.toLowerCase().includes(query))
+      );
+      setFilteredProducts(filtered);
+    }
+  }, [searchQuery, products]);
+
   const addProductButton = (
     <Link
       to={`/companies/${companyId}/products/new`}
@@ -78,59 +87,12 @@ export function CompanyProducts() {
     </Link>
   );
 
-  const handleEditClick = (product: Product) => {
-    setEditingProduct(product);
+  const handleEditClick = (product: ProductWithUIState) => {
+    navigate(`/companies/${companyId}/products/${product.id}/edit`);
   };
 
-  const handleDeleteClick = (product: Product) => {
+  const handleDeleteClick = (product: ProductWithUIState) => {
     setProductToDelete(product);
-  };
-
-  const handleCloseDialog = () => {
-    setEditingProduct(null);
-    setProductForm({ product_name: '', description: '' });
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setProductForm(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingProduct || !companyId) return;
-
-    try {
-      setIsUpdating(true);
-      const token = getToken();
-      if (!token) {
-        showToast('Authentication failed. Please try logging in again.', 'error');
-        return;
-      }
-
-      const updatedProduct = await updateProduct(token, companyId, editingProduct.id, {
-        product_name: productForm.product_name,
-        description: productForm.description,
-      });
-      
-      // Update the products list with the updated product
-      setProducts(prevProducts => 
-        prevProducts.map(p => 
-          p.id === updatedProduct.id ? updatedProduct : p
-        )
-      );
-
-      showToast('Product updated successfully', 'success');
-      handleCloseDialog();
-    } catch (error) {
-      console.error('Error updating product:', error);
-      showToast('Failed to update product', 'error');
-    } finally {
-      setIsUpdating(false);
-    }
   };
 
   const handleDeleteSuccess = () => {
@@ -139,6 +101,10 @@ export function CompanyProducts() {
       setProducts(prevProducts => prevProducts.filter(p => p.id !== productToDelete.id));
       setProductToDelete(null);
     }
+  };
+
+  const toggleProductDetails = (productId: string) => {
+    setExpandedProductId(expandedProductId === productId ? null : productId);
   };
 
   if (isLoading) {
@@ -181,115 +147,136 @@ export function CompanyProducts() {
           />
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {products.map((product) => (
-            <div key={product.id} className="bg-white rounded-lg shadow-md p-6 space-y-4">
-              <div className="flex items-start justify-between">
-                <div className="flex items-start space-x-3 flex-grow">
-                  <Package className="h-6 w-6 text-indigo-600 flex-shrink-0" />
-                  <div className="space-y-2 flex-grow">
-                    <h3 className="text-lg font-semibold text-gray-900">{product.product_name}</h3>
-                    {product.description && (
-                      <p className="text-sm text-gray-600 line-clamp-2">{product.description}</p>
-                    )}
-                    <div className="grid grid-cols-2 gap-4 mt-4">
-                      <div className="space-y-1">
-                        <p className="text-xs text-gray-500">Active Campaigns</p>
-                        <p className="text-sm font-medium text-gray-900">{product.total_campaigns}</p>
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-xs text-gray-500">Total Calls</p>
-                        <p className="text-sm font-medium text-gray-900">{product.total_calls}</p>
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-xs text-gray-500">Emails Sent</p>
-                        <p className="text-sm font-medium text-gray-900">{product.total_sent_emails}</p>
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-xs text-gray-500">Meetings Booked</p>
-                        <p className="text-sm font-medium text-gray-900">
-                          {product.total_meetings_booked_in_calls + product.total_meetings_booked_in_emails}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => handleEditClick(product)}
-                    className="inline-flex items-center px-2.5 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    aria-label="Edit product"
-                  >
-                    <Pencil className="h-3.5 w-3.5 mr-1" />
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDeleteClick(product)}
-                    className="inline-flex items-center px-2.5 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                    aria-label="Delete product"
-                  >
-                    <Trash2 className="h-3.5 w-3.5 mr-1" />
-                    Delete
-                  </button>
-                </div>
+        <div className="bg-white shadow-md rounded-lg overflow-hidden">
+          {/* Search field */}
+          <div className="p-4 border-b border-gray-200">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-gray-400" />
               </div>
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              />
             </div>
-          ))}
+          </div>
+
+          {/* Table */}
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Product
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Campaigns
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Calls
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Emails
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Meetings
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredProducts.map((product) => (
+                  <React.Fragment key={product.id}>
+                    <tr 
+                      className="hover:bg-gray-50 cursor-pointer"
+                      onClick={() => toggleProductDetails(product.id)}
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0">
+                            <Package className="h-5 w-5 text-indigo-600" />
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900">{product.product_name}</div>
+                            {product.description && (
+                              <div className="text-sm text-gray-500 line-clamp-1">{product.description}</div>
+                            )}
+                            {product.product_url && (
+                              <a 
+                                href={product.product_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-indigo-600 hover:text-indigo-800 flex items-center mt-1"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <ExternalLink className="h-3 w-3 mr-1" />
+                                Visit Website
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {product.total_campaigns}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {product.total_calls}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {product.total_sent_emails}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {product.total_meetings_booked_in_calls + product.total_meetings_booked_in_emails}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex justify-end space-x-2" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditClick(product);
+                            }}
+                            className="inline-flex items-center px-2.5 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                            aria-label="Edit product"
+                          >
+                            <Pencil className="h-3.5 w-3.5 mr-1" />
+                            Edit
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteClick(product);
+                            }}
+                            className="inline-flex items-center px-2.5 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                            aria-label="Delete product"
+                          >
+                            <Trash2 className="h-3.5 w-3.5 mr-1" />
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                    {expandedProductId === product.id && product.enriched_information && (
+                      <tr>
+                        <td colSpan={6} className="px-6 py-4 bg-gray-50">
+                          <div className="border-t border-gray-200 pt-4">
+                            <h4 className="text-sm font-medium text-gray-700 mb-2">AI-Enriched Information</h4>
+                            <EnrichedProductInfo enrichedInfo={product.enriched_information} />
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
-
-      <Dialog
-        isOpen={Boolean(editingProduct)}
-        onClose={handleCloseDialog}
-        title="Edit Product"
-      >
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="product_name" className="block text-sm font-medium text-gray-700">
-              Product Name
-            </label>
-            <input
-              type="text"
-              id="product_name"
-              name="product_name"
-              value={productForm.product_name}
-              onChange={handleInputChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              required
-            />
-          </div>
-          <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-              Description
-            </label>
-            <textarea
-              id="description"
-              name="description"
-              value={productForm.description}
-              onChange={handleInputChange}
-              rows={3}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              placeholder="Enter product description..."
-            />
-          </div>
-          <div className="flex justify-end space-x-3">
-            <button
-              type="button"
-              onClick={handleCloseDialog}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isUpdating}
-              className="inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-            >
-              {isUpdating ? 'Saving...' : 'Save Changes'}
-            </button>
-          </div>
-        </form>
-      </Dialog>
 
       {productToDelete && (
         <DeleteProductModal
