@@ -73,6 +73,14 @@ const calendarProviders: CalendarProvider[] = [
     logo: '/images/calendar-providers/outlook-calendar.svg',
     bgColor: 'bg-[#0078D4]',
     providerName: 'live_connect'
+  },
+  {
+    id: 'custom',
+    name: 'Custom Calendar',
+    description: 'Add your custom calendar link',
+    logo: '/images/calendar-providers/custom-calendar.svg',
+    bgColor: 'bg-gray-100',
+    providerName: 'custom'
   }
 ];
 
@@ -156,17 +164,13 @@ const languageOptions: LanguageOption[] = [
 ];
 
 interface VoiceAgentSettings {
-  prompt: string;
-  voice: VoiceType;
-  background_track: BackgroundTrackType;
-  temperature: number;
-  language: LanguageCode;
-}
-
-declare module '../../services/companies' {
-  interface Company {
-    voice_agent_settings?: VoiceAgentSettings;
-  }
+  voice?: string;
+  background_track?: string;
+  temperature?: number;
+  language?: string;
+  prompt?: string;
+  call_from_number?: string;
+  transfer_number?: string;
 }
 
 interface InviteUserRow {
@@ -183,6 +187,13 @@ interface InviteResponse {
     status: string;
     message: string;
   }>;
+}
+
+declare module '../../services/companies' {
+  interface Company {
+    custom_calendar_url?: string;
+    voice_agent_settings?: VoiceAgentSettings;
+  }
 }
 
 export function CompanySettings() {
@@ -209,14 +220,20 @@ export function CompanySettings() {
     account_password: '',
     type: selectedEmailProvider
   });
-  const [temperature, setTemperature] = useState<string>('0.7');
   const [prompt, setPrompt] = useState<string>('');
+  const [callFromNumber, setCallFromNumber] = useState<string>('');
+  const [transferNumber, setTransferNumber] = useState<string>('');
   const [isSavingVoiceSettings, setIsSavingVoiceSettings] = useState(false);
   const [inviteUsers, setInviteUsers] = useState<InviteUserRow[]>([
     { id: '1', name: '', email: '', role: 'SDR' }
   ]);
   const [isSendingInvites, setIsSendingInvites] = useState(false);
   const [refreshUsersList, setRefreshUsersList] = useState<(() => void) | undefined>();
+  
+  // Add custom calendar state
+  const [showCustomCalendarModal, setShowCustomCalendarModal] = useState(false);
+  const [customCalendarUrl, setCustomCalendarUrl] = useState('');
+  const [isSavingCustomCalendar, setIsSavingCustomCalendar] = useState(false);
 
   useEffect(() => {
     // Check if user has admin role
@@ -242,11 +259,12 @@ export function CompanySettings() {
           // Set voice agent settings if they exist
           if (companyData.voice_agent_settings) {
             const settings = companyData.voice_agent_settings;
-            setSelectedVoice(settings.voice);
-            setSelectedBackground(settings.background_track);
-            setSelectedLanguage(settings.language);
-            setTemperature(settings.temperature.toString());
-            setPrompt(settings.prompt);
+            setSelectedVoice(settings.voice || 'florian');
+            setSelectedBackground(settings.background_track || 'none');
+            setSelectedLanguage(settings.language || 'en-US');
+            setPrompt(settings.prompt || '');
+            setCallFromNumber(settings.call_from_number || '');
+            setTransferNumber(settings.transfer_number || '');
           }
 
           if (companyData.account_email) {
@@ -360,8 +378,9 @@ export function CompanySettings() {
           prompt,
           voice: selectedVoice,
           background_track: selectedBackground,
-          temperature: parseFloat(temperature),
           language: selectedLanguage,
+          call_from_number: callFromNumber,
+          transfer_number: transferNumber,
         }),
       });
 
@@ -478,6 +497,39 @@ export function CompanySettings() {
       showToast('Failed to send invites. Please try again.', 'error');
     } finally {
       setIsSendingInvites(false);
+    }
+  };
+
+  // Add a function to handle saving the custom calendar URL
+  const handleSaveCustomCalendar = async () => {
+    if (!companyId || !customCalendarUrl) return;
+    
+    setIsSavingCustomCalendar(true);
+    try {
+      const token = getToken();
+      if (!token) {
+        showToast('Authentication failed. Please try logging in again.', 'error');
+        return;
+      }
+
+      // Here you would typically make an API call to save the custom calendar URL
+      // For now, we'll just simulate a successful save
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Update the company state to reflect the custom calendar connection
+      setCompany(prev => prev ? {
+        ...prev,
+        custom_calendar_url: customCalendarUrl,
+        cronofy_provider: 'custom'
+      } : null);
+      
+      setShowCustomCalendarModal(false);
+      showToast('Custom calendar added successfully', 'success');
+    } catch (error) {
+      console.error('Error saving custom calendar:', error);
+      showToast('Failed to add custom calendar', 'error');
+    } finally {
+      setIsSavingCustomCalendar(false);
     }
   };
 
@@ -824,7 +876,10 @@ export function CompanySettings() {
                           {connectedProvider?.name}
                         </h3>
                         <p className="text-sm text-gray-500">
-                          Connected as {company?.cronofy_linked_email}
+                          {company?.cronofy_provider === 'custom' 
+                            ? `Custom URL: ${company?.custom_calendar_url}`
+                            : `Connected as ${company?.cronofy_linked_email}`
+                          }
                         </p>
                       </div>
                     </div>
@@ -865,11 +920,15 @@ export function CompanySettings() {
                   >
                     <div className="flex items-center space-x-4">
                       <div className={`flex-shrink-0 h-12 w-12 rounded-lg ${provider.bgColor} p-2 flex items-center justify-center transition-transform group-hover:scale-105`}>
-                        <img
-                          src={provider.logo}
-                          alt={`${provider.name} logo`}
-                          className="w-full h-full object-contain"
-                        />
+                        {provider.id === 'custom' ? (
+                          <Calendar className="w-full h-full text-indigo-600" />
+                        ) : (
+                          <img
+                            src={provider.logo}
+                            alt={`${provider.name} logo`}
+                            className="w-full h-full object-contain"
+                          />
+                        )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="focus:outline-none">
@@ -881,47 +940,138 @@ export function CompanySettings() {
                           </p>
                         </div>
                       </div>
-                      {company?.cronofy_provider === provider.providerName ? (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          <Check className="h-3 w-3 mr-1" />
-                          Connected
-                        </span>
-                      ) : (
-                        <Tooltip.Provider>
-                          <Tooltip.Root>
-                            <Tooltip.Trigger asChild>
-                              <button
-                                type="button"
-                                disabled={Boolean(isCalendarConnected)}
-                                className={`inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md transition-colors duration-200 ${
-                                  isCalendarConnected 
-                                    ? 'border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed'
-                                    : 'border-transparent text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
-                                }`}
-                                onClick={isCalendarConnected ? undefined : () => window.open(getOAuthUrl(provider.providerName, companyId || ''), '_blank')}
-                              >
-                                Connect
-                              </button>
-                            </Tooltip.Trigger>
-                            {isCalendarConnected && (
-                              <Tooltip.Portal>
-                                <Tooltip.Content
-                                  className="bg-gray-900 text-white px-4 py-2 rounded text-xs max-w-xs z-50"
-                                  sideOffset={5}
+                      {provider.id === 'custom' ? (
+                        company?.cronofy_provider === 'custom' ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            <Check className="h-3 w-3 mr-1" />
+                            Connected
+                          </span>
+                        ) : (
+                          <Tooltip.Provider>
+                            <Tooltip.Root>
+                              <Tooltip.Trigger asChild>
+                                <button
+                                  type="button"
+                                  disabled={Boolean(isCalendarConnected)}
+                                  className={`inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md transition-colors duration-200 ${
+                                    isCalendarConnected 
+                                      ? 'border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed'
+                                      : 'border-transparent text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
+                                  }`}
+                                  onClick={isCalendarConnected ? undefined : () => setShowCustomCalendarModal(true)}
                                 >
-                                  Please disconnect the current calendar before connecting a new one
-                                  <Tooltip.Arrow className="fill-gray-900" />
-                                </Tooltip.Content>
-                              </Tooltip.Portal>
-                            )}
-                          </Tooltip.Root>
-                        </Tooltip.Provider>
+                                  Add
+                                </button>
+                              </Tooltip.Trigger>
+                              {isCalendarConnected && (
+                                <Tooltip.Portal>
+                                  <Tooltip.Content
+                                    className="bg-gray-900 text-white px-4 py-2 rounded text-xs max-w-xs z-50"
+                                    sideOffset={5}
+                                  >
+                                    Please disconnect the current calendar before connecting a new one
+                                    <Tooltip.Arrow className="fill-gray-900" />
+                                  </Tooltip.Content>
+                                </Tooltip.Portal>
+                              )}
+                            </Tooltip.Root>
+                          </Tooltip.Provider>
+                        )
+                      ) : (
+                        company?.cronofy_provider === provider.providerName ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            <Check className="h-3 w-3 mr-1" />
+                            Connected
+                          </span>
+                        ) : (
+                          <Tooltip.Provider>
+                            <Tooltip.Root>
+                              <Tooltip.Trigger asChild>
+                                <button
+                                  type="button"
+                                  disabled={Boolean(isCalendarConnected)}
+                                  className={`inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md transition-colors duration-200 ${
+                                    isCalendarConnected 
+                                      ? 'border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed'
+                                      : 'border-transparent text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
+                                  }`}
+                                  onClick={isCalendarConnected ? undefined : () => window.open(getOAuthUrl(provider.providerName, companyId || ''), '_blank')}
+                                >
+                                  Connect
+                                </button>
+                              </Tooltip.Trigger>
+                              {isCalendarConnected && (
+                                <Tooltip.Portal>
+                                  <Tooltip.Content
+                                    className="bg-gray-900 text-white px-4 py-2 rounded text-xs max-w-xs z-50"
+                                    sideOffset={5}
+                                  >
+                                    Please disconnect the current calendar before connecting a new one
+                                    <Tooltip.Arrow className="fill-gray-900" />
+                                  </Tooltip.Content>
+                                </Tooltip.Portal>
+                              )}
+                            </Tooltip.Root>
+                          </Tooltip.Provider>
+                        )
                       )}
                     </div>
                   </div>
                 ))}
               </div>
             </div>
+
+            {/* Custom Calendar Modal */}
+            <Dialog
+              isOpen={showCustomCalendarModal}
+              onClose={() => setShowCustomCalendarModal(false)}
+              title="Add Custom Calendar"
+            >
+              <div className="space-y-4">
+                <p className="text-sm text-gray-500">
+                  Enter your custom calendar URL to connect it with ReachGenie.
+                </p>
+                <div>
+                  <label htmlFor="customCalendarUrl" className="block text-sm font-medium text-gray-700">
+                    Calendar URL
+                  </label>
+                  <input
+                    type="url"
+                    id="customCalendarUrl"
+                    name="customCalendarUrl"
+                    value={customCalendarUrl}
+                    onChange={(e) => setCustomCalendarUrl(e.target.value)}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    placeholder="https://example.com/calendar"
+                    required
+                  />
+                </div>
+                <div className="flex justify-end space-x-3 mt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowCustomCalendarModal(false)}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveCustomCalendar}
+                    disabled={!customCalendarUrl || isSavingCustomCalendar}
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isSavingCustomCalendar ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Saving...
+                      </>
+                    ) : (
+                      'Save'
+                    )}
+                  </button>
+                </div>
+              </div>
+            </Dialog>
           </div>
         );
 
@@ -1188,8 +1338,8 @@ export function CompanySettings() {
                 </div>
                 <div>
                   <div className="flex items-center space-x-2">
-                    <label htmlFor="temperature" className="block text-sm font-medium text-gray-700">
-                      Temperature
+                    <label htmlFor="callFromNumber" className="block text-sm font-medium text-gray-700">
+                      Number to call from
                     </label>
                     <Tooltip.Provider>
                       <Tooltip.Root>
@@ -1206,7 +1356,7 @@ export function CompanySettings() {
                             className="bg-gray-900 text-white px-4 py-2 rounded text-xs max-w-xs z-50"
                             sideOffset={5}
                           >
-                            A value between 0 and 1 that controls the randomness of the LLM. 0 will cause more deterministic outputs while 1 will cause more random.
+                            Number that prospects will see when receiving calls
                             <Tooltip.Arrow className="fill-gray-900" />
                           </Tooltip.Content>
                         </Tooltip.Portal>
@@ -1215,27 +1365,66 @@ export function CompanySettings() {
                   </div>
                   <div className="relative mt-1">
                     <input
-                      type="number"
-                      id="temperature"
-                      name="temperature"
-                      min="0"
-                      max="1"
-                      step="0.1"
-                      value={temperature}
-                      onChange={(e) => {
-                        const value = parseFloat(e.target.value);
-                        if (value >= 0 && value <= 1) {
-                          setTemperature(e.target.value);
-                        }
-                      }}
+                      type="text"
+                      id="callFromNumber"
+                      name="callFromNumber"
+                      value={callFromNumber}
+                      onChange={(e) => setCallFromNumber(e.target.value)}
                       className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                      placeholder="0.7"
+                      placeholder="+1 (555) 123-4567"
+                    />
+                  </div>
+                  <div className="mt-1 text-sm text-indigo-600">
+                    <button
+                      type="button"
+                      className="inline-flex items-center text-indigo-600 hover:text-indigo-800"
+                    >
+                      Buy number
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <label htmlFor="transferNumber" className="block text-sm font-medium text-gray-700">
+                      Transfer number
+                    </label>
+                    <Tooltip.Provider>
+                      <Tooltip.Root>
+                        <Tooltip.Trigger asChild>
+                          <button
+                            type="button"
+                            className="inline-flex items-center text-gray-400 hover:text-gray-500"
+                          >
+                            <Info className="h-4 w-4" />
+                          </button>
+                        </Tooltip.Trigger>
+                        <Tooltip.Portal>
+                          <Tooltip.Content
+                            className="bg-gray-900 text-white px-4 py-2 rounded text-xs max-w-xs z-50"
+                            sideOffset={5}
+                          >
+                            If prospects want to be transferred, this is the number that will be used
+                            <Tooltip.Arrow className="fill-gray-900" />
+                          </Tooltip.Content>
+                        </Tooltip.Portal>
+                      </Tooltip.Root>
+                    </Tooltip.Provider>
+                  </div>
+                  <div className="relative mt-1">
+                    <input
+                      type="text"
+                      id="transferNumber"
+                      name="transferNumber"
+                      value={transferNumber}
+                      onChange={(e) => setTransferNumber(e.target.value)}
+                      className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      placeholder="+1 (555) 123-4567"
                     />
                   </div>
                 </div>
                 <div>
                   <label htmlFor="script" className="block text-sm font-medium text-gray-700 mb-1">
-                    Prompt
+                    Basic guideline for the agent
                   </label>
                   <div className="relative">
                     <textarea

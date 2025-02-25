@@ -193,7 +193,7 @@ export function EditProduct() {
 
         {product?.enriched_information && (
           <div className="mt-8 pt-6 border-t border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">AI-Enriched Product Information</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Product Information</h3>
             <EnrichedProductInfo enrichedInfo={product.enriched_information} />
           </div>
         )}
