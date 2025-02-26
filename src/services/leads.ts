@@ -78,9 +78,10 @@ export async function getLeadDetails(token: string, companyId: string, leadId: s
 
 export interface UploadLeadsResponse {
   message: string;
-  leads_saved: number;
-  leads_skipped: number;
-  unmapped_headers: string[];
+  leads_saved?: number;
+  leads_skipped?: number;
+  unmapped_headers?: string[];
+  task_id?: string;
 }
 
 export async function uploadLeads(token: string, companyId: string, file: File): Promise<UploadLeadsResponse> {
