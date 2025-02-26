@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Building2, Plus, Package, Phone, Mail, Settings, Eye, ChevronDown, ChevronUp, Search, ExternalLink, Trash2, Pencil } from 'lucide-react';
+import { Building2, Plus, Package, Phone, Mail, Settings, Eye, ChevronDown, ChevronUp, Search, ExternalLink, Trash2, Pencil, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getToken } from '../../utils/auth';
 import { Company, getCompanies, getCompanyById, deleteCompany } from '../../services/companies';
@@ -161,11 +161,34 @@ export function CompanyList() {
   };
 
   const handleCompanyUpdate = (updatedCompany: Company) => {
-    setCompanies(companies.map(company => 
-      company.id === updatedCompany.id 
-        ? { ...company, ...updatedCompany }
-        : company
-    ));
+    setCompanies(companies.map(company => {
+      if (company.id === updatedCompany.id) {
+        // Map the updated products to the CompanyWithStats product structure
+        const updatedProducts = updatedCompany.products.map(product => ({
+          id: product.id,
+          name: product.name,
+          product_name: product.product_name,
+          description: product.description,
+          company_id: product.company_id,
+          total_campaigns: product.total_campaigns || 0,
+          total_calls: product.total_calls || 0,
+          total_positive_calls: product.total_positive_calls || 0,
+          total_sent_emails: product.total_sent_emails || 0,
+          total_opened_emails: product.total_opened_emails || 0,
+          total_replied_emails: product.total_replied_emails || 0,
+          unique_leads_contacted: product.unique_leads_contacted || 0,
+          total_meetings_booked_in_calls: product.total_meetings_booked_in_calls || 0,
+          total_meetings_booked_in_emails: product.total_meetings_booked_in_emails || 0
+        }));
+        
+        return {
+          ...company,
+          ...updatedCompany,
+          products: updatedProducts
+        };
+      }
+      return company;
+    }));
   };
 
   if (isLoading) {
@@ -426,7 +449,29 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
                     className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
                     sideOffset={5}
                   >
-                    Company settings
+                    Settings
+                    <Tooltip.Arrow className="fill-gray-900" />
+                  </Tooltip.Content>
+                </Tooltip.Portal>
+              </Tooltip.Root>
+            </Tooltip.Provider>
+
+            <Tooltip.Provider>
+              <Tooltip.Root>
+                <Tooltip.Trigger asChild>
+                  <Link 
+                    to={`/companies/${company.id}/leads`}
+                    className="p-2 text-gray-400 hover:text-indigo-600"
+                  >
+                    <Users className="w-5 h-5" />
+                  </Link>
+                </Tooltip.Trigger>
+                <Tooltip.Portal>
+                  <Tooltip.Content
+                    className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
+                    sideOffset={5}
+                  >
+                    View Leads
                     <Tooltip.Arrow className="fill-gray-900" />
                   </Tooltip.Content>
                 </Tooltip.Portal>

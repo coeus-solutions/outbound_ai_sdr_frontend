@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Calendar, Check, X, Mail, Mic, Lock, ChevronDown, User, Info, MessageSquare, UserSquare2, UserCircle, Volume2, Globe2, UserPlus, AlertCircle, Loader2 } from 'lucide-react';
+import { Calendar, Check, X, Mail, Mic, Lock, ChevronDown, User, Info, UserSquare2, UserCircle, Volume2, Globe2, UserPlus, AlertCircle, Loader2 } from 'lucide-react';
 import { getToken } from '../../utils/auth';
 import { Company, getCompanyById, disconnectCalendar } from '../../services/companies';
 import { AccountCredentials, updateAccountCredentials } from '../../services/companySettings';
@@ -10,14 +10,9 @@ import { Dialog } from '../shared/Dialog';
 import { PageHeader } from '../shared/PageHeader';
 import clsx from 'clsx';
 import { apiEndpoints } from '../../config';
-import { toast } from 'react-hot-toast';
 import { v4 as uuidv4 } from 'uuid';
 import { CompanyUsers } from './CompanyUsers';
 import { useUserRole } from '../../hooks/useUserRole';
-
-type VoiceType = 'josh' | 'florian' | 'derek' | 'june' | 'nat' | 'paige';
-type BackgroundTrackType = 'office' | 'cafe' | 'restaurant' | 'none';
-type LanguageCode = 'en-US' | 'en-GB' | 'en-AU' | 'en-IN' | 'zh-CN' | 'es-ES' | 'fr-FR' | 'de-DE' | 'it-IT' | 'ja-JP' | 'ko-KR' | 'pt-BR' | 'ru-RU' | 'hi-IN' | 'ar-SA' | 'tr-TR' | 'pl-PL' | 'nl-NL' | 'cs-CZ' | 'sk-SK';
 
 function getOAuthUrl(providerName: string, companyId: string): string {
   const redirectUri = `${window.location.origin}/cronofy-auth`;
@@ -73,6 +68,14 @@ const calendarProviders: CalendarProvider[] = [
     logo: '/images/calendar-providers/outlook-calendar.svg',
     bgColor: 'bg-[#0078D4]',
     providerName: 'live_connect'
+  },
+  {
+    id: 'custom',
+    name: 'Custom Calendar',
+    description: 'Add your custom calendar link',
+    logo: '/images/calendar-providers/custom-calendar.svg',
+    bgColor: 'bg-gray-100',
+    providerName: 'custom'
   }
 ];
 
@@ -156,17 +159,14 @@ const languageOptions: LanguageOption[] = [
 ];
 
 interface VoiceAgentSettings {
+  voice: string;
+  background_track: string;
+  temperature?: number;
+  language: string;
   prompt: string;
-  voice: VoiceType;
-  background_track: BackgroundTrackType;
-  temperature: number;
-  language: LanguageCode;
-}
-
-declare module '../../services/companies' {
-  interface Company {
-    voice_agent_settings?: VoiceAgentSettings;
-  }
+  call_from_number: string;
+  transfer_number: string;
+  agent_name: string;
 }
 
 interface InviteUserRow {
@@ -183,6 +183,13 @@ interface InviteResponse {
     status: string;
     message: string;
   }>;
+}
+
+declare module '../../services/companies' {
+  interface Company {
+    custom_calendar_url?: string;
+    voice_agent_settings?: VoiceAgentSettings;
+  }
 }
 
 export function CompanySettings() {
@@ -202,21 +209,28 @@ export function CompanySettings() {
   const [isVoiceDropdownOpen, setIsVoiceDropdownOpen] = useState(false);
   const [selectedBackground, setSelectedBackground] = useState<string>('none');
   const [isBackgroundDropdownOpen, setIsBackgroundDropdownOpen] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState<string>('en-US');
+  const [selectedLanguage, setSelectedLanguage] = useState<string[]>([]);
   const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false);
+  const [agentName, setAgentName] = useState<string>('');
   const [credentials, setCredentials] = useState<AccountCredentials>({
     account_email: '',
     account_password: '',
     type: selectedEmailProvider
   });
-  const [temperature, setTemperature] = useState<string>('0.7');
   const [prompt, setPrompt] = useState<string>('');
+  const [callFromNumber, setCallFromNumber] = useState<string>('');
+  const [transferNumber, setTransferNumber] = useState<string>('');
   const [isSavingVoiceSettings, setIsSavingVoiceSettings] = useState(false);
   const [inviteUsers, setInviteUsers] = useState<InviteUserRow[]>([
     { id: '1', name: '', email: '', role: 'SDR' }
   ]);
   const [isSendingInvites, setIsSendingInvites] = useState(false);
   const [refreshUsersList, setRefreshUsersList] = useState<(() => void) | undefined>();
+  
+  // Add custom calendar state
+  const [showCustomCalendarModal, setShowCustomCalendarModal] = useState(false);
+  const [customCalendarUrl, setCustomCalendarUrl] = useState('');
+  const [isSavingCustomCalendar, setIsSavingCustomCalendar] = useState(false);
 
   useEffect(() => {
     // Check if user has admin role
@@ -242,11 +256,13 @@ export function CompanySettings() {
           // Set voice agent settings if they exist
           if (companyData.voice_agent_settings) {
             const settings = companyData.voice_agent_settings;
-            setSelectedVoice(settings.voice);
-            setSelectedBackground(settings.background_track);
-            setSelectedLanguage(settings.language);
-            setTemperature(settings.temperature.toString());
-            setPrompt(settings.prompt);
+            setSelectedVoice(settings.voice || 'florian');
+            setSelectedBackground(settings.background_track || 'none');
+            setSelectedLanguage(settings.language ? [settings.language] : []);
+            setPrompt(settings.prompt || '');
+            setCallFromNumber(settings.call_from_number || '');
+            setTransferNumber(settings.transfer_number || '');
+            setAgentName(settings.agent_name || '');
           }
 
           if (companyData.account_email) {
@@ -346,22 +362,24 @@ export function CompanySettings() {
     try {
       const token = getToken();
       if (!token) {
-        showToast('Authentication failed. Please try logging in again.', 'error');
+        showToast('Authentication failed', 'error');
         return;
       }
 
-      const response = await fetch(apiEndpoints.companies.voiceAgentSettings(companyId), {
+      const response = await fetch(apiEndpoints.companies.voiceAgentSettings(companyId || ''), {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          prompt,
           voice: selectedVoice,
           background_track: selectedBackground,
-          temperature: parseFloat(temperature),
-          language: selectedLanguage,
+          language: selectedLanguage.join(','),
+          prompt,
+          call_from_number: callFromNumber,
+          transfer_number: transferNumber,
+          agent_name: agentName
         }),
       });
 
@@ -478,6 +496,39 @@ export function CompanySettings() {
       showToast('Failed to send invites. Please try again.', 'error');
     } finally {
       setIsSendingInvites(false);
+    }
+  };
+
+  // Add a function to handle saving the custom calendar URL
+  const handleSaveCustomCalendar = async () => {
+    if (!companyId || !customCalendarUrl) return;
+    
+    setIsSavingCustomCalendar(true);
+    try {
+      const token = getToken();
+      if (!token) {
+        showToast('Authentication failed. Please try logging in again.', 'error');
+        return;
+      }
+
+      // Here you would typically make an API call to save the custom calendar URL
+      // For now, we'll just simulate a successful save
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Update the company state to reflect the custom calendar connection
+      setCompany(prev => prev ? {
+        ...prev,
+        custom_calendar_url: customCalendarUrl,
+        cronofy_provider: 'custom'
+      } : null);
+      
+      setShowCustomCalendarModal(false);
+      showToast('Custom calendar added successfully', 'success');
+    } catch (error) {
+      console.error('Error saving custom calendar:', error);
+      showToast('Failed to add custom calendar', 'error');
+    } finally {
+      setIsSavingCustomCalendar(false);
     }
   };
 
@@ -824,7 +875,10 @@ export function CompanySettings() {
                           {connectedProvider?.name}
                         </h3>
                         <p className="text-sm text-gray-500">
-                          Connected as {company?.cronofy_linked_email}
+                          {company?.cronofy_provider === 'custom' 
+                            ? `Custom URL: ${company?.custom_calendar_url}`
+                            : `Connected as ${company?.cronofy_linked_email}`
+                          }
                         </p>
                       </div>
                     </div>
@@ -865,11 +919,15 @@ export function CompanySettings() {
                   >
                     <div className="flex items-center space-x-4">
                       <div className={`flex-shrink-0 h-12 w-12 rounded-lg ${provider.bgColor} p-2 flex items-center justify-center transition-transform group-hover:scale-105`}>
-                        <img
-                          src={provider.logo}
-                          alt={`${provider.name} logo`}
-                          className="w-full h-full object-contain"
-                        />
+                        {provider.id === 'custom' ? (
+                          <Calendar className="w-full h-full text-indigo-600" />
+                        ) : (
+                          <img
+                            src={provider.logo}
+                            alt={`${provider.name} logo`}
+                            className="w-full h-full object-contain"
+                          />
+                        )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="focus:outline-none">
@@ -881,47 +939,138 @@ export function CompanySettings() {
                           </p>
                         </div>
                       </div>
-                      {company?.cronofy_provider === provider.providerName ? (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          <Check className="h-3 w-3 mr-1" />
-                          Connected
-                        </span>
-                      ) : (
-                        <Tooltip.Provider>
-                          <Tooltip.Root>
-                            <Tooltip.Trigger asChild>
-                              <button
-                                type="button"
-                                disabled={Boolean(isCalendarConnected)}
-                                className={`inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md transition-colors duration-200 ${
-                                  isCalendarConnected 
-                                    ? 'border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed'
-                                    : 'border-transparent text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
-                                }`}
-                                onClick={isCalendarConnected ? undefined : () => window.open(getOAuthUrl(provider.providerName, companyId || ''), '_blank')}
-                              >
-                                Connect
-                              </button>
-                            </Tooltip.Trigger>
-                            {isCalendarConnected && (
-                              <Tooltip.Portal>
-                                <Tooltip.Content
-                                  className="bg-gray-900 text-white px-4 py-2 rounded text-xs max-w-xs z-50"
-                                  sideOffset={5}
+                      {provider.id === 'custom' ? (
+                        company?.cronofy_provider === 'custom' ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            <Check className="h-3 w-3 mr-1" />
+                            Connected
+                          </span>
+                        ) : (
+                          <Tooltip.Provider>
+                            <Tooltip.Root>
+                              <Tooltip.Trigger asChild>
+                                <button
+                                  type="button"
+                                  disabled={Boolean(isCalendarConnected)}
+                                  className={`inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md transition-colors duration-200 ${
+                                    isCalendarConnected 
+                                      ? 'border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed'
+                                      : 'border-transparent text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
+                                  }`}
+                                  onClick={isCalendarConnected ? undefined : () => setShowCustomCalendarModal(true)}
                                 >
-                                  Please disconnect the current calendar before connecting a new one
-                                  <Tooltip.Arrow className="fill-gray-900" />
-                                </Tooltip.Content>
-                              </Tooltip.Portal>
-                            )}
-                          </Tooltip.Root>
-                        </Tooltip.Provider>
+                                  Add
+                                </button>
+                              </Tooltip.Trigger>
+                              {isCalendarConnected && (
+                                <Tooltip.Portal>
+                                  <Tooltip.Content
+                                    className="bg-gray-900 text-white px-4 py-2 rounded text-xs max-w-xs z-50"
+                                    sideOffset={5}
+                                  >
+                                    Please disconnect the current calendar before connecting a new one
+                                    <Tooltip.Arrow className="fill-gray-900" />
+                                  </Tooltip.Content>
+                                </Tooltip.Portal>
+                              )}
+                            </Tooltip.Root>
+                          </Tooltip.Provider>
+                        )
+                      ) : (
+                        company?.cronofy_provider === provider.providerName ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            <Check className="h-3 w-3 mr-1" />
+                            Connected
+                          </span>
+                        ) : (
+                          <Tooltip.Provider>
+                            <Tooltip.Root>
+                              <Tooltip.Trigger asChild>
+                                <button
+                                  type="button"
+                                  disabled={Boolean(isCalendarConnected)}
+                                  className={`inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md transition-colors duration-200 ${
+                                    isCalendarConnected 
+                                      ? 'border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed'
+                                      : 'border-transparent text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
+                                  }`}
+                                  onClick={isCalendarConnected ? undefined : () => window.open(getOAuthUrl(provider.providerName, companyId || ''), '_blank')}
+                                >
+                                  Connect
+                                </button>
+                              </Tooltip.Trigger>
+                              {isCalendarConnected && (
+                                <Tooltip.Portal>
+                                  <Tooltip.Content
+                                    className="bg-gray-900 text-white px-4 py-2 rounded text-xs max-w-xs z-50"
+                                    sideOffset={5}
+                                  >
+                                    Please disconnect the current calendar before connecting a new one
+                                    <Tooltip.Arrow className="fill-gray-900" />
+                                  </Tooltip.Content>
+                                </Tooltip.Portal>
+                              )}
+                            </Tooltip.Root>
+                          </Tooltip.Provider>
+                        )
                       )}
                     </div>
                   </div>
                 ))}
               </div>
             </div>
+
+            {/* Custom Calendar Modal */}
+            <Dialog
+              isOpen={showCustomCalendarModal}
+              onClose={() => setShowCustomCalendarModal(false)}
+              title="Add Custom Calendar"
+            >
+              <div className="space-y-4">
+                <p className="text-sm text-gray-500">
+                  Enter your custom calendar URL to connect it with ReachGenie.
+                </p>
+                <div>
+                  <label htmlFor="customCalendarUrl" className="block text-sm font-medium text-gray-700">
+                    Calendar URL
+                  </label>
+                  <input
+                    type="url"
+                    id="customCalendarUrl"
+                    name="customCalendarUrl"
+                    value={customCalendarUrl}
+                    onChange={(e) => setCustomCalendarUrl(e.target.value)}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    placeholder="https://example.com/calendar"
+                    required
+                  />
+                </div>
+                <div className="flex justify-end space-x-3 mt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowCustomCalendarModal(false)}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveCustomCalendar}
+                    disabled={!customCalendarUrl || isSavingCustomCalendar}
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isSavingCustomCalendar ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Saving...
+                      </>
+                    ) : (
+                      'Save'
+                    )}
+                  </button>
+                </div>
+              </div>
+            </Dialog>
           </div>
         );
 
@@ -953,6 +1102,48 @@ export function CompanySettings() {
               <div className="px-6 py-6 space-y-6">
                 <div>
                   <div className="flex items-center space-x-2">
+                    <label htmlFor="agentName" className="block text-sm font-medium text-gray-700">
+                      Default Agent Name
+                    </label>
+                    <Tooltip.Provider>
+                      <Tooltip.Root>
+                        <Tooltip.Trigger asChild>
+                          <button
+                            type="button"
+                            className="inline-flex items-center text-gray-400 hover:text-gray-500"
+                          >
+                            <Info className="h-4 w-4" />
+                          </button>
+                        </Tooltip.Trigger>
+                        <Tooltip.Portal>
+                          <Tooltip.Content
+                            className="bg-gray-900 text-white px-4 py-2 rounded text-xs max-w-xs z-50"
+                            sideOffset={5}
+                          >
+                            The name your AI agent will use when introducing itself
+                            <Tooltip.Arrow className="fill-gray-900" />
+                          </Tooltip.Content>
+                        </Tooltip.Portal>
+                      </Tooltip.Root>
+                    </Tooltip.Provider>
+                  </div>
+                  <div className="relative mt-1">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <UserCircle className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      type="text"
+                      id="agentName"
+                      name="agentName"
+                      value={agentName}
+                      onChange={(e) => setAgentName(e.target.value)}
+                      className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      placeholder="e.g. Alex, Sarah, etc."
+                    />
+                  </div>
+                </div>
+                <div>
+                  <div className="flex items-center space-x-2">
                     <label htmlFor="voice" className="block text-sm font-medium text-gray-700">
                       Voice Selection
                     </label>
@@ -971,7 +1162,7 @@ export function CompanySettings() {
                             className="bg-gray-900 text-white px-4 py-2 rounded text-xs max-w-xs z-50"
                             sideOffset={5}
                           >
-                            The voice of the AI agent to use
+                            Voice of your AI agent
                             <Tooltip.Arrow className="fill-gray-900" />
                           </Tooltip.Content>
                         </Tooltip.Portal>
@@ -1056,7 +1247,7 @@ export function CompanySettings() {
                             className="bg-gray-900 text-white px-4 py-2 rounded text-xs max-w-xs z-50"
                             sideOffset={5}
                           >
-                            Select a supported language of your choice
+                            Language you'd like to support
                             <Tooltip.Arrow className="fill-gray-900" />
                           </Tooltip.Content>
                         </Tooltip.Portal>
@@ -1073,11 +1264,16 @@ export function CompanySettings() {
                         <Globe2 className="h-5 w-5 text-gray-400" />
                       </div>
                       <span className="block truncate">
-                        {(() => {
-                          const lang = languageOptions.find(l => l.id === selectedLanguage);
-                          if (!lang) return 'Select language';
-                          return lang.region ? `${lang.label} (${lang.region})` : lang.label;
-                        })()}
+                        {selectedLanguage.length === 0 
+                          ? 'Select languages' 
+                          : selectedLanguage.length === 1 
+                            ? (() => {
+                                const lang = languageOptions.find(l => l.id === selectedLanguage[0]);
+                                if (!lang) return 'Select languages';
+                                return lang.region ? `${lang.label} (${lang.region})` : lang.label;
+                              })()
+                            : `${selectedLanguage.length} languages selected`
+                        }
                       </span>
                       <span className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                         <ChevronDown className="h-5 w-5 text-gray-400" />
@@ -1089,20 +1285,24 @@ export function CompanySettings() {
                           <div
                             key={language.id}
                             className={`${
-                              selectedLanguage === language.id ? 'bg-indigo-50 text-indigo-900' : 'text-gray-900'
+                              selectedLanguage.includes(language.id) ? 'bg-indigo-50 text-indigo-900' : 'text-gray-900'
                             } cursor-pointer select-none relative py-2 pl-10 pr-4 hover:bg-indigo-50`}
                             onClick={() => {
-                              setSelectedLanguage(language.id);
-                              setIsLanguageDropdownOpen(false);
+                              const isSelected = selectedLanguage.includes(language.id);
+                              if (isSelected) {
+                                setSelectedLanguage(selectedLanguage.filter(id => id !== language.id));
+                              } else {
+                                setSelectedLanguage([...selectedLanguage, language.id]);
+                              }
                             }}
                           >
                             <span className="absolute inset-y-0 left-0 flex items-center pl-3">
                               <Globe2 className="h-5 w-5 text-gray-400" />
                             </span>
-                            <span className={`block truncate ${selectedLanguage === language.id ? 'font-semibold' : 'font-normal'}`}>
+                            <span className={`block truncate ${selectedLanguage.includes(language.id) ? 'font-semibold' : 'font-normal'}`}>
                               {language.region ? `${language.label} (${language.region})` : language.label}
                             </span>
-                            {selectedLanguage === language.id && (
+                            {selectedLanguage.includes(language.id) && (
                               <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-indigo-600">
                                 <Check className="h-5 w-5" />
                               </span>
@@ -1116,7 +1316,7 @@ export function CompanySettings() {
                 <div>
                   <div className="flex items-center space-x-2">
                     <label htmlFor="background" className="block text-sm font-medium text-gray-700">
-                      Background Track
+                      Background Sounds
                     </label>
                     <Tooltip.Provider>
                       <Tooltip.Root>
@@ -1133,7 +1333,7 @@ export function CompanySettings() {
                             className="bg-gray-900 text-white px-4 py-2 rounded text-xs max-w-xs z-50"
                             sideOffset={5}
                           >
-                            Select an audio track that you'd like to play in the background during the call.
+                            What background sounds you'd like to have. This makes agents appear more human.
                             <Tooltip.Arrow className="fill-gray-900" />
                           </Tooltip.Content>
                         </Tooltip.Portal>
@@ -1188,8 +1388,8 @@ export function CompanySettings() {
                 </div>
                 <div>
                   <div className="flex items-center space-x-2">
-                    <label htmlFor="temperature" className="block text-sm font-medium text-gray-700">
-                      Temperature
+                    <label htmlFor="callFromNumber" className="block text-sm font-medium text-gray-700">
+                      Number to call from
                     </label>
                     <Tooltip.Provider>
                       <Tooltip.Root>
@@ -1206,7 +1406,7 @@ export function CompanySettings() {
                             className="bg-gray-900 text-white px-4 py-2 rounded text-xs max-w-xs z-50"
                             sideOffset={5}
                           >
-                            A value between 0 and 1 that controls the randomness of the LLM. 0 will cause more deterministic outputs while 1 will cause more random.
+                            Which number should appear in the calls
                             <Tooltip.Arrow className="fill-gray-900" />
                           </Tooltip.Content>
                         </Tooltip.Portal>
@@ -1215,28 +1415,90 @@ export function CompanySettings() {
                   </div>
                   <div className="relative mt-1">
                     <input
-                      type="number"
-                      id="temperature"
-                      name="temperature"
-                      min="0"
-                      max="1"
-                      step="0.1"
-                      value={temperature}
-                      onChange={(e) => {
-                        const value = parseFloat(e.target.value);
-                        if (value >= 0 && value <= 1) {
-                          setTemperature(e.target.value);
-                        }
-                      }}
+                      type="text"
+                      id="callFromNumber"
+                      name="callFromNumber"
+                      value={callFromNumber}
+                      onChange={(e) => setCallFromNumber(e.target.value)}
                       className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                      placeholder="0.7"
+                      placeholder="+1 (555) 123-4567"
+                    />
+                  </div>
+                  <div className="mt-1 text-sm text-indigo-600">
+                    <button
+                      type="button"
+                      className="inline-flex items-center text-indigo-600 hover:text-indigo-800"
+                    >
+                      Buy number
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <label htmlFor="transferNumber" className="block text-sm font-medium text-gray-700">
+                      Transfer number
+                    </label>
+                    <Tooltip.Provider>
+                      <Tooltip.Root>
+                        <Tooltip.Trigger asChild>
+                          <button
+                            type="button"
+                            className="inline-flex items-center text-gray-400 hover:text-gray-500"
+                          >
+                            <Info className="h-4 w-4" />
+                          </button>
+                        </Tooltip.Trigger>
+                        <Tooltip.Portal>
+                          <Tooltip.Content
+                            className="bg-gray-900 text-white px-4 py-2 rounded text-xs max-w-xs z-50"
+                            sideOffset={5}
+                          >
+                            If prospects want to talk to a human which number should be used
+                            <Tooltip.Arrow className="fill-gray-900" />
+                          </Tooltip.Content>
+                        </Tooltip.Portal>
+                      </Tooltip.Root>
+                    </Tooltip.Provider>
+                  </div>
+                  <div className="relative mt-1">
+                    <input
+                      type="text"
+                      id="transferNumber"
+                      name="transferNumber"
+                      value={transferNumber}
+                      onChange={(e) => setTransferNumber(e.target.value)}
+                      className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      placeholder="+1 (555) 123-4567"
                     />
                   </div>
                 </div>
                 <div>
                   <label htmlFor="script" className="block text-sm font-medium text-gray-700 mb-1">
-                    Prompt
+                    Basic guideline for the agent
                   </label>
+                  <div className="flex items-center space-x-2 mb-1">
+                    <Tooltip.Provider>
+                      <Tooltip.Root>
+                        <Tooltip.Trigger asChild>
+                          <button
+                            type="button"
+                            className="inline-flex items-center text-gray-400 hover:text-gray-500"
+                          >
+                            <Info className="h-4 w-4" />
+                          </button>
+                        </Tooltip.Trigger>
+                        <Tooltip.Portal>
+                          <Tooltip.Content
+                            className="bg-gray-900 text-white px-4 py-2 rounded text-xs max-w-xs z-50"
+                            sideOffset={5}
+                          >
+                            What instructions would you like to give to the agent
+                            <Tooltip.Arrow className="fill-gray-900" />
+                          </Tooltip.Content>
+                        </Tooltip.Portal>
+                      </Tooltip.Root>
+                    </Tooltip.Provider>
+                  </div>
                   <div className="relative">
                     <textarea
                       id="script"

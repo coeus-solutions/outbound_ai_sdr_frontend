@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Package } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import { getToken } from '../../utils/auth';
 import { Product, getProduct, updateProduct } from '../../services/products';
 import { PageHeader } from '../shared/PageHeader';
 import { useToast } from '../../context/ToastContext';
+import { EnrichedProductInfo } from './EnrichedProductInfo';
 
 export function EditProduct() {
   const { companyId, productId } = useParams();
@@ -128,6 +129,50 @@ export function EditProduct() {
             />
           </div>
 
+          {product?.product_url && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Product URL
+              </label>
+              <div className="mt-1">
+                <a 
+                  href={product.product_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-indigo-600 hover:text-indigo-800 flex items-center"
+                >
+                  <ExternalLink className="h-4 w-4 mr-1" />
+                  {product.product_url}
+                </a>
+              </div>
+              <p className="mt-1 text-sm text-gray-500">
+                The product URL cannot be edited after creation.
+              </p>
+            </div>
+          )}
+
+          {product?.file_name && product?.original_filename && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Documentation
+              </label>
+              <div className="mt-1">
+                <a 
+                  href={`/api/files/${product.file_name}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-indigo-600 hover:text-indigo-800 flex items-center"
+                >
+                  <ExternalLink className="h-4 w-4 mr-1" />
+                  {product.original_filename}
+                </a>
+              </div>
+              <p className="mt-1 text-sm text-gray-500">
+                The documentation file cannot be changed after creation.
+              </p>
+            </div>
+          )}
+
           <div className="flex justify-end space-x-3">
             <button
               type="button"
@@ -145,6 +190,13 @@ export function EditProduct() {
             </button>
           </div>
         </form>
+
+        {product?.enriched_information && (
+          <div className="mt-8 pt-6 border-t border-gray-200">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Product Information</h3>
+            <EnrichedProductInfo enrichedInfo={product.enriched_information} />
+          </div>
+        )}
       </div>
     </div>
   );

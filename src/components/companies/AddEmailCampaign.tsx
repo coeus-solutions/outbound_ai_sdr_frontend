@@ -5,7 +5,8 @@ import { useToast } from '../../context/ToastContext';
 import { getCompanyById, Company } from '../../services/companies';
 import { createCampaign, CampaignCreate } from '../../services/emailCampaigns';
 import { getCompanyProducts, ProductInDB } from '../../services/products';
-import { Mail, MessageSquare, Package, FileText, ChevronDown } from 'lucide-react';
+import { Mail, MessageSquare, Package, FileText, ChevronDown, Calendar, Eye, Phone } from 'lucide-react';
+import { PageHeader } from '../shared/PageHeader';
 
 export function AddEmailCampaign() {
   const { companyId } = useParams();
@@ -22,10 +23,22 @@ export function AddEmailCampaign() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    type: 'email' as 'email' | 'call',
+    type: 'email' as 'email' | 'call' | 'both',
     product_id: '',
-    template: ''
+    template: '',
+    drip_settings: {
+      reminder_count: 3,
+      reminder_interval_days: 3,
+      on_reply_action: 'stop_campaign' as 'stop_campaign' | 'auto_reply'
+    },
+    combined_settings: {
+      call_trigger: 'after_email_sent' as 'after_email_sent' | 'when_opened',
+      stop_on_any_reply: true
+    }
   });
+
+  // Add state for active tab
+  const [activeTab, setActiveTab] = useState<'email' | 'phone' | 'combined'>('email');
 
   const initializeEditor = async () => {
     if (!editorContainerRef.current || editorInitialized) return;
@@ -116,10 +129,22 @@ export function AddEmailCampaign() {
 
   // Initialize editor when loading is complete
   useEffect(() => {
-    if (!isLoading && formData.type === 'email') {
+    if (!isLoading && (formData.type === 'email' || (formData.type === 'both' && activeTab === 'email'))) {
       initializeEditor();
     }
-  }, [isLoading, formData.type]);
+  }, [isLoading, formData.type, activeTab]);
+
+  // Handle type changes and tab changes
+  useEffect(() => {
+    if (formData.type === 'call' || (formData.type === 'both' && activeTab !== 'email')) {
+      if (quillEditorRef.current) {
+        quillEditorRef.current = null;
+        setEditorInitialized(false);
+      }
+    } else if ((formData.type === 'email' || (formData.type === 'both' && activeTab === 'email')) && !editorInitialized) {
+      initializeEditor();
+    }
+  }, [formData.type, activeTab]);
 
   // Cleanup effect
   useEffect(() => {
@@ -130,14 +155,6 @@ export function AddEmailCampaign() {
       }
     };
   }, []);
-
-  // Handle type changes
-  useEffect(() => {
-    if (formData.type !== 'email' && quillEditorRef.current) {
-      quillEditorRef.current = null;
-      setEditorInitialized(false);
-    }
-  }, [formData.type]);
 
   const loadScript = (src: string): Promise<void> => {
     return new Promise((resolve, reject) => {
@@ -198,10 +215,15 @@ export function AddEmailCampaign() {
         return;
       }
 
+      // For 'both' type campaigns, send as 'email' type to backend for now
+      // Later we can update the backend to handle 'both' type properly
+      const campaignType = formData.type === 'both' ? 'email' : formData.type;
+
       // Create campaign data without template for Call type
       const campaignData = {
         ...formData,
-        template: formData.type === 'email' ? formData.template : undefined
+        type: campaignType,
+        template: formData.type === 'call' ? undefined : formData.template
       };
 
       await createCampaign(token, companyId!, campaignData);
@@ -260,7 +282,10 @@ export function AddEmailCampaign() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">New Campaign</h1>
+      <PageHeader
+        title="New Campaign"
+        subtitle={company?.name ? `for ${company.name}` : undefined}
+      />
       <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6 space-y-6">
         {error && (
           <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg">
@@ -310,7 +335,8 @@ export function AddEmailCampaign() {
                 className="form-input appearance-none"
               >
                 <option value="email">Email</option>
-                <option value="call">Call</option>
+                <option value="call">Phone</option>
+                <option value="both">Both Phone and Email</option>
               </select>
             </div>
           </div>
@@ -345,9 +371,11 @@ export function AddEmailCampaign() {
 
           <div>
             <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-              Description
-              <span className="text-gray-500 font-normal"> (Optional)</span>
+              Purpose of campaign
             </label>
+            <p className="text-sm text-gray-500 mb-2">
+              Describe what you would like to achieve with this campaign (e.g., book demos, engage customers, generate leads, etc.)
+            </p>
             <div className="relative">
               <div className="absolute top-3 left-0 pl-3 flex items-center pointer-events-none">
                 <FileText className="h-5 w-5 text-gray-400" />
@@ -359,42 +387,610 @@ export function AddEmailCampaign() {
                 onChange={handleChange}
                 rows={4}
                 className="form-input !pt-2 !pb-2 min-h-[100px]"
-                placeholder="Enter campaign description"
+                placeholder="Enter the purpose of your campaign"
               />
             </div>
           </div>
 
           {formData.type === 'email' && (
-            <div>
-              <label htmlFor="template" className="block text-sm font-medium text-gray-700 mb-1">
-                Email Template
-              </label>
-              <p className="text-sm text-gray-500 mb-2">
-                Make sure to include <code className="bg-gray-100 px-1 py-0.5 rounded text-pink-600">{'{email_body}'}</code> placeholder in your template where you want the email content to appear.
-              </p>
-              <div className="mt-1">
-                <div ref={editorContainerRef} style={{ minHeight: '200px' }} />
+            <>
+              <div>
+                <label htmlFor="template" className="block text-sm font-medium text-gray-700 mb-1">
+                  Email Template
+                </label>
+                <p className="text-sm text-gray-500 mb-2">
+                  Make sure to include <code className="bg-gray-100 px-1 py-0.5 rounded text-pink-600">{'{email_body}'}</code> placeholder in your template where you want the email content to appear.
+                </p>
+                <div className="mt-1">
+                  <div ref={editorContainerRef} style={{ minHeight: '200px' }} />
+                </div>
               </div>
+
+              <div className="border-t border-gray-200 pt-4 mt-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Drip Campaign Settings</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="reminder_count" className="block text-sm font-medium text-gray-700 mb-1">
+                      Number of Reminders
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Calendar className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <input
+                        type="number"
+                        name="drip_settings.reminder_count"
+                        id="reminder_count"
+                        min="0"
+                        max="10"
+                        value={formData.drip_settings.reminder_count}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value);
+                          setFormData(prev => ({
+                            ...prev,
+                            drip_settings: {
+                              ...prev.drip_settings,
+                              reminder_count: isNaN(value) ? 0 : value
+                            }
+                          }));
+                        }}
+                        className="form-input"
+                        placeholder="Number of follow-up emails"
+                      />
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500">
+                      How many follow-up emails to send if no response (0-10)
+                    </p>
+                  </div>
+
+                  <div>
+                    <label htmlFor="reminder_interval" className="block text-sm font-medium text-gray-700 mb-1">
+                      Days Between Reminders
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Calendar className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <input
+                        type="number"
+                        name="drip_settings.reminder_interval_days"
+                        id="reminder_interval"
+                        min="1"
+                        max="30"
+                        value={formData.drip_settings.reminder_interval_days}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value);
+                          setFormData(prev => ({
+                            ...prev,
+                            drip_settings: {
+                              ...prev.drip_settings,
+                              reminder_interval_days: isNaN(value) ? 1 : value
+                            }
+                          }));
+                        }}
+                        className="form-input"
+                        placeholder="Days between emails"
+                      />
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500">
+                      Number of days to wait between follow-up emails (1-30)
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    If Prospect Replies
+                  </label>
+                  <div className="space-y-2">
+                    <div className="flex items-center">
+                      <input
+                        id="stop_campaign_email"
+                        name="on_reply_action"
+                        type="radio"
+                        checked={formData.drip_settings.on_reply_action === 'stop_campaign'}
+                        onChange={() => {
+                          setFormData(prev => ({
+                            ...prev,
+                            drip_settings: {
+                              ...prev.drip_settings,
+                              on_reply_action: 'stop_campaign'
+                            }
+                          }));
+                        }}
+                        className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+                      />
+                      <label htmlFor="stop_campaign_email" className="ml-3 block text-sm font-medium text-gray-700">
+                        Stop campaign for this prospect
+                      </label>
+                    </div>
+                    <div className="flex items-center">
+                      <input
+                        id="auto_reply_email"
+                        name="on_reply_action"
+                        type="radio"
+                        checked={formData.drip_settings.on_reply_action === 'auto_reply'}
+                        onChange={() => {
+                          setFormData(prev => ({
+                            ...prev,
+                            drip_settings: {
+                              ...prev.drip_settings,
+                              on_reply_action: 'auto_reply'
+                            }
+                          }));
+                        }}
+                        className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+                      />
+                      <label htmlFor="auto_reply_email" className="ml-3 block text-sm font-medium text-gray-700">
+                        Auto-reply using AI agent
+                      </label>
+                    </div>
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    How to handle the campaign when a prospect replies to an email
+                  </p>
+                </div>
+              </div>
+            </>
+          )}
+
+          {formData.type === 'call' && (
+            <div className="border-t border-gray-200 pt-4 mt-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Drip Campaign Settings</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="phone_retry_count" className="block text-sm font-medium text-gray-700 mb-1">
+                    Number of Retries
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Phone className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      type="number"
+                      name="drip_settings.reminder_count"
+                      id="phone_retry_count"
+                      min="0"
+                      max="10"
+                      value={formData.drip_settings.reminder_count}
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value);
+                        setFormData(prev => ({
+                          ...prev,
+                          drip_settings: {
+                            ...prev.drip_settings,
+                            reminder_count: isNaN(value) ? 0 : value
+                          }
+                        }));
+                      }}
+                      className="form-input"
+                      placeholder="Number of call retries"
+                    />
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    How many times to retry calling if no response (0-10)
+                  </p>
+                </div>
+
+                <div>
+                  <label htmlFor="phone_retry_interval" className="block text-sm font-medium text-gray-700 mb-1">
+                    Days Between Retries
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Calendar className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      type="number"
+                      name="drip_settings.reminder_interval_days"
+                      id="phone_retry_interval"
+                      min="1"
+                      max="30"
+                      value={formData.drip_settings.reminder_interval_days}
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value);
+                        setFormData(prev => ({
+                          ...prev,
+                          drip_settings: {
+                            ...prev.drip_settings,
+                            reminder_interval_days: isNaN(value) ? 1 : value
+                          }
+                        }));
+                      }}
+                      className="form-input"
+                      placeholder="Days between call retries"
+                    />
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Number of days to wait between call retries (1-30)
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {formData.type === 'both' && (
+            <div className="border-t border-gray-200 pt-4 mt-6">
+              <div className="mb-4">
+                <nav className="flex space-x-2 border-b">
+                  <button
+                    onClick={() => setActiveTab('email')}
+                    className={`px-4 py-2 text-sm font-medium ${
+                      activeTab === 'email'
+                        ? 'border-b-2 border-indigo-500 text-indigo-600'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                    type="button"
+                  >
+                    Email Settings
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('phone')}
+                    className={`px-4 py-2 text-sm font-medium ${
+                      activeTab === 'phone'
+                        ? 'border-b-2 border-indigo-500 text-indigo-600'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                    type="button"
+                  >
+                    Phone Settings
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('combined')}
+                    className={`px-4 py-2 text-sm font-medium ${
+                      activeTab === 'combined'
+                        ? 'border-b-2 border-indigo-500 text-indigo-600'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                    type="button"
+                  >
+                    Combined Settings
+                  </button>
+                </nav>
+              </div>
+
+              {activeTab === 'email' && (
+                <>
+                  <div>
+                    <label htmlFor="template" className="block text-sm font-medium text-gray-700 mb-1">
+                      Email Template
+                    </label>
+                    <p className="text-sm text-gray-500 mb-2">
+                      Make sure to include <code className="bg-gray-100 px-1 py-0.5 rounded text-pink-600">{'{email_body}'}</code> placeholder in your template where you want the email content to appear.
+                    </p>
+                    <div className="mt-1">
+                      <div ref={editorContainerRef} style={{ minHeight: '200px' }} />
+                    </div>
+                  </div>
+
+                  <div className="border-t border-gray-200 pt-4 mt-6">
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">Drip Campaign Settings</h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label htmlFor="reminder_count" className="block text-sm font-medium text-gray-700 mb-1">
+                          Number of Reminders
+                        </label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <Calendar className="h-5 w-5 text-gray-400" />
+                          </div>
+                          <input
+                            type="number"
+                            name="drip_settings.reminder_count"
+                            id="reminder_count"
+                            min="0"
+                            max="10"
+                            value={formData.drip_settings.reminder_count}
+                            onChange={(e) => {
+                              const value = parseInt(e.target.value);
+                              setFormData(prev => ({
+                                ...prev,
+                                drip_settings: {
+                                  ...prev.drip_settings,
+                                  reminder_count: isNaN(value) ? 0 : value
+                                }
+                              }));
+                            }}
+                            className="form-input"
+                            placeholder="Number of follow-up emails"
+                          />
+                        </div>
+                        <p className="mt-1 text-xs text-gray-500">
+                          How many follow-up emails to send if no response (0-10)
+                        </p>
+                      </div>
+
+                      <div>
+                        <label htmlFor="reminder_interval" className="block text-sm font-medium text-gray-700 mb-1">
+                          Days Between Reminders
+                        </label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <Calendar className="h-5 w-5 text-gray-400" />
+                          </div>
+                          <input
+                            type="number"
+                            name="drip_settings.reminder_interval_days"
+                            id="reminder_interval"
+                            min="1"
+                            max="30"
+                            value={formData.drip_settings.reminder_interval_days}
+                            onChange={(e) => {
+                              const value = parseInt(e.target.value);
+                              setFormData(prev => ({
+                                ...prev,
+                                drip_settings: {
+                                  ...prev.drip_settings,
+                                  reminder_interval_days: isNaN(value) ? 1 : value
+                                }
+                              }));
+                            }}
+                            className="form-input"
+                            placeholder="Days between emails"
+                          />
+                        </div>
+                        <p className="mt-1 text-xs text-gray-500">
+                          Number of days to wait between follow-up emails (1-30)
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        If Prospect Replies
+                      </label>
+                      <div className="space-y-2">
+                        <div className="flex items-center">
+                          <input
+                            id="stop_campaign"
+                            name="on_reply_action"
+                            type="radio"
+                            checked={formData.drip_settings.on_reply_action === 'stop_campaign'}
+                            onChange={() => {
+                              setFormData(prev => ({
+                                ...prev,
+                                drip_settings: {
+                                  ...prev.drip_settings,
+                                  on_reply_action: 'stop_campaign'
+                                }
+                              }));
+                            }}
+                            className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+                          />
+                          <label htmlFor="stop_campaign" className="ml-3 block text-sm font-medium text-gray-700">
+                            Stop campaign for this prospect
+                          </label>
+                        </div>
+                        <div className="flex items-center">
+                          <input
+                            id="auto_reply"
+                            name="on_reply_action"
+                            type="radio"
+                            checked={formData.drip_settings.on_reply_action === 'auto_reply'}
+                            onChange={() => {
+                              setFormData(prev => ({
+                                ...prev,
+                                drip_settings: {
+                                  ...prev.drip_settings,
+                                  on_reply_action: 'auto_reply'
+                                }
+                              }));
+                            }}
+                            className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+                          />
+                          <label htmlFor="auto_reply" className="ml-3 block text-sm font-medium text-gray-700">
+                            Auto-reply using AI agent
+                          </label>
+                        </div>
+                      </div>
+                      <p className="mt-1 text-xs text-gray-500">
+                        How to handle the campaign when a prospect replies to an email
+                      </p>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {activeTab === 'phone' && (
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Phone Drip Campaign Settings</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="phone_retry_count" className="block text-sm font-medium text-gray-700 mb-1">
+                        Number of Retries
+                      </label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <Phone className="h-5 w-5 text-gray-400" />
+                        </div>
+                        <input
+                          type="number"
+                          name="drip_settings.reminder_count"
+                          id="phone_retry_count"
+                          min="0"
+                          max="10"
+                          value={formData.drip_settings.reminder_count}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value);
+                            setFormData(prev => ({
+                              ...prev,
+                              drip_settings: {
+                                ...prev.drip_settings,
+                                reminder_count: isNaN(value) ? 0 : value
+                              }
+                            }));
+                          }}
+                          className="form-input"
+                          placeholder="Number of call retries"
+                        />
+                      </div>
+                      <p className="mt-1 text-xs text-gray-500">
+                        How many times to retry calling if no response (0-10)
+                      </p>
+                    </div>
+
+                    <div>
+                      <label htmlFor="phone_retry_interval" className="block text-sm font-medium text-gray-700 mb-1">
+                        Days Between Retries
+                      </label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <Calendar className="h-5 w-5 text-gray-400" />
+                        </div>
+                        <input
+                          type="number"
+                          name="drip_settings.reminder_interval_days"
+                          id="phone_retry_interval"
+                          min="1"
+                          max="30"
+                          value={formData.drip_settings.reminder_interval_days}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value);
+                            setFormData(prev => ({
+                              ...prev,
+                              drip_settings: {
+                                ...prev.drip_settings,
+                                reminder_interval_days: isNaN(value) ? 1 : value
+                              }
+                            }));
+                          }}
+                          className="form-input"
+                          placeholder="Days between call retries"
+                        />
+                      </div>
+                      <p className="mt-1 text-xs text-gray-500">
+                        Number of days to wait between call retries (1-30)
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'combined' && (
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Combined Campaign Settings</h3>
+                  
+                  <div className="space-y-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        When to Trigger Call
+                      </label>
+                      <div className="space-y-2">
+                        <div className="flex items-center">
+                          <input
+                            id="after_email_sent"
+                            name="call_trigger"
+                            type="radio"
+                            checked={formData.combined_settings.call_trigger === 'after_email_sent'}
+                            onChange={() => {
+                              setFormData(prev => ({
+                                ...prev,
+                                combined_settings: {
+                                  ...prev.combined_settings,
+                                  call_trigger: 'after_email_sent'
+                                }
+                              }));
+                            }}
+                            className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+                          />
+                          <label htmlFor="after_email_sent" className="ml-3 block text-sm font-medium text-gray-700">
+                            After email is sent
+                          </label>
+                        </div>
+                        <div className="flex items-center">
+                          <input
+                            id="when_opened"
+                            name="call_trigger"
+                            type="radio"
+                            checked={formData.combined_settings.call_trigger === 'when_opened'}
+                            onChange={() => {
+                              setFormData(prev => ({
+                                ...prev,
+                                combined_settings: {
+                                  ...prev.combined_settings,
+                                  call_trigger: 'when_opened'
+                                }
+                              }));
+                            }}
+                            className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+                          />
+                          <label htmlFor="when_opened" className="ml-3 block text-sm font-medium text-gray-700">
+                            When user opens email
+                          </label>
+                        </div>
+                      </div>
+                      <p className="mt-1 text-xs text-gray-500">
+                        Choose when the phone call should be triggered
+                      </p>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center">
+                        <input
+                          id="stop_on_any_reply"
+                          name="stop_on_any_reply"
+                          type="checkbox"
+                          checked={formData.combined_settings.stop_on_any_reply}
+                          onChange={(e) => {
+                            setFormData(prev => ({
+                              ...prev,
+                              combined_settings: {
+                                ...prev.combined_settings,
+                                stop_on_any_reply: e.target.checked
+                              }
+                            }));
+                          }}
+                          className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                        />
+                        <label htmlFor="stop_on_any_reply" className="ml-3 block text-sm font-medium text-gray-700">
+                          If customer replies to phone or email, stop campaign
+                        </label>
+                      </div>
+                      <p className="mt-1 ml-7 text-xs text-gray-500">
+                        Automatically stop all campaign activities if the prospect responds through any channel
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
 
-        <div className="flex justify-end space-x-4">
+        <div className="flex justify-between items-center mt-8">
           <button
             type="button"
-            onClick={() => navigate(`/companies/${companyId}/campaigns`)}
-            className="px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 hover:bg-gray-50"
-            disabled={isSaving}
+            onClick={() => {
+              // Preview logic will be implemented
+              showToast(`Campaign preview feature for ${formData.type} campaigns coming soon!`, 'info');
+            }}
+            className="flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 hover:bg-gray-50"
           >
-            Cancel
+            <Eye className="h-4 w-4 mr-2" />
+            Generate Preview
           </button>
-          <button
-            type="submit"
-            className="px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={isSaving}
-          >
-            {isSaving ? 'Creating...' : 'Create Campaign'}
-          </button>
+
+          <div className="flex space-x-4">
+            <button
+              type="button"
+              onClick={() => navigate(`/companies/${companyId}/campaigns`)}
+              className="px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 hover:bg-gray-50"
+              disabled={isSaving}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isSaving}
+            >
+              {isSaving ? 'Creating...' : 'Create Campaign'}
+            </button>
+          </div>
         </div>
       </form>
     </div>

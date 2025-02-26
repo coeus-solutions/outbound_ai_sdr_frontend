@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Building2, Globe, X, Package, ExternalLink, Pencil, Loader } from 'lucide-react';
+import { Building2, Globe, X, Package, ExternalLink, Pencil, Loader, Trash2 } from 'lucide-react';
 import type { Company } from '../../services/companies';
 import { useToast } from '../../context/ToastContext';
 import { getToken } from '../../utils/auth';
@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import { LoadingButton } from '../shared/LoadingButton';
 import { Product, getProducts } from '../../services/products';
 import { apiEndpoints } from '../../config';
+import { DeleteProductModal } from './DeleteProductModal';
 
 interface CompanyDetailsPanelProps {
   isOpen: boolean;
@@ -22,6 +23,7 @@ export function CompanyDetailsPanel({ isOpen, onClose, company, onCompanyUpdate 
   const [editedCompany, setEditedCompany] = useState<Company | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
 
   // Initialize edit form when company changes
   React.useEffect(() => {
@@ -92,6 +94,24 @@ export function CompanyDetailsPanel({ isOpen, onClose, company, onCompanyUpdate 
       showToast('Failed to update company details', 'error');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleDeleteSuccess = () => {
+    if (productToDelete && company) {
+      // Remove the deleted product from the local state
+      setProducts(prevProducts => prevProducts.filter(p => p.id !== productToDelete.id));
+      
+      // Update the company object to reflect the deleted product
+      if (company) {
+        const updatedCompany = {
+          ...company,
+          products: company.products.filter(p => p.id !== productToDelete.id)
+        };
+        
+        // Propagate the change to the parent component
+        onCompanyUpdate(updatedCompany);
+      }
     }
   };
 
@@ -217,20 +237,29 @@ export function CompanyDetailsPanel({ isOpen, onClose, company, onCompanyUpdate 
                     key={product.id}
                     className="bg-gray-50 rounded-lg p-3 hover:bg-gray-100 transition-colors"
                   >
-                    <Link
-                      to={`/companies/${company.id}/products/${product.id}/edit`}
-                      className="group"
-                    >
-                      <h4 className="text-sm font-medium text-gray-900 group-hover:text-indigo-600 flex items-center">
-                        {product.product_name || product.name}
-                        <Pencil className="h-3 w-3 ml-2 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </h4>
-                      {product.description && (
-                        <p className="text-sm text-gray-600 mt-1 whitespace-pre-wrap break-words">
-                          {product.description}
-                        </p>
-                      )}
-                    </Link>
+                    <div className="flex justify-between items-start">
+                      <Link
+                        to={`/companies/${company.id}/products/${product.id}/edit`}
+                        className="group flex-grow"
+                      >
+                        <h4 className="text-sm font-medium text-gray-900 group-hover:text-indigo-600 flex items-center">
+                          {product.product_name || product.name}
+                          <Pencil className="h-3 w-3 ml-2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </h4>
+                        {product.description && (
+                          <p className="text-sm text-gray-600 mt-1 whitespace-pre-wrap break-words">
+                            {product.description}
+                          </p>
+                        )}
+                      </Link>
+                      <button 
+                        onClick={() => setProductToDelete(product)}
+                        className="text-red-500 hover:text-red-700 p-1 rounded ml-2"
+                        aria-label="Delete product"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
                 ))
               ) : (
@@ -273,6 +302,16 @@ export function CompanyDetailsPanel({ isOpen, onClose, company, onCompanyUpdate 
             </LoadingButton>
           </div>
         </div>
+      )}
+
+      {productToDelete && (
+        <DeleteProductModal
+          companyId={company.id}
+          product={productToDelete}
+          isOpen={Boolean(productToDelete)}
+          onClose={() => setProductToDelete(null)}
+          onSuccess={handleDeleteSuccess}
+        />
       )}
     </div>
   );
