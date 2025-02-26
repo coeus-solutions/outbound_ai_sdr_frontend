@@ -293,13 +293,19 @@ export async function getProductICPs(token: string, companyId: string, productId
   return response.json();
 }
 
-export async function generateProductICP(token: string, companyId: string, productId: string): Promise<IdealCustomerProfile> {
-  const response = await fetch(`${apiEndpoints.companies.products(companyId)}/${productId}/icp/generate`, {
+export async function generateProductICP(
+  token: string, 
+  companyId: string, 
+  productId: string, 
+  icp_input?: string
+): Promise<IdealCustomerProfile> {
+  const response = await fetch(`${apiEndpoints.companies.products(companyId)}/${productId}/icp`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
+    body: icp_input ? JSON.stringify({ icp_input }) : undefined,
   });
 
   if (!response.ok) {
