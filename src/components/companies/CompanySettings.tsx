@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Calendar, Check, X, Mail, Mic, Lock, ChevronDown, User, Info, MessageSquare, UserSquare2, UserCircle, Volume2, Globe2, UserPlus, AlertCircle, Loader2 } from 'lucide-react';
+import { Calendar, Check, X, Mail, Mic, Lock, ChevronDown, User, Info, UserSquare2, UserCircle, Volume2, Globe2, UserPlus, AlertCircle, Loader2 } from 'lucide-react';
 import { getToken } from '../../utils/auth';
 import { Company, getCompanyById, disconnectCalendar } from '../../services/companies';
 import { AccountCredentials, updateAccountCredentials } from '../../services/companySettings';
@@ -10,14 +10,9 @@ import { Dialog } from '../shared/Dialog';
 import { PageHeader } from '../shared/PageHeader';
 import clsx from 'clsx';
 import { apiEndpoints } from '../../config';
-import { toast } from 'react-hot-toast';
 import { v4 as uuidv4 } from 'uuid';
 import { CompanyUsers } from './CompanyUsers';
 import { useUserRole } from '../../hooks/useUserRole';
-
-type VoiceType = 'josh' | 'florian' | 'derek' | 'june' | 'nat' | 'paige';
-type BackgroundTrackType = 'office' | 'cafe' | 'restaurant' | 'none';
-type LanguageCode = 'en-US' | 'en-GB' | 'en-AU' | 'en-IN' | 'zh-CN' | 'es-ES' | 'fr-FR' | 'de-DE' | 'it-IT' | 'ja-JP' | 'ko-KR' | 'pt-BR' | 'ru-RU' | 'hi-IN' | 'ar-SA' | 'tr-TR' | 'pl-PL' | 'nl-NL' | 'cs-CZ' | 'sk-SK';
 
 function getOAuthUrl(providerName: string, companyId: string): string {
   const redirectUri = `${window.location.origin}/cronofy-auth`;
@@ -164,13 +159,14 @@ const languageOptions: LanguageOption[] = [
 ];
 
 interface VoiceAgentSettings {
-  voice?: string;
-  background_track?: string;
+  voice: string;
+  background_track: string;
   temperature?: number;
-  language?: string;
-  prompt?: string;
-  call_from_number?: string;
-  transfer_number?: string;
+  language: string;
+  prompt: string;
+  call_from_number: string;
+  transfer_number: string;
+  agent_name: string;
 }
 
 interface InviteUserRow {
@@ -213,8 +209,9 @@ export function CompanySettings() {
   const [isVoiceDropdownOpen, setIsVoiceDropdownOpen] = useState(false);
   const [selectedBackground, setSelectedBackground] = useState<string>('none');
   const [isBackgroundDropdownOpen, setIsBackgroundDropdownOpen] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState<string>('en-US');
+  const [selectedLanguage, setSelectedLanguage] = useState<string[]>([]);
   const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false);
+  const [agentName, setAgentName] = useState<string>('');
   const [credentials, setCredentials] = useState<AccountCredentials>({
     account_email: '',
     account_password: '',
@@ -261,10 +258,11 @@ export function CompanySettings() {
             const settings = companyData.voice_agent_settings;
             setSelectedVoice(settings.voice || 'florian');
             setSelectedBackground(settings.background_track || 'none');
-            setSelectedLanguage(settings.language || 'en-US');
+            setSelectedLanguage(settings.language ? [settings.language] : []);
             setPrompt(settings.prompt || '');
             setCallFromNumber(settings.call_from_number || '');
             setTransferNumber(settings.transfer_number || '');
+            setAgentName(settings.agent_name || '');
           }
 
           if (companyData.account_email) {
@@ -364,23 +362,24 @@ export function CompanySettings() {
     try {
       const token = getToken();
       if (!token) {
-        showToast('Authentication failed. Please try logging in again.', 'error');
+        showToast('Authentication failed', 'error');
         return;
       }
 
-      const response = await fetch(apiEndpoints.companies.voiceAgentSettings(companyId), {
+      const response = await fetch(apiEndpoints.companies.voiceAgentSettings(companyId || ''), {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          prompt,
           voice: selectedVoice,
           background_track: selectedBackground,
-          language: selectedLanguage,
+          language: selectedLanguage.join(','),
+          prompt,
           call_from_number: callFromNumber,
           transfer_number: transferNumber,
+          agent_name: agentName
         }),
       });
 
@@ -1103,6 +1102,48 @@ export function CompanySettings() {
               <div className="px-6 py-6 space-y-6">
                 <div>
                   <div className="flex items-center space-x-2">
+                    <label htmlFor="agentName" className="block text-sm font-medium text-gray-700">
+                      Default Agent Name
+                    </label>
+                    <Tooltip.Provider>
+                      <Tooltip.Root>
+                        <Tooltip.Trigger asChild>
+                          <button
+                            type="button"
+                            className="inline-flex items-center text-gray-400 hover:text-gray-500"
+                          >
+                            <Info className="h-4 w-4" />
+                          </button>
+                        </Tooltip.Trigger>
+                        <Tooltip.Portal>
+                          <Tooltip.Content
+                            className="bg-gray-900 text-white px-4 py-2 rounded text-xs max-w-xs z-50"
+                            sideOffset={5}
+                          >
+                            The name your AI agent will use when introducing itself
+                            <Tooltip.Arrow className="fill-gray-900" />
+                          </Tooltip.Content>
+                        </Tooltip.Portal>
+                      </Tooltip.Root>
+                    </Tooltip.Provider>
+                  </div>
+                  <div className="relative mt-1">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <UserCircle className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      type="text"
+                      id="agentName"
+                      name="agentName"
+                      value={agentName}
+                      onChange={(e) => setAgentName(e.target.value)}
+                      className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      placeholder="e.g. Alex, Sarah, etc."
+                    />
+                  </div>
+                </div>
+                <div>
+                  <div className="flex items-center space-x-2">
                     <label htmlFor="voice" className="block text-sm font-medium text-gray-700">
                       Voice Selection
                     </label>
@@ -1121,7 +1162,7 @@ export function CompanySettings() {
                             className="bg-gray-900 text-white px-4 py-2 rounded text-xs max-w-xs z-50"
                             sideOffset={5}
                           >
-                            The voice of the AI agent to use
+                            Voice of your AI agent
                             <Tooltip.Arrow className="fill-gray-900" />
                           </Tooltip.Content>
                         </Tooltip.Portal>
@@ -1206,7 +1247,7 @@ export function CompanySettings() {
                             className="bg-gray-900 text-white px-4 py-2 rounded text-xs max-w-xs z-50"
                             sideOffset={5}
                           >
-                            Select a supported language of your choice
+                            Language you'd like to support
                             <Tooltip.Arrow className="fill-gray-900" />
                           </Tooltip.Content>
                         </Tooltip.Portal>
@@ -1223,11 +1264,16 @@ export function CompanySettings() {
                         <Globe2 className="h-5 w-5 text-gray-400" />
                       </div>
                       <span className="block truncate">
-                        {(() => {
-                          const lang = languageOptions.find(l => l.id === selectedLanguage);
-                          if (!lang) return 'Select language';
-                          return lang.region ? `${lang.label} (${lang.region})` : lang.label;
-                        })()}
+                        {selectedLanguage.length === 0 
+                          ? 'Select languages' 
+                          : selectedLanguage.length === 1 
+                            ? (() => {
+                                const lang = languageOptions.find(l => l.id === selectedLanguage[0]);
+                                if (!lang) return 'Select languages';
+                                return lang.region ? `${lang.label} (${lang.region})` : lang.label;
+                              })()
+                            : `${selectedLanguage.length} languages selected`
+                        }
                       </span>
                       <span className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                         <ChevronDown className="h-5 w-5 text-gray-400" />
@@ -1239,20 +1285,24 @@ export function CompanySettings() {
                           <div
                             key={language.id}
                             className={`${
-                              selectedLanguage === language.id ? 'bg-indigo-50 text-indigo-900' : 'text-gray-900'
+                              selectedLanguage.includes(language.id) ? 'bg-indigo-50 text-indigo-900' : 'text-gray-900'
                             } cursor-pointer select-none relative py-2 pl-10 pr-4 hover:bg-indigo-50`}
                             onClick={() => {
-                              setSelectedLanguage(language.id);
-                              setIsLanguageDropdownOpen(false);
+                              const isSelected = selectedLanguage.includes(language.id);
+                              if (isSelected) {
+                                setSelectedLanguage(selectedLanguage.filter(id => id !== language.id));
+                              } else {
+                                setSelectedLanguage([...selectedLanguage, language.id]);
+                              }
                             }}
                           >
                             <span className="absolute inset-y-0 left-0 flex items-center pl-3">
                               <Globe2 className="h-5 w-5 text-gray-400" />
                             </span>
-                            <span className={`block truncate ${selectedLanguage === language.id ? 'font-semibold' : 'font-normal'}`}>
+                            <span className={`block truncate ${selectedLanguage.includes(language.id) ? 'font-semibold' : 'font-normal'}`}>
                               {language.region ? `${language.label} (${language.region})` : language.label}
                             </span>
-                            {selectedLanguage === language.id && (
+                            {selectedLanguage.includes(language.id) && (
                               <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-indigo-600">
                                 <Check className="h-5 w-5" />
                               </span>
@@ -1266,7 +1316,7 @@ export function CompanySettings() {
                 <div>
                   <div className="flex items-center space-x-2">
                     <label htmlFor="background" className="block text-sm font-medium text-gray-700">
-                      Background Track
+                      Background Sounds
                     </label>
                     <Tooltip.Provider>
                       <Tooltip.Root>
@@ -1283,7 +1333,7 @@ export function CompanySettings() {
                             className="bg-gray-900 text-white px-4 py-2 rounded text-xs max-w-xs z-50"
                             sideOffset={5}
                           >
-                            Select an audio track that you'd like to play in the background during the call.
+                            What background sounds you'd like to have. This makes agents appear more human.
                             <Tooltip.Arrow className="fill-gray-900" />
                           </Tooltip.Content>
                         </Tooltip.Portal>
@@ -1356,7 +1406,7 @@ export function CompanySettings() {
                             className="bg-gray-900 text-white px-4 py-2 rounded text-xs max-w-xs z-50"
                             sideOffset={5}
                           >
-                            Number that prospects will see when receiving calls
+                            Which number should appear in the calls
                             <Tooltip.Arrow className="fill-gray-900" />
                           </Tooltip.Content>
                         </Tooltip.Portal>
@@ -1403,7 +1453,7 @@ export function CompanySettings() {
                             className="bg-gray-900 text-white px-4 py-2 rounded text-xs max-w-xs z-50"
                             sideOffset={5}
                           >
-                            If prospects want to be transferred, this is the number that will be used
+                            If prospects want to talk to a human which number should be used
                             <Tooltip.Arrow className="fill-gray-900" />
                           </Tooltip.Content>
                         </Tooltip.Portal>
@@ -1426,6 +1476,29 @@ export function CompanySettings() {
                   <label htmlFor="script" className="block text-sm font-medium text-gray-700 mb-1">
                     Basic guideline for the agent
                   </label>
+                  <div className="flex items-center space-x-2 mb-1">
+                    <Tooltip.Provider>
+                      <Tooltip.Root>
+                        <Tooltip.Trigger asChild>
+                          <button
+                            type="button"
+                            className="inline-flex items-center text-gray-400 hover:text-gray-500"
+                          >
+                            <Info className="h-4 w-4" />
+                          </button>
+                        </Tooltip.Trigger>
+                        <Tooltip.Portal>
+                          <Tooltip.Content
+                            className="bg-gray-900 text-white px-4 py-2 rounded text-xs max-w-xs z-50"
+                            sideOffset={5}
+                          >
+                            What instructions would you like to give to the agent
+                            <Tooltip.Arrow className="fill-gray-900" />
+                          </Tooltip.Content>
+                        </Tooltip.Portal>
+                      </Tooltip.Root>
+                    </Tooltip.Provider>
+                  </div>
                   <div className="relative">
                     <textarea
                       id="script"
