@@ -6,6 +6,7 @@ import { Product, getProduct, updateProduct } from '../../services/products';
 import { PageHeader } from '../shared/PageHeader';
 import { useToast } from '../../context/ToastContext';
 import { EnrichedProductInfo } from './EnrichedProductInfo';
+import { IdealCustomerProfiles } from './IdealCustomerProfiles';
 
 export function EditProduct() {
   const { companyId, productId } = useParams();
@@ -190,6 +191,13 @@ export function EditProduct() {
             </button>
           </div>
         </form>
+
+        {/* Ideal Customer Profiles Section */}
+        {productId && companyId && (
+          <div className="mt-8 pt-6 border-t border-gray-200">
+            <IdealCustomerProfiles companyId={companyId} productId={productId} />
+          </div>
+        )}
 
         {product?.enriched_information && (
           <div className="mt-8 pt-6 border-t border-gray-200">
