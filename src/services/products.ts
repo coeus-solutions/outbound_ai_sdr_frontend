@@ -228,4 +228,83 @@ export async function deleteProduct(token: string, companyId: string, productId:
   if (!response.ok) {
     throw new Error('Failed to delete product');
   }
+}
+
+export interface IdealCustomerProfile {
+  id: string;
+  idealCustomerProfile: {
+    name: string;
+    buyingTriggers: string[];
+    companyAttributes: {
+      funding: {
+        fundingRounds: string[];
+        hasReceivedFunding: boolean;
+      };
+      maturity: string[];
+      industries: string[];
+      companySize: {
+        revenue: {
+          max: number;
+          min: number;
+          currency: string;
+        };
+        employees: {
+          max: number;
+          min: number;
+        };
+      };
+      geographies: {
+        regions: string[];
+        countries: string[];
+      };
+      technologies: string[];
+    };
+    contactAttributes: {
+      jobTitles: string[];
+      seniority: string[];
+      departments: string[];
+      responsibilities: string[];
+    };
+    exclusionCriteria?: {
+      industries?: string[];
+      companySize?: {
+        employees?: {
+          max?: number;
+          min?: number;
+        };
+      };
+    };
+    businessChallenges: string[];
+  };
+}
+
+export async function getProductICPs(token: string, companyId: string, productId: string): Promise<IdealCustomerProfile[]> {
+  const response = await fetch(`${apiEndpoints.companies.products(companyId)}/${productId}/icp`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch ideal customer profiles');
+  }
+
+  return response.json();
+}
+
+export async function generateProductICP(token: string, companyId: string, productId: string): Promise<IdealCustomerProfile> {
+  const response = await fetch(`${apiEndpoints.companies.products(companyId)}/${productId}/icp/generate`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to generate ideal customer profile');
+  }
+
+  return response.json();
 } 
