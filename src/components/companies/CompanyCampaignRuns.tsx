@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { CampaignRun, getCampaignRuns } from '../../services/emailCampaigns';
 import { formatDate } from '../../utils/date';
@@ -9,6 +9,7 @@ import { TableSkeletonLoader } from '../shared/TableSkeletonLoader';
 import { PageHeader } from '../shared/PageHeader';
 import { getCompanyById, type Company } from '../../services/companies';
 import { useToast } from '../../context/ToastContext';
+import { Mail, Phone } from 'lucide-react';
 
 export function CompanyCampaignRuns() {
   const { companyId } = useParams<{ companyId: string }>();
@@ -75,6 +76,9 @@ export function CompanyCampaignRuns() {
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Processed Leads
                   </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -100,6 +104,9 @@ export function CompanyCampaignRuns() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="h-4 bg-gray-200 rounded animate-pulse w-12"></div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="h-4 bg-gray-200 rounded animate-pulse w-20"></div>
                     </td>
                   </tr>
                 ))}
@@ -185,6 +192,9 @@ export function CompanyCampaignRuns() {
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Processed Leads
                 </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -193,8 +203,17 @@ export function CompanyCampaignRuns() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {formatDate(run.run_at)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {run.campaigns.name}
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      {run.campaigns.type === 'email' ? (
+                        <Mail className="w-4 h-4 text-blue-500 mr-2" />
+                      ) : run.campaigns.type === 'call' ? (
+                        <Phone className="w-4 h-4 text-purple-500 mr-2" />
+                      ) : (
+                        <span className="w-4 h-4 mr-2" />
+                      )}
+                      <span className="text-sm text-gray-900">{run.campaigns.name}</span>
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(run.status)}`}>
@@ -219,6 +238,14 @@ export function CompanyCampaignRuns() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {run.leads_processed}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <Link
+                      to={`/companies/${companyId}/${run.campaigns.type === 'email' ? 'emails' : 'calls'}?campaign_run_id=${run.id}`}
+                      className="text-indigo-600 hover:text-indigo-900"
+                    >
+                      View Details
+                    </Link>
                   </td>
                 </tr>
               ))}

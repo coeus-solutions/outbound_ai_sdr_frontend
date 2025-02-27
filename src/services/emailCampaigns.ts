@@ -39,6 +39,7 @@ export interface CampaignRun {
   created_at: string;
   campaigns: {
     name: string;
+    type: 'email' | 'call';
   };
 }
 
