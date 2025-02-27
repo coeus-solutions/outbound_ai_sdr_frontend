@@ -37,6 +37,9 @@ export interface CampaignRun {
   leads_processed: number;
   status: string;
   created_at: string;
+  campaigns: {
+    name: string;
+  };
 }
 
 export async function getCompanyCampaigns(token: string, companyId: string, type?: 'email' | 'call' | 'all'): Promise<Campaign[]> {
