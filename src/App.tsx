@@ -24,6 +24,7 @@ import { GettingStarted } from './components/dashboard/GettingStarted';
 import { UserProfile } from './components/user/UserProfile';
 import { VerifyAccount } from './components/auth/VerifyAccount';
 import { InviteSignup } from './components/auth/InviteSignup';
+import { CompanyCampaignRuns } from './components/companies/CompanyCampaignRuns';
 
 export function App() {
   const { isAuthenticated, logout } = useAuth();
@@ -90,6 +91,7 @@ export function App() {
             <Route path="/companies/:companyId/calls" element={<CompanyCallLogs />} />
             <Route path="/companies/:companyId/emails" element={<CompanyEmails />} />
             <Route path="/companies/:companyId/campaigns" element={<CompanyCampaigns />} />
+            <Route path="/companies/:companyId/campaign-runs" element={<CompanyCampaignRuns />} />
             <Route path="/companies/:companyId/campaigns/new" element={<AddEmailCampaign />} />
             <Route path="/companies/:companyId/settings" element={<CompanySettings />} />
             <Route path="/cronofy-auth" element={<CronofyCallback />} />

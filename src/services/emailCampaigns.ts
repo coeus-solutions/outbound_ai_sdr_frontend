@@ -29,6 +29,16 @@ export interface RunCampaignResponse {
   status: string;
 }
 
+export interface CampaignRun {
+  id: string;
+  campaign_id: string;
+  run_at: string;
+  leads_total: number;
+  leads_processed: number;
+  status: string;
+  created_at: string;
+}
+
 export async function getCompanyCampaigns(token: string, companyId: string, type?: 'email' | 'call' | 'all'): Promise<Campaign[]> {
   const url = new URL(apiEndpoints.companies.emailCampaigns.list(companyId));
   if (type) {
@@ -87,4 +97,24 @@ export async function runCampaign(token: string, campaignId: string): Promise<Ru
   }
 
   return data;
+}
+
+export async function getCampaignRuns(token: string, companyId: string, campaignId?: string): Promise<CampaignRun[]> {
+  let url = apiEndpoints.companies.campaignRuns.list(companyId);
+  if (campaignId) {
+    url += `?campaign_id=${campaignId}`;
+  }
+
+  const response = await fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch campaign runs');
+  }
+
+  return response.json();
 } 
