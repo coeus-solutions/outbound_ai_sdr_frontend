@@ -29,7 +29,8 @@ export async function getCompanyEmails(
   token: string,
   companyId: string,
   campaignId?: string,
-  leadId?: string
+  leadId?: string,
+  campaignRunId?: string
 ): Promise<EmailLog[]> {
   const url = new URL(apiEndpoints.companies.emails.list(companyId));
   if (campaignId) {
@@ -37,6 +38,9 @@ export async function getCompanyEmails(
   }
   if (leadId) {
     url.searchParams.append('lead_id', leadId);
+  }
+  if (campaignRunId) {
+    url.searchParams.append('campaign_run_id', campaignRunId);
   }
 
   const response = await fetch(url.toString(), {
