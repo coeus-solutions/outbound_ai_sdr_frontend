@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { CallLogList } from '../calls/CallLogList';
 import { CallLogFilters } from '../calls/CallLogFilters';
 import { useCallLogs } from '../../hooks/useCallLogs';
@@ -11,8 +11,11 @@ import type { Company } from '../../services/companies';
 
 export function CompanyCallLogs() {
   const { companyId } = useParams();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const campaignRunId = queryParams.get('campaign_run_id');
   const { showToast } = useToast();
-  const { callLogs, isLoading: isLoadingCalls, error: callLogsError, filters, setFilters } = useCallLogs(companyId || '');
+  const { callLogs, isLoading: isLoadingCalls, error: callLogsError, filters, setFilters } = useCallLogs(companyId || '', campaignRunId);
   const [company, setCompany] = useState<Company | null>(null);
   const [isLoadingCompany, setIsLoadingCompany] = useState(true);
   const [error, setError] = useState<string | null>(null);

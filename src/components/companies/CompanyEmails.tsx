@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { EmailLogList } from '../emails/EmailLogList';
 import { EmailLogFilters } from '../emails/EmailLogFilters';
 import { useEmailLogs } from '../../hooks/useEmailLogs';
@@ -11,8 +11,11 @@ import type { Company } from '../../services/companies';
 
 export function CompanyEmails() {
   const { companyId } = useParams();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const campaignRunId = queryParams.get('campaign_run_id') || undefined;
   const { showToast } = useToast();
-  const { emailLogs, isLoading: isLoadingEmails, error: emailLogsError, filters, setFilters } = useEmailLogs(companyId || '');
+  const { emailLogs, isLoading: isLoadingEmails, error: emailLogsError, filters, setFilters } = useEmailLogs(companyId || '', campaignRunId);
   const [company, setCompany] = useState<Company | null>(null);
   const [isLoadingCompany, setIsLoadingCompany] = useState(true);
   const [error, setError] = useState<string | null>(null);

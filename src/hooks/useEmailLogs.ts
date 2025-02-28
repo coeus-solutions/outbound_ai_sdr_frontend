@@ -7,7 +7,7 @@ export interface EmailLogFilters {
   lead_id?: string;
 }
 
-export function useEmailLogs(companyId: string) {
+export function useEmailLogs(companyId: string, campaignRunId?: string) {
   const { showToast } = useToast();
   const [emailLogs, setEmailLogs] = useState<EmailLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -26,7 +26,7 @@ export function useEmailLogs(companyId: string) {
           return;
         }
 
-        const logs = await getCompanyEmails(token, companyId, filters.campaign_id, filters.lead_id);
+        const logs = await getCompanyEmails(token, companyId, filters.campaign_id, filters.lead_id, campaignRunId);
         setEmailLogs(logs);
         setError(null);
       } catch (err) {
@@ -40,7 +40,7 @@ export function useEmailLogs(companyId: string) {
     }
 
     fetchEmailLogs();
-  }, [companyId, filters.campaign_id, filters.lead_id, showToast]);
+  }, [companyId, filters.campaign_id, filters.lead_id, showToast, campaignRunId]);
 
   return {
     emailLogs,

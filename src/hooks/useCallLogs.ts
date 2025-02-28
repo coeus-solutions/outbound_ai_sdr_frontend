@@ -9,7 +9,7 @@ interface CallLogFilters {
   lead_id?: string;
 }
 
-export function useCallLogs(companyId: string) {
+export function useCallLogs(companyId: string, campaignRunId?: string) {
   const [callLogs, setCallLogs] = useState<CallLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -35,7 +35,7 @@ export function useCallLogs(companyId: string) {
         }
 
         console.log('Fetching call logs for company:', companyId);
-        const data = await getCompanyCalls(token, companyId, filters.campaign_id);
+        const data = await getCompanyCalls(token, companyId, filters.campaign_id, campaignRunId);
         console.log('Call logs response:', data);
 
         if (!Array.isArray(data)) {
@@ -57,7 +57,7 @@ export function useCallLogs(companyId: string) {
     };
 
     loadCallLogs();
-  }, [companyId, filters.campaign_id]);
+  }, [companyId, filters.campaign_id, campaignRunId]);
 
   // Filter the call logs based on the current filters
   const filteredCallLogs = callLogs.filter(log => {
