@@ -21,6 +21,7 @@ interface LeadTableProps {
   onPageChange: (page: number) => void;
   onSearch: (term: string) => void;
   searchTerm: string;
+  isLoading?: boolean;
 }
 
 export function LeadTable({ 
@@ -31,7 +32,8 @@ export function LeadTable({
   totalItems,
   onPageChange,
   onSearch,
-  searchTerm
+  searchTerm,
+  isLoading = false
 }: LeadTableProps) {
   const { companyId } = useParams();
   const { showToast } = useToast();
@@ -217,14 +219,15 @@ export function LeadTable({
             <div className="flex items-center space-x-4">
               <button
                 onClick={handleSelectAll}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                disabled={isLoading}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {selectedLeads.size === currentLeads.length ? 'Deselect All' : 'Select All'}
               </button>
               {selectedLeads.size > 0 && (
                 <button
                   onClick={handleDeleteSelected}
-                  disabled={isDeleting}
+                  disabled={isDeleting || isLoading}
                   className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
                 >
                   {isDeleting ? (
@@ -242,26 +245,35 @@ export function LeadTable({
               )}
             </div>
             <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-700">
-                Showing {((currentPage - 1) * 20) + 1} to {Math.min(currentPage * 20, totalItems)} of {totalItems} leads
-              </span>
-              <button
-                onClick={() => onPageChange(Math.max(currentPage - 1, 1))}
-                disabled={currentPage === 1}
-                className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Previous
-              </button>
-              <span className="text-sm text-gray-700">
-                Page {currentPage} of {totalPages}
-              </span>
-              <button
-                onClick={() => onPageChange(Math.min(currentPage + 1, totalPages))}
-                disabled={currentPage === totalPages}
-                className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Next
-              </button>
+              {!isLoading ? (
+                <>
+                  <span className="text-sm text-gray-700">
+                    Showing {((currentPage - 1) * 20) + 1} to {Math.min(currentPage * 20, totalItems)} of {totalItems} leads
+                  </span>
+                  <button
+                    onClick={() => onPageChange(Math.max(currentPage - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Previous
+                  </button>
+                  <span className="text-sm text-gray-700">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <button
+                    onClick={() => onPageChange(Math.min(currentPage + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Next
+                  </button>
+                </>
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                  <span className="text-sm text-gray-500">Loading...</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -277,6 +289,7 @@ export function LeadTable({
                         className="absolute left-4 top-1/2 -mt-2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
                         checked={selectedLeads.size === currentLeads.length && currentLeads.length > 0}
                         onChange={handleSelectAll}
+                        disabled={isLoading}
                       />
                     </th>
                     <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
@@ -300,124 +313,162 @@ export function LeadTable({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 bg-white">
-                  {currentLeads.map((lead) => (
-                    <tr 
-                      key={lead.id} 
-                      onClick={() => handleLeadClick(lead)}
-                      className="cursor-pointer hover:bg-gray-50"
-                    >
-                      <td className="relative py-4 pl-4 pr-3 sm:pl-6">
-                        <input
-                          type="checkbox"
-                          className="absolute left-4 top-1/2 -mt-2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
-                          checked={selectedLeads.has(lead.id)}
-                          onChange={(e) => e.stopPropagation()}
-                          onClick={(e) => handleSelectLead(e, lead.id)}
-                        />
-                      </td>
-                      <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                        {lead.name}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-col space-y-1">
-                          {lead.email && (
-                            <div className="flex items-center text-sm text-gray-900">
-                              <Mail className="h-4 w-4 mr-2 text-gray-400" />
-                              <a href={`mailto:${lead.email}`} className="hover:text-indigo-600">
-                                {lead.email}
-                              </a>
-                            </div>
-                          )}
-                          {lead.phone_number && (
-                            <div className="flex items-center text-sm text-gray-500">
-                              <Phone className="h-4 w-4 mr-2 text-gray-400" />
-                              <a href={`tel:${lead.phone_number}`} className="hover:text-indigo-600">
-                                {lead.phone_number}
-                              </a>
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-col space-y-1">
-                          {lead.company && (
-                            <div className="flex items-center text-sm text-gray-900">
-                              <Building2 className="h-4 w-4 mr-2 text-gray-400" />
-                              {lead.company}
-                            </div>
-                          )}
-                          {lead.company_size && (
-                            <div className="text-sm text-gray-500">
-                              Size: {lead.company_size}
-                            </div>
-                          )}
-                          {lead.company_revenue && (
-                            <div className="text-sm text-gray-500">
-                              Revenue: {lead.company_revenue}
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        {lead.job_title && (
-                          <div className="flex items-center text-sm text-gray-900">
-                            <Briefcase className="h-4 w-4 mr-2 text-gray-400" />
-                            {lead.job_title}
+                  {isLoading ? (
+                    // Loading skeleton rows
+                    Array.from({ length: 10 }).map((_, index) => (
+                      <tr key={`skeleton-${index}`} className="animate-pulse">
+                        <td className="relative py-4 pl-4 pr-3 sm:pl-6">
+                          <div className="h-4 w-4 rounded bg-gray-200" />
+                        </td>
+                        <td className="whitespace-nowrap py-4 pl-4 pr-3 sm:pl-6">
+                          <div className="h-4 w-32 bg-gray-200 rounded" />
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="space-y-2">
+                            <div className="h-4 w-40 bg-gray-200 rounded" />
+                            <div className="h-4 w-32 bg-gray-200 rounded" />
                           </div>
-                        )}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex space-x-3">
-                          {lead.company_facebook && (
-                            <a
-                              href={lead.company_facebook}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-gray-400 hover:text-blue-500"
-                            >
-                              <Facebook className="h-5 w-5" />
-                            </a>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="space-y-2">
+                            <div className="h-4 w-36 bg-gray-200 rounded" />
+                            <div className="h-4 w-24 bg-gray-200 rounded" />
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="h-4 w-28 bg-gray-200 rounded" />
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex space-x-3">
+                            <div className="h-5 w-5 bg-gray-200 rounded" />
+                            <div className="h-5 w-5 bg-gray-200 rounded" />
+                          </div>
+                        </td>
+                        <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                          <div className="h-5 w-5 bg-gray-200 rounded ml-auto" />
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    currentLeads.map((lead) => (
+                      <tr 
+                        key={lead.id} 
+                        onClick={() => handleLeadClick(lead)}
+                        className="cursor-pointer hover:bg-gray-50"
+                      >
+                        <td className="relative py-4 pl-4 pr-3 sm:pl-6">
+                          <input
+                            type="checkbox"
+                            className="absolute left-4 top-1/2 -mt-2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                            checked={selectedLeads.has(lead.id)}
+                            onChange={(e) => e.stopPropagation()}
+                            onClick={(e) => handleSelectLead(e, lead.id)}
+                          />
+                        </td>
+                        <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                          {lead.name}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex flex-col space-y-1">
+                            {lead.email && (
+                              <div className="flex items-center text-sm text-gray-900">
+                                <Mail className="h-4 w-4 mr-2 text-gray-400" />
+                                <a href={`mailto:${lead.email}`} className="hover:text-indigo-600">
+                                  {lead.email}
+                                </a>
+                              </div>
+                            )}
+                            {lead.phone_number && (
+                              <div className="flex items-center text-sm text-gray-500">
+                                <Phone className="h-4 w-4 mr-2 text-gray-400" />
+                                <a href={`tel:${lead.phone_number}`} className="hover:text-indigo-600">
+                                  {lead.phone_number}
+                                </a>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex flex-col space-y-1">
+                            {lead.company && (
+                              <div className="flex items-center text-sm text-gray-900">
+                                <Building2 className="h-4 w-4 mr-2 text-gray-400" />
+                                {lead.company}
+                              </div>
+                            )}
+                            {lead.company_size && (
+                              <div className="text-sm text-gray-500">
+                                Size: {lead.company_size}
+                              </div>
+                            )}
+                            {lead.company_revenue && (
+                              <div className="text-sm text-gray-500">
+                                Revenue: {lead.company_revenue}
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          {lead.job_title && (
+                            <div className="flex items-center text-sm text-gray-900">
+                              <Briefcase className="h-4 w-4 mr-2 text-gray-400" />
+                              {lead.job_title}
+                            </div>
                           )}
-                          {lead.company_twitter && (
-                            <a
-                              href={lead.company_twitter}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-gray-400 hover:text-blue-400"
-                            >
-                              <Twitter className="h-5 w-5" />
-                            </a>
-                          )}
-                        </div>
-                      </td>
-                      <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                        <Tooltip.Provider>
-                          <Tooltip.Root>
-                            <Tooltip.Trigger asChild>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleLeadClick(lead);
-                                }}
-                                className="text-gray-400 hover:text-gray-600"
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex space-x-3">
+                            {lead.company_facebook && (
+                              <a
+                                href={lead.company_facebook}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-gray-400 hover:text-blue-500"
                               >
-                                <ChevronRight className="h-5 w-5" />
-                              </button>
-                            </Tooltip.Trigger>
-                            <Tooltip.Portal>
-                              <Tooltip.Content
-                                className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
-                                sideOffset={5}
+                                <Facebook className="h-5 w-5" />
+                              </a>
+                            )}
+                            {lead.company_twitter && (
+                              <a
+                                href={lead.company_twitter}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-gray-400 hover:text-blue-400"
                               >
-                                View Details
-                                <Tooltip.Arrow className="fill-gray-900" />
-                              </Tooltip.Content>
-                            </Tooltip.Portal>
-                          </Tooltip.Root>
-                        </Tooltip.Provider>
-                      </td>
-                    </tr>
-                  ))}
+                                <Twitter className="h-5 w-5" />
+                              </a>
+                            )}
+                          </div>
+                        </td>
+                        <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                          <Tooltip.Provider>
+                            <Tooltip.Root>
+                              <Tooltip.Trigger asChild>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleLeadClick(lead);
+                                  }}
+                                  className="text-gray-400 hover:text-gray-600"
+                                >
+                                  <ChevronRight className="h-5 w-5" />
+                                </button>
+                              </Tooltip.Trigger>
+                              <Tooltip.Portal>
+                                <Tooltip.Content
+                                  className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
+                                  sideOffset={5}
+                                >
+                                  View Details
+                                  <Tooltip.Arrow className="fill-gray-900" />
+                                </Tooltip.Content>
+                              </Tooltip.Portal>
+                            </Tooltip.Root>
+                          </Tooltip.Provider>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>

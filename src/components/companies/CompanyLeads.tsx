@@ -11,6 +11,7 @@ import { Company, getCompanyById } from '../../services/companies';
 import { uploadLeads } from '../../services/leads';
 import { useToast } from '../../context/ToastContext';
 import { CsvFormatDialog } from './CsvFormatDialog';
+import { useDebounce } from '../../hooks/useDebounce';
 
 export function CompanyLeads() {
   const { companyId } = useParams();
@@ -27,10 +28,14 @@ export function CompanyLeads() {
   const [searchTerm, setSearchTerm] = useState('');
   const [pageSize] = useState(20);
 
+  // Add debounced search term
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
   const fetchData = async (page: number = 1, search?: string) => {
     if (!companyId) return;
 
     try {
+      setIsLoading(true);
       const token = getToken();
       if (!token) {
         setError('Authentication token not found');
@@ -60,8 +65,8 @@ export function CompanyLeads() {
   };
 
   useEffect(() => {
-    fetchData(currentPage, searchTerm);
-  }, [companyId, currentPage, searchTerm, showToast]);
+    fetchData(currentPage, debouncedSearchTerm);
+  }, [companyId, currentPage, debouncedSearchTerm, showToast]);
 
   const handleFileUpload = async (file: File) => {
     if (!companyId) return;
@@ -88,11 +93,13 @@ export function CompanyLeads() {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
+    setIsLoading(true);
+    fetchData(page, searchTerm);
   };
 
   const handleSearch = (term: string) => {
     setSearchTerm(term);
-    setCurrentPage(1); // Reset to first page when searching
+    setCurrentPage(1);
   };
 
   const uploadButton = (
@@ -114,14 +121,6 @@ export function CompanyLeads() {
       />
     </div>
   );
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-      </div>
-    );
-  }
 
   if (error) {
     return (
@@ -145,7 +144,7 @@ export function CompanyLeads() {
         action={uploadButton}
       />
 
-      {leads.length === 0 ? (
+      {(!isLoading && leads.length === 0) ? (
         <div className="mt-8 max-w-md mx-auto">
           <EmptyState
             title="No leads yet"
@@ -157,7 +156,7 @@ export function CompanyLeads() {
         </div>
       ) : (
         <LeadTable 
-          leads={leads} 
+          leads={isLoading ? [] : leads} 
           onLeadsDeleted={() => fetchData(currentPage)}
           currentPage={currentPage}
           totalPages={totalPages}
@@ -165,6 +164,7 @@ export function CompanyLeads() {
           onPageChange={handlePageChange}
           onSearch={handleSearch}
           searchTerm={searchTerm}
+          isLoading={isLoading}
         />
       )}
 
