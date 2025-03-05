@@ -6,6 +6,7 @@ import { getToken } from '../utils/auth';
 interface CallLogFilters {
   dateRange: 'all' | 'today' | 'week' | 'month';
   campaign_id?: string;
+  lead_id?: string;
 }
 
 export function useCallLogs(companyId: string, campaignRunId?: string) {
@@ -28,7 +29,7 @@ export function useCallLogs(companyId: string, campaignRunId?: string) {
           return;
         }
 
-        const data = await getCompanyCalls(token, companyId, filters.campaign_id, campaignRunId);
+        const data = await getCompanyCalls(token, companyId, filters.campaign_id, campaignRunId, filters.lead_id);
         setCallLogs(data);
         setError(null);
       } catch (err) {
@@ -40,7 +41,7 @@ export function useCallLogs(companyId: string, campaignRunId?: string) {
     }
 
     fetchCallLogs();
-  }, [companyId, filters.campaign_id, campaignRunId]);
+  }, [companyId, filters.campaign_id, campaignRunId, filters.lead_id]);
 
   // Filter the call logs based on the current filters
   const filteredCallLogs = callLogs.filter(log => {
