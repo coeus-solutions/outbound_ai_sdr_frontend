@@ -47,23 +47,10 @@ export function LeadTable({
   const ITEMS_PER_PAGE = 10;
 
   // Filter leads based on debounced search query
-  const filteredLeads = useMemo(() => {
-    if (!searchTerm.trim()) return leads;
-    
-    const query = searchTerm.toLowerCase().trim();
-    return leads.filter(lead => 
-      lead.name?.toLowerCase().includes(query) ||
-      lead.email?.toLowerCase().includes(query) ||
-      lead.company?.toLowerCase().includes(query) ||
-      lead.job_title?.toLowerCase().includes(query)
-    );
-  }, [leads, searchTerm]);
+  const filteredLeads = useMemo(() => leads, [leads]);
 
-  // Update pagination calculations to use filtered leads
-  const totalPagesFiltered = Math.ceil(filteredLeads.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentLeads = filteredLeads.slice(startIndex, endIndex);
+  // Remove local pagination calculations since API handles pagination
+  const currentLeads = filteredLeads;
 
   useEffect(() => {
     async function fetchProducts() {
@@ -256,7 +243,7 @@ export function LeadTable({
             </div>
             <div className="flex items-center space-x-2">
               <span className="text-sm text-gray-700">
-                Showing {startIndex + 1} to {Math.min(endIndex, filteredLeads.length)} of {filteredLeads.length} leads
+                Showing {((currentPage - 1) * 20) + 1} to {Math.min(currentPage * 20, totalItems)} of {totalItems} leads
               </span>
               <button
                 onClick={() => onPageChange(Math.max(currentPage - 1, 1))}
@@ -266,11 +253,11 @@ export function LeadTable({
                 Previous
               </button>
               <span className="text-sm text-gray-700">
-                Page {currentPage} of {totalPagesFiltered}
+                Page {currentPage} of {totalPages}
               </span>
               <button
-                onClick={() => onPageChange(Math.min(currentPage + 1, totalPagesFiltered))}
-                disabled={currentPage === totalPagesFiltered}
+                onClick={() => onPageChange(Math.min(currentPage + 1, totalPages))}
+                disabled={currentPage === totalPages}
                 className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Next
