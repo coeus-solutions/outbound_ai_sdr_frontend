@@ -144,7 +144,7 @@ export function CompanyLeads() {
         action={uploadButton}
       />
 
-      {(!isLoading && leads.length === 0) ? (
+      {(!isLoading && leads.length === 0 && !searchTerm) ? (
         <div className="mt-8 max-w-md mx-auto">
           <EmptyState
             title="No leads yet"
