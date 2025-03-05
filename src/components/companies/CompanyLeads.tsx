@@ -6,8 +6,9 @@ import { LeadTable } from '../leads/LeadTable';
 import { FileUpload } from '../shared/FileUpload';
 import { PageHeader } from '../shared/PageHeader';
 import { getToken } from '../../utils/auth';
-import { Lead, getLeads, uploadLeads } from '../../services/leads';
+import { Lead, PaginatedLeadResponse, getCompanyLeads } from '../../services/companies';
 import { Company, getCompanyById } from '../../services/companies';
+import { uploadLeads } from '../../services/leads';
 import { useToast } from '../../context/ToastContext';
 import { CsvFormatDialog } from './CsvFormatDialog';
 
@@ -20,8 +21,13 @@ export function CompanyLeads() {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isFormatDialogOpen, setIsFormatDialogOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalLeads, setTotalLeads] = useState(0);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [pageSize] = useState(20);
 
-  const fetchData = async () => {
+  const fetchData = async (page: number = 1, search?: string) => {
     if (!companyId) return;
 
     try {
@@ -35,11 +41,13 @@ export function CompanyLeads() {
       // Fetch both company details and leads in parallel
       const [companyData, leadsData] = await Promise.all([
         getCompanyById(token, companyId),
-        getLeads(token, companyId)
+        getCompanyLeads(token, companyId, page, pageSize, search)
       ]);
 
       setCompany(companyData);
-      setLeads(leadsData);
+      setLeads(leadsData.items);
+      setTotalPages(leadsData.total_pages);
+      setTotalLeads(leadsData.total);
       setError(null);
     } catch (error) {
       const errorMessage = 'Failed to fetch data';
@@ -52,8 +60,8 @@ export function CompanyLeads() {
   };
 
   useEffect(() => {
-    fetchData();
-  }, [companyId, showToast]);
+    fetchData(currentPage, searchTerm);
+  }, [companyId, currentPage, searchTerm, showToast]);
 
   const handleFileUpload = async (file: File) => {
     if (!companyId) return;
@@ -68,12 +76,23 @@ export function CompanyLeads() {
 
       await uploadLeads(token, companyId, file);
       showToast('Data Queued. Please check back in a few minutes.', 'success');
+      // Refresh the first page after upload
+      fetchData(1);
     } catch (error) {
       showToast('Failed to upload leads. Please make sure the CSV file is properly formatted.', 'error');
       console.error('Error uploading leads:', error);
     } finally {
       setIsUploading(false);
     }
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handleSearch = (term: string) => {
+    setSearchTerm(term);
+    setCurrentPage(1); // Reset to first page when searching
   };
 
   const uploadButton = (
@@ -137,7 +156,16 @@ export function CompanyLeads() {
           />
         </div>
       ) : (
-        <LeadTable leads={leads} onLeadsDeleted={fetchData} />
+        <LeadTable 
+          leads={leads} 
+          onLeadsDeleted={() => fetchData(currentPage)}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={totalLeads}
+          onPageChange={handlePageChange}
+          onSearch={handleSearch}
+          searchTerm={searchTerm}
+        />
       )}
 
       <CsvFormatDialog

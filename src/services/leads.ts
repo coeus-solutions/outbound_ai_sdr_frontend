@@ -3,7 +3,7 @@ import { apiEndpoints } from '../config';
 export interface Lead {
   id: string;
   name: string;
-  email: string;
+  email: string | null;
   company: string | null;
   phone_number: string;
   company_size: string | null;

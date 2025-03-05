@@ -5,7 +5,8 @@ import * as Tooltip from '@radix-ui/react-tooltip';
 import { useToast } from '../../context/ToastContext';
 import { getToken } from '../../utils/auth';
 import { getProducts, Product } from '../../services/products';
-import { Lead, LeadDetail, getLeadDetails, deleteLeads } from '../../services/leads';
+import { Lead } from '../../services/companies';
+import { LeadDetail, getLeadDetails, deleteLeads } from '../../services/leads';
 import { startCall } from '../../services/calls';
 import { CallDialog } from './CallDialog';
 import { LeadDetailsPanel } from './LeadDetailsPanel';
@@ -14,9 +15,24 @@ import { useDebounce } from '../../hooks/useDebounce';
 interface LeadTableProps {
   leads: Lead[];
   onLeadsDeleted?: () => void;
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  onPageChange: (page: number) => void;
+  onSearch: (term: string) => void;
+  searchTerm: string;
 }
 
-export function LeadTable({ leads, onLeadsDeleted }: LeadTableProps) {
+export function LeadTable({ 
+  leads, 
+  onLeadsDeleted,
+  currentPage,
+  totalPages,
+  totalItems,
+  onPageChange,
+  onSearch,
+  searchTerm
+}: LeadTableProps) {
   const { companyId } = useParams();
   const { showToast } = useToast();
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -25,37 +41,29 @@ export function LeadTable({ leads, onLeadsDeleted }: LeadTableProps) {
   const [isDetailsPanelOpen, setIsDetailsPanelOpen] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedLeads, setSelectedLeads] = useState<Set<string>>(new Set());
-  const [currentPage, setCurrentPage] = useState(1);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deletingProgress, setDeletingProgress] = useState(0);
-  const [searchQuery, setSearchQuery] = useState('');
-  const debouncedSearchQuery = useDebounce(searchQuery, 300); // 300ms delay
   
   const ITEMS_PER_PAGE = 10;
 
   // Filter leads based on debounced search query
   const filteredLeads = useMemo(() => {
-    if (!debouncedSearchQuery.trim()) return leads;
+    if (!searchTerm.trim()) return leads;
     
-    const query = debouncedSearchQuery.toLowerCase().trim();
+    const query = searchTerm.toLowerCase().trim();
     return leads.filter(lead => 
       lead.name?.toLowerCase().includes(query) ||
       lead.email?.toLowerCase().includes(query) ||
       lead.company?.toLowerCase().includes(query) ||
       lead.job_title?.toLowerCase().includes(query)
     );
-  }, [leads, debouncedSearchQuery]);
+  }, [leads, searchTerm]);
 
   // Update pagination calculations to use filtered leads
-  const totalPages = Math.ceil(filteredLeads.length / ITEMS_PER_PAGE);
+  const totalPagesFiltered = Math.ceil(filteredLeads.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
   const currentLeads = filteredLeads.slice(startIndex, endIndex);
-
-  // Reset page when search query changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery]);
 
   useEffect(() => {
     async function fetchProducts() {
@@ -202,14 +210,14 @@ export function LeadTable({ leads, onLeadsDeleted }: LeadTableProps) {
             </div>
             <input
               type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              value={searchTerm}
+              onChange={(e) => onSearch(e.target.value)}
               placeholder="Search leads by name, email, company, or job title..."
               className="form-input"
             />
-            {searchQuery && (
+            {searchTerm && (
               <button
-                onClick={() => setSearchQuery('')}
+                onClick={() => onSearch('')}
                 className="absolute inset-y-0 right-0 pr-3 flex items-center"
               >
                 <X className="h-5 w-5 text-gray-400 hover:text-gray-500" />
@@ -251,18 +259,18 @@ export function LeadTable({ leads, onLeadsDeleted }: LeadTableProps) {
                 Showing {startIndex + 1} to {Math.min(endIndex, filteredLeads.length)} of {filteredLeads.length} leads
               </span>
               <button
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                onClick={() => onPageChange(Math.max(currentPage - 1, 1))}
                 disabled={currentPage === 1}
                 className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Previous
               </button>
               <span className="text-sm text-gray-700">
-                Page {currentPage} of {totalPages}
+                Page {currentPage} of {totalPagesFiltered}
               </span>
               <button
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
+                onClick={() => onPageChange(Math.min(currentPage + 1, totalPagesFiltered))}
+                disabled={currentPage === totalPagesFiltered}
                 className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Next
