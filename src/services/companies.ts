@@ -43,7 +43,23 @@ export interface CompanyUserResponse {
 export interface Lead {
   id: string;
   name: string;
-  email: string;
+  email: string | null;
+  company: string | null;
+  phone_number: string;
+  company_size: string | null;
+  job_title: string | null;
+  company_facebook: string | null;
+  company_twitter: string | null;
+  company_revenue: string | null;
+  company_id: string;
+}
+
+export interface PaginatedLeadResponse {
+  items: Lead[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
 }
 
 export async function getCompanies(token: string): Promise<Company[]> {
@@ -186,8 +202,21 @@ export async function deleteUserCompanyProfile(token: string, userCompanyProfile
   }
 }
 
-export async function getCompanyLeads(token: string, companyId: string): Promise<Lead[]> {
-  const response = await fetch(apiEndpoints.companies.leads.list(companyId), {
+export async function getCompanyLeads(
+  token: string, 
+  companyId: string,
+  page: number = 1,
+  limit: number = 20,
+  searchTerm?: string
+): Promise<PaginatedLeadResponse> {
+  const url = new URL(apiEndpoints.companies.leads.list(companyId));
+  url.searchParams.append('page_number', page.toString());
+  url.searchParams.append('limit', limit.toString());
+  if (searchTerm) {
+    url.searchParams.append('search_term', searchTerm);
+  }
+
+  const response = await fetch(url.toString(), {
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',
