@@ -18,46 +18,30 @@ export function useCallLogs(companyId: string, campaignRunId?: string) {
   });
 
   useEffect(() => {
-    const loadCallLogs = async () => {
-      if (!companyId) {
-        console.error('No companyId provided');
-        return;
-      }
+    async function fetchCallLogs() {
+      if (!companyId) return;
 
-      setIsLoading(true);
       try {
+        setIsLoading(true);
         const token = getToken();
         if (!token) {
-          const errorMessage = 'Authentication token not found';
-          console.error(errorMessage);
-          setError(errorMessage);
+          setError('Authentication token not found');
           return;
         }
 
-        console.log('Fetching call logs for company:', companyId);
-        const data = await getCompanyCalls(token, companyId, filters.campaign_id, campaignRunId);
-        console.log('Call logs response:', data);
-
-        if (!Array.isArray(data)) {
-          const errorMessage = 'Invalid response format from server';
-          console.error(errorMessage, data);
-          setError(errorMessage);
-          return;
-        }
-
+        const data = await getCompanyCalls(token, companyId, filters.campaign_id, campaignRunId, filters.lead_id);
         setCallLogs(data);
         setError(null);
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Failed to load call logs';
-        console.error('Error loading call logs:', error);
-        setError(errorMessage);
+      } catch (err) {
+        console.error('Error fetching call logs:', err);
+        setError('Failed to fetch call logs');
       } finally {
         setIsLoading(false);
       }
-    };
+    }
 
-    loadCallLogs();
-  }, [companyId, filters.campaign_id, campaignRunId]);
+    fetchCallLogs();
+  }, [companyId, filters.campaign_id, campaignRunId, filters.lead_id]);
 
   // Filter the call logs based on the current filters
   const filteredCallLogs = callLogs.filter(log => {
@@ -81,11 +65,6 @@ export function useCallLogs(companyId: string, campaignRunId?: string) {
           if (logDate < thisMonth) return false;
           break;
       }
-    }
-
-    // Lead filter
-    if (filters.lead_id && log.lead_id !== filters.lead_id) {
-      return false;
     }
 
     return true;

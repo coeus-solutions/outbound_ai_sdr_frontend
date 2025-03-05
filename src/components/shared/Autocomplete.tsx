@@ -57,10 +57,8 @@ export function Autocomplete<T>({
     }
   }, [value, getItemLabel]);
 
-  const filteredItems = items.filter(item =>
-    getItemLabel(item).toLowerCase().includes(query.toLowerCase()) ||
-    (getItemSubLabel && getItemSubLabel(item).toLowerCase().includes(query.toLowerCase()))
-  );
+  // Remove client-side filtering and use items directly
+  const filteredItems = items;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newQuery = e.target.value;

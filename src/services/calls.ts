@@ -1,13 +1,16 @@
 import { apiEndpoints } from '../config';
 import { CallLog } from '../types';
 
-export async function getCompanyCalls(token: string, companyId: string, campaignId?: string, campaignRunId?: string): Promise<CallLog[]> {
+export async function getCompanyCalls(token: string, companyId: string, campaignId?: string, campaignRunId?: string, leadId?: string): Promise<CallLog[]> {
   const url = new URL(apiEndpoints.companies.calls.list(companyId));
   if (campaignId) {
     url.searchParams.append('campaign_id', campaignId);
   }
   if (campaignRunId) {
     url.searchParams.append('campaign_run_id', campaignRunId);
+  }
+  if (leadId) {
+    url.searchParams.append('lead_id', leadId);
   }
 
   const response = await fetch(url.toString(), {
