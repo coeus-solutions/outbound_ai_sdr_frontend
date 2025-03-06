@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Mail, Plus, Eye, Play, Phone, TestTube2 } from 'lucide-react';
+import { Mail, Plus, Eye, Play, Phone, TestTube2, MoreVertical, ChevronDown } from 'lucide-react';
 import { PageHeader } from '../shared/PageHeader';
 import { getCompanyById, Company } from '../../services/companies';
 import { getCompanyCampaigns, Campaign, runCampaign } from '../../services/emailCampaigns';
@@ -58,6 +58,8 @@ export function CompanyCampaigns() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState<string | null>(null);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null);
   const [templateDialog, setTemplateDialog] = useState<{ isOpen: boolean; template: string }>({
     isOpen: false,
     template: '',
@@ -66,6 +68,18 @@ export function CompanyCampaigns() {
     isOpen: false,
     campaign: null,
   });
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (openMenuId && !(event.target as Element).closest('.dropdown-menu')) {
+        setOpenMenuId(null);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [openMenuId]);
 
   useEffect(() => {
     async function fetchData() {
@@ -212,7 +226,7 @@ export function CompanyCampaigns() {
         </div>
       ) : (
         <div className="bg-white shadow-md rounded-lg overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto" style={{ position: 'relative', zIndex: 0 }}>
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
@@ -224,7 +238,7 @@ export function CompanyCampaigns() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {campaigns.map((campaign) => (
-                  <tr key={campaign.id} className="hover:bg-gray-50">
+                  <tr key={campaign.id} className="hover:bg-gray-50 relative">
                     <td className="px-6 py-4">
                       <div className="text-sm font-medium text-gray-900">{campaign.name}</div>
                       {campaign.description && (
@@ -251,26 +265,29 @@ export function CompanyCampaigns() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                      <button
-                        onClick={() => handleRunCampaign(campaign)}
-                        disabled={isRunning === campaign.id}
-                        className={`inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white ${
-                          isRunning === campaign.id
-                            ? 'bg-gray-400 cursor-not-allowed'
-                            : 'bg-green-600 hover:bg-green-700'
-                        }`}
-                      >
-                        <Play className="h-3 w-3 mr-1" />
-                        {isRunning === campaign.id ? 'Running...' : 'Run'}
-                      </button>
-
-                      <button
-                        onClick={() => setTestRunDialog({ isOpen: true, campaign })}
-                        className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-indigo-600 hover:bg-indigo-700"
-                      >
-                        <TestTube2 className="h-3 w-3 mr-1" />
-                        Test Run
-                      </button>
+                      <div className="relative inline-block text-left dropdown-menu">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            setMenuPosition({
+                              top: rect.bottom + window.scrollY - 22,
+                              left: rect.right - 192,
+                            });
+                            setOpenMenuId(openMenuId === campaign.id ? null : campaign.id);
+                          }}
+                          disabled={isRunning === campaign.id}
+                          className={`inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white ${
+                            isRunning === campaign.id
+                              ? 'bg-gray-400 cursor-not-allowed'
+                              : 'bg-indigo-600 hover:bg-indigo-700'
+                          }`}
+                        >
+                          <Play className="h-3 w-3 mr-1" />
+                          {isRunning === campaign.id ? 'Running...' : 'Actions'}
+                          <ChevronDown className="h-3 w-3 ml-1" />
+                        </button>
+                      </div>
                       
                       {campaign.type === 'email' && campaign.template && (
                         <button
@@ -286,6 +303,44 @@ export function CompanyCampaigns() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {openMenuId && menuPosition && (
+        <div 
+          className="fixed w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 focus:outline-none"
+          style={{ 
+            top: `${menuPosition.top}px`,
+            left: `${menuPosition.left}px`,
+            zIndex: 9999
+          }}
+        >
+          <div className="py-1">
+            <button
+              onClick={() => {
+                setOpenMenuId(null);
+                setMenuPosition(null);
+                const campaign = campaigns.find(c => c.id === openMenuId);
+                if (campaign) handleRunCampaign(campaign);
+              }}
+              className="group flex items-center px-4 py-2 text-xs text-gray-700 hover:bg-indigo-50 hover:text-indigo-900 w-full text-left"
+            >
+              <Play className="h-4 w-4 mr-3 text-gray-400 group-hover:text-indigo-500" />
+              Run Campaign
+            </button>
+            <button
+              onClick={() => {
+                setOpenMenuId(null);
+                setMenuPosition(null);
+                const campaign = campaigns.find(c => c.id === openMenuId);
+                if (campaign) setTestRunDialog({ isOpen: true, campaign });
+              }}
+              className="group flex items-center px-4 py-2 text-xs text-gray-700 hover:bg-indigo-50 hover:text-indigo-900 w-full text-left"
+            >
+              <TestTube2 className="h-4 w-4 mr-3 text-gray-400 group-hover:text-indigo-500" />
+              Test Run
+            </button>
           </div>
         </div>
       )}
