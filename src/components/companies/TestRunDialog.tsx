@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X, Mail, Phone } from 'lucide-react';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
 
 interface TestRunDialogProps {
   isOpen: boolean;
@@ -37,9 +39,8 @@ export function TestRunDialog({ isOpen, onClose, campaignType, campaignName, onS
         return;
       }
     } else {
-      // Basic phone number validation (can be enhanced based on requirements)
-      const phoneRegex = /^\+?[\d\s-()]+$/;
-      if (!phoneRegex.test(value)) {
+      // Phone validation is handled by the PhoneInput component
+      if (value.length < 6) { // Basic length check
         setError('Please enter a valid phone number');
         return;
       }
@@ -71,22 +72,43 @@ export function TestRunDialog({ isOpen, onClose, campaignType, campaignName, onS
               {campaignType === 'email' ? 'On which email address should we send the test email?' : 'On which number should we call?'}
             </label>
             <div className="relative mt-1">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                {campaignType === 'email' ? (
-                  <Mail className="h-5 w-5 text-gray-400" />
-                ) : (
-                  <Phone className="h-5 w-5 text-gray-400" />
-                )}
-              </div>
-              <input
-                type={campaignType === 'email' ? 'email' : 'tel'}
-                name="test-value"
-                id="test-value"
-                className="form-input"
-                placeholder={campaignType === 'email' ? 'Enter email address' : 'Enter phone number'}
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-              />
+              {campaignType === 'email' ? (
+                <>
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Mail className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    type="email"
+                    name="test-value"
+                    id="test-value"
+                    className="form-input"
+                    placeholder="Enter email address"
+                    value={value}
+                    onChange={(e) => setValue(e.target.value)}
+                    autoFocus
+                  />
+                </>
+              ) : (
+                <PhoneInput
+                  country={'us'}
+                  value={value}
+                  onChange={(phone) => setValue(phone)}
+                  inputClass="!w-full !h-10 !pl-12 !pr-3 !py-2 !border !border-gray-300 !rounded-md !text-sm"
+                  containerClass="!w-full"
+                  buttonClass="!border-0 !border-r !border-gray-300 !rounded-l-md"
+                  dropdownClass="!text-sm"
+                  searchClass="!text-sm"
+                  enableSearch
+                  disableSearchIcon
+                  countryCodeEditable={false}
+                  specialLabel=""
+                  preferredCountries={['us', 'ca', 'gb', 'au']}
+                  placeholder="Enter phone number"
+                  inputProps={{
+                    autoFocus: true
+                  }}
+                />
+              )}
             </div>
             {error && (
               <p className="mt-2 text-sm text-red-600">{error}</p>
