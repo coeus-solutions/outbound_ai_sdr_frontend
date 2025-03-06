@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Mail, Plus, Eye, Play, Phone } from 'lucide-react';
+import { Mail, Plus, Eye, Play, Phone, TestTube2 } from 'lucide-react';
 import { PageHeader } from '../shared/PageHeader';
 import { getCompanyById, Company } from '../../services/companies';
 import { getCompanyCampaigns, Campaign, runCampaign } from '../../services/emailCampaigns';
 import { getToken } from '../../utils/auth';
 import { useToast } from '../../context/ToastContext';
 import { formatDateTime } from '../../utils/formatters';
+import { TestRunDialog } from './TestRunDialog';
 
 interface APIError {
   response?: {
@@ -60,6 +61,10 @@ export function CompanyCampaigns() {
   const [templateDialog, setTemplateDialog] = useState<{ isOpen: boolean; template: string }>({
     isOpen: false,
     template: '',
+  });
+  const [testRunDialog, setTestRunDialog] = useState<{ isOpen: boolean; campaign: Campaign | null }>({
+    isOpen: false,
+    campaign: null,
   });
 
   useEffect(() => {
@@ -118,6 +123,24 @@ export function CompanyCampaigns() {
     }
   };
 
+  const handleTestRun = async (value: string) => {
+    if (!testRunDialog.campaign) return;
+    
+    try {
+      const token = getToken();
+      if (!token) {
+        showToast('Authentication failed. Please try logging in again.', 'error');
+        return;
+      }
+
+      // TODO: Implement the test run API call here
+      showToast(`Test run initiated for ${testRunDialog.campaign.name}`, 'success');
+    } catch (err) {
+      console.error('API Error:', err);
+      showToast('Failed to run test campaign', 'error');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -144,6 +167,14 @@ export function CompanyCampaigns() {
 
   return (
     <div className="space-y-6">
+      <TestRunDialog
+        isOpen={testRunDialog.isOpen}
+        onClose={() => setTestRunDialog({ isOpen: false, campaign: null })}
+        campaignType={testRunDialog.campaign?.type || 'email'}
+        campaignName={testRunDialog.campaign?.name || ''}
+        onSubmit={handleTestRun}
+      />
+      
       <TemplateDialog
         isOpen={templateDialog.isOpen}
         onClose={() => setTemplateDialog({ isOpen: false, template: '' })}
@@ -231,6 +262,14 @@ export function CompanyCampaigns() {
                       >
                         <Play className="h-3 w-3 mr-1" />
                         {isRunning === campaign.id ? 'Running...' : 'Run'}
+                      </button>
+
+                      <button
+                        onClick={() => setTestRunDialog({ isOpen: true, campaign })}
+                        className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-indigo-600 hover:bg-indigo-700"
+                      >
+                        <TestTube2 className="h-3 w-3 mr-1" />
+                        Test Run
                       </button>
                       
                       {campaign.type === 'email' && campaign.template && (
