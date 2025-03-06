@@ -66,6 +66,7 @@ export const apiEndpoints = {
   },
   campaigns: {
     run: (campaignId: string) => `${config.apiUrl}/api/campaigns/${campaignId}/run`,
+    testRun: (campaignId: string) => `${config.apiUrl}/api/campaigns/${campaignId}/test-run`,
   },
   generate: {
     campaign: `${config.apiUrl}/api/generate-campaign`,

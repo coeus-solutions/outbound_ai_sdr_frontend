@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Mail, Plus, Eye, Play, Phone, TestTube2, MoreVertical, ChevronDown } from 'lucide-react';
 import { PageHeader } from '../shared/PageHeader';
 import { getCompanyById, Company } from '../../services/companies';
-import { getCompanyCampaigns, Campaign, runCampaign } from '../../services/emailCampaigns';
+import { getCompanyCampaigns, Campaign, runCampaign, testRunCampaign } from '../../services/emailCampaigns';
 import { getToken } from '../../utils/auth';
 import { useToast } from '../../context/ToastContext';
 import { formatDateTime } from '../../utils/formatters';
@@ -52,6 +52,7 @@ function TemplateDialog({ isOpen, onClose, template }: TemplateDialogProps) {
 
 export function CompanyCampaigns() {
   const { companyId } = useParams();
+  const navigate = useNavigate();
   const { showToast } = useToast();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [company, setCompany] = useState<Company | null>(null);
@@ -124,6 +125,7 @@ export function CompanyCampaigns() {
 
       const result = await runCampaign(token, campaign.id);
       showToast(`Campaign "${campaign.name}" started successfully!`, 'success');
+      navigate(`/companies/${companyId}/campaign-runs`);
     } catch (err: unknown) {
       console.log('API Error:', err);  // Temporary log to debug
       const error = err as APIError;
@@ -147,11 +149,18 @@ export function CompanyCampaigns() {
         return;
       }
 
-      // TODO: Implement the test run API call here
+      // Add + symbol for phone numbers if not already present
+      const formattedValue = testRunDialog.campaign.type === 'call' && !value.startsWith('+') ? `+${value}` : value;
+      await testRunCampaign(token, testRunDialog.campaign.id, formattedValue);
       showToast(`Test run initiated for ${testRunDialog.campaign.name}`, 'success');
     } catch (err) {
       console.error('API Error:', err);
-      showToast('Failed to run test campaign', 'error');
+      const error = err as APIError;
+      if (error?.response?.status === 400 && error?.response?.data?.detail) {
+        showToast(error.response.data.detail, 'error');
+      } else {
+        showToast('Failed to run test campaign', 'error');
+      }
     }
   };
 

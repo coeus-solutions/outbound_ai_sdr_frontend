@@ -43,6 +43,12 @@ export interface CampaignRun {
   };
 }
 
+export interface TestRunCampaignResponse {
+  message: string;
+  campaign_id: string;
+  status: string;
+}
+
 export async function getCompanyCampaigns(token: string, companyId: string, type?: 'email' | 'call' | 'all'): Promise<Campaign[]> {
   const url = new URL(apiEndpoints.companies.emailCampaigns.list(companyId));
   if (type) {
@@ -121,4 +127,28 @@ export async function getCampaignRuns(token: string, companyId: string, campaign
   }
 
   return response.json();
+}
+
+export async function testRunCampaign(token: string, campaignId: string, leadContact: string): Promise<TestRunCampaignResponse> {
+  const response = await fetch(apiEndpoints.campaigns.testRun(campaignId), {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ lead_contact: leadContact }),
+  });
+
+  const data = await response.json();
+  
+  if (!response.ok) {
+    const error = new Error('Failed to run test campaign') as any;
+    error.response = {
+      status: response.status,
+      data: data
+    };
+    throw error;
+  }
+
+  return data;
 } 
