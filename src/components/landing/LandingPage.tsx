@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { HeroSection } from './HeroSection';
 import { FeatureSection } from './FeatureSection';
@@ -7,6 +7,7 @@ import { HowItWorksSection } from './HowItWorksSection';
 import { TestimonialSection } from './TestimonialSection';
 import { Footer } from '../shared/Footer';
 import { motion } from 'framer-motion';
+import { Menu, X } from 'lucide-react';
 
 const scrollToSection = (sectionId: string) => (e: React.MouseEvent<HTMLAnchorElement>) => {
   e.preventDefault();
@@ -17,6 +18,19 @@ const scrollToSection = (sectionId: string) => (e: React.MouseEvent<HTMLAnchorEl
 };
 
 export function LandingPage() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(prev => !prev);
+  };
+  
+  const navItems = [
+    { name: 'How It Works', id: 'how-it-works' },
+    { name: 'Features', id: 'features' },
+    { name: 'Testimonials', id: 'testimonials' },
+    { name: 'Pricing', id: 'pricing' }
+  ];
+  
   return (
     <div className="min-h-screen flex flex-col bg-gray-900">
       <header className="fixed top-0 left-0 right-0 bg-gray-900/80 backdrop-blur-md z-50 border-b border-gray-800">
@@ -51,19 +65,19 @@ export function LandingPage() {
                 </motion.span>
               </Link>
             </motion.div>
-            <nav className="flex items-center space-x-6">
-              <a onClick={scrollToSection('how-it-works')} href="#how-it-works" className="text-gray-300 hover:text-white cursor-pointer">
-                How It Works
-              </a>
-              <a onClick={scrollToSection('features')} href="#features" className="text-gray-300 hover:text-white cursor-pointer">
-                Features
-              </a>
-              <a onClick={scrollToSection('testimonials')} href="#testimonials" className="text-gray-300 hover:text-white cursor-pointer">
-                Testimonials
-              </a>
-              <a onClick={scrollToSection('pricing')} href="#pricing" className="text-gray-300 hover:text-white cursor-pointer">
-                Pricing
-              </a>
+            
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center space-x-6">
+              {navItems.map(item => (
+                <a 
+                  key={item.id}
+                  onClick={scrollToSection(item.id)} 
+                  href={`#${item.id}`} 
+                  className="text-gray-300 hover:text-white cursor-pointer"
+                >
+                  {item.name}
+                </a>
+              ))}
               <Link
                 to="/login"
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
@@ -71,8 +85,57 @@ export function LandingPage() {
                 Sign In
               </Link>
             </nav>
+            
+            {/* Mobile menu button */}
+            <div className="md:hidden flex items-center">
+              <button
+                onClick={toggleMobileMenu}
+                className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+              >
+                <span className="sr-only">Open main menu</span>
+                {mobileMenuOpen ? (
+                  <X className="block h-6 w-6" aria-hidden="true" />
+                ) : (
+                  <Menu className="block h-6 w-6" aria-hidden="true" />
+                )}
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* Mobile menu, show/hide based on menu state */}
+        {mobileMenuOpen && (
+          <motion.div 
+            className="md:hidden"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-gray-700">
+              {navItems.map(item => (
+                <a
+                  key={item.id}
+                  onClick={(e) => {
+                    scrollToSection(item.id)(e);
+                    setMobileMenuOpen(false);
+                  }}
+                  href={`#${item.id}`}
+                  className="text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
+                >
+                  {item.name}
+                </a>
+              ))}
+              <Link
+                to="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
+              >
+                Sign In
+              </Link>
+            </div>
+          </motion.div>
+        )}
       </header>
       <main className="flex-grow">
         <HeroSection />
