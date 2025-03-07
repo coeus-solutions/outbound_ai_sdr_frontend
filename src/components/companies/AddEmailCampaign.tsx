@@ -961,19 +961,7 @@ export function AddEmailCampaign() {
           )}
         </div>
 
-        <div className="flex justify-between items-center mt-8">
-          <button
-            type="button"
-            onClick={() => {
-              // Preview logic will be implemented
-              showToast(`Campaign preview feature for ${formData.type} campaigns coming soon!`, 'info');
-            }}
-            className="flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 hover:bg-gray-50"
-          >
-            <Eye className="h-4 w-4 mr-2" />
-            Generate Preview
-          </button>
-
+        <div className="flex justify-end items-center mt-8">
           <div className="flex space-x-4">
             <button
               type="button"
