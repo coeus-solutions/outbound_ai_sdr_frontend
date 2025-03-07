@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { PlusCircle, ChevronDown, ChevronUp, Users, User, BarChart, Target, CheckCircle, XCircle, Building, Briefcase, Cpu, DollarSign } from 'lucide-react';
 import { IdealCustomerProfile, getProductICPs, generateProductICP } from '../../services/products';
 import { getToken } from '../../utils/auth';
@@ -18,12 +18,8 @@ export function IdealCustomerProfiles({ companyId, productId }: IdealCustomerPro
   const [showIcpInputForm, setShowIcpInputForm] = useState(false);
   const { showToast } = useToast();
 
-  // Fetch ICPs when component mounts
-  useEffect(() => {
-    fetchProfiles();
-  }, [companyId, productId]);
-
-  const fetchProfiles = async () => {
+  // Use useCallback to memoize the fetchProfiles function
+  const fetchProfiles = useCallback(async () => {
     try {
       setIsLoading(true);
       const token = getToken();
@@ -40,7 +36,12 @@ export function IdealCustomerProfiles({ companyId, productId }: IdealCustomerPro
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [companyId, productId, showToast]);
+
+  // Fetch ICPs when component mounts
+  useEffect(() => {
+    fetchProfiles();
+  }, [fetchProfiles]);
 
   const handleGenerateProfile = async () => {
     try {
@@ -51,22 +52,23 @@ export function IdealCustomerProfiles({ companyId, productId }: IdealCustomerPro
         return;
       }
 
-      const newProfile = await generateProductICP(token, companyId, productId, icpInput || undefined);
+      const newProfiles = await generateProductICP(token, companyId, productId, icpInput || undefined);
       
-      // Validate that the response has the expected structure
-      if (!newProfile || typeof newProfile !== 'object') {
-        showToast('Invalid response format from API', 'error');
-        return;
+      // After generating profiles, fetch all profiles to ensure we have the latest data
+      await fetchProfiles();
+      
+      // If we have new profiles, expand the first one
+      if (Array.isArray(newProfiles) && newProfiles.length > 0) {
+        setExpandedProfileId(newProfiles[0].id);
+      } else if (!Array.isArray(newProfiles) && newProfiles) {
+        setExpandedProfileId(newProfiles.id);
       }
       
-      // Add the profile to the list only if it has a valid structure
-      setProfiles(prev => [...prev, newProfile]);
-      setExpandedProfileId(newProfile.id);
       // Clear the input field after successful generation
       setIcpInput('');
       // Hide the input form
       setShowIcpInputForm(false);
-      showToast('New ideal customer profile generated successfully', 'success');
+      showToast('New ideal customer profiles generated successfully', 'success');
     } catch (error) {
       console.error('Error generating ideal customer profile:', error);
       showToast('Failed to generate ideal customer profile', 'error');
@@ -89,8 +91,16 @@ export function IdealCustomerProfiles({ companyId, productId }: IdealCustomerPro
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-32">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-medium text-gray-900">Ideal Customer Profiles</h3>
+        </div>
+        <div className="flex items-center justify-center h-32 bg-gray-50 rounded-lg">
+          <div className="flex flex-col items-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mb-2"></div>
+            <p className="text-sm text-gray-500">Loading customer profiles...</p>
+          </div>
+        </div>
       </div>
     );
   }
@@ -103,7 +113,8 @@ export function IdealCustomerProfiles({ companyId, productId }: IdealCustomerPro
           <button
             type="button"
             onClick={() => setShowIcpInputForm(true)}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            disabled={isLoading || isGenerating}
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
           >
             <PlusCircle className="h-4 w-4 mr-2" />
             Generate Ideal Customer Profile
@@ -185,7 +196,8 @@ export function IdealCustomerProfiles({ companyId, productId }: IdealCustomerPro
             <button
               type="button"
               onClick={() => setShowIcpInputForm(true)}
-              className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              disabled={isLoading || isGenerating}
+              className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
             >
               <PlusCircle className="h-4 w-4 mr-2" />
               Generate Ideal Customer Profile

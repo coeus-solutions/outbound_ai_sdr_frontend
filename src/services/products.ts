@@ -298,7 +298,7 @@ export async function generateProductICP(
   companyId: string, 
   productId: string, 
   icp_input?: string
-): Promise<IdealCustomerProfile> {
+): Promise<IdealCustomerProfile | IdealCustomerProfile[]> {
   const response = await fetch(`${apiEndpoints.companies.products(companyId)}/${productId}/icp`, {
     method: 'POST',
     headers: {
