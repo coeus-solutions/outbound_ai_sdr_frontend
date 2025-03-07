@@ -8,33 +8,37 @@ interface Testimonial {
   role: string;
   company: string;
   highlight: string;
-  image?: string;
+  avatarColor: string;
+  initial: string;
 }
 
 const testimonials: Testimonial[] = [
   {
     content: "ReachGenie's ability to identify each prospect's specific pain points and buying triggers is mind-blowing. We're seeing 3x higher response rates because our outreach now speaks directly to what matters most to each individual company.",
-    author: "Sarah Johnson",
+    author: "Aiko Tanaka",
     role: "VP of Sales",
     company: "TechScale Solutions",
     highlight: "Prospect Enrichment",
-    image: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1770&q=80"
+    avatarColor: "bg-blue-500",
+    initial: "A"
   },
   {
     content: "The automated reply and meeting booking functionality saved my team 20+ hours per week. When prospects show interest, ReachGenie handles the conversation and schedules meetings instantly - no more back-and-forth emails or missed opportunities.",
-    author: "Michael Chen",
+    author: "Rahul Sharma",
     role: "Director of Business Development",
     company: "GrowthForge Inc.",
     highlight: "Auto Reply & Booking",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1770&q=80"
+    avatarColor: "bg-purple-500",
+    initial: "R"
   },
   {
     content: "Before ReachGenie, we were paying 3x more for lower quality leads. Now we get thousands of highly targeted prospects that match our ideal customer profile, with detailed insights on each one. The ROI is unmatched in the industry.",
-    author: "Jennifer Lopez",
+    author: "Sofia Rodriguez",
     role: "CMO",
     company: "RevenuePilot",
     highlight: "Lead Generation",
-    image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1776&q=80"
+    avatarColor: "bg-green-500",
+    initial: "S"
   }
 ];
 
@@ -88,15 +92,11 @@ export function TestimonialSection() {
               
               {/* Author */}
               <div className="flex items-center">
-                {testimonial.image && (
-                  <div className="mr-4">
-                    <img 
-                      src={testimonial.image} 
-                      alt={testimonial.author}
-                      className="w-12 h-12 rounded-full object-cover border-2 border-blue-400" 
-                    />
+                <div className="mr-4">
+                  <div className={`${testimonial.avatarColor} w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg`}>
+                    {testimonial.initial}
                   </div>
-                )}
+                </div>
                 <div>
                   <div className="text-white font-medium">{testimonial.author}</div>
                   <div className="text-gray-400 text-sm">{testimonial.role}</div>
