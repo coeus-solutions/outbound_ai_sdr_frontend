@@ -4,37 +4,37 @@ import { CleanIcon, EnrichIcon, PersonalizeIcon, CampaignIcon, StrategyIcon } fr
 
 const steps = [
   {
-    icon: CleanIcon,
-    title: 'Clean & Organize',
-    description: 'Automatically consolidate and normalize leads from multiple sources (Cognism, ZoomInfo, etc.) to keep your pipeline accurate and clutter-free.',
+    icon: PersonalizeIcon,
+    title: 'Creating Authentic Conversations',
+    description: 'ReachGenie doesn\'t just send messages - it builds meaningful two-way conversations with prospects through intelligent, contextual engagement.',
     color: 'bg-gray-800',
     iconColor: 'text-blue-400'
   },
   {
     icon: EnrichIcon,
-    title: 'Enrich & Analyze',
-    description: 'Tap into AI-powered search engines that enrich every lead with deep insights and identify unique pain points relevant to your product or service.',
+    title: 'Deep Personalization',
+    description: 'Our AI researches each company and contact to identify specific pain points, creating outreach that speaks directly to each prospect\'s unique situation.',
     color: 'bg-gray-800',
     iconColor: 'text-green-400'
   },
   {
-    icon: PersonalizeIcon,
-    title: 'Hyper Personalization',
-    description: "Transform generic outreach into tailored conversations. ReachGenie dynamically crafts pitches that speak directly to each lead's needs and motivations.",
+    icon: CampaignIcon,
+    title: 'Multi-Channel Coordination',
+    description: 'Seamlessly mix email and voice outreach with unified context across channels, ensuring a cohesive prospect experience that feels natural and human.',
     color: 'bg-gray-800',
     iconColor: 'text-purple-400'
   },
   {
-    icon: CampaignIcon,
-    title: 'Execute Campaigns',
-    description: 'Launch drip campaigns via email, phone, LinkedIn, or WhatsApp—complete with follow-ups and real-time performance tracking to continually optimize.',
+    icon: StrategyIcon,
+    title: 'Automated Meeting Booking',
+    description: 'ReachGenie detects meeting interest in emails and calls, then automatically handles scheduling without human intervention, all within the natural flow of conversation.',
     color: 'bg-gray-800',
     iconColor: 'text-orange-400'
   },
   {
-    icon: StrategyIcon,
-    title: 'Strategic Control',
-    description: 'You define the overall strategy; ReachGenie does the heavy lifting. Monitor progress, adjust on the fly, and watch conversions soar with actionable analytics.',
+    icon: CleanIcon,
+    title: 'Self-Improving System',
+    description: 'The platform learns from every interaction to continuously improve outreach effectiveness, analyzing which messages generate responses and which calls lead to meetings.',
     color: 'bg-gray-800',
     iconColor: 'text-indigo-400'
   }
@@ -76,7 +76,7 @@ export function HowItWorksSection() {
             transition={{ duration: 0.5 }}
             className="text-4xl font-bold text-white mb-4"
           >
-            How ReachGenie Works
+            What Makes ReachGenie Special
           </motion.h2>
           <motion.p 
             initial={{ opacity: 0, y: -20 }}
@@ -85,7 +85,7 @@ export function HowItWorksSection() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="text-xl text-gray-300"
           >
-            AI-Driven Efficiency Meets Human-Centric Strategy
+            Scale human-quality outreach without sacrificing the personal touch
           </motion.p>
         </div>
 

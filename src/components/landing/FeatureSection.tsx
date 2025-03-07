@@ -1,36 +1,36 @@
 import React from 'react';
-import { Mail, Phone, Database, Shield, BarChart, Zap } from 'lucide-react';
+import { Mail, Phone, Calendar, Brain, BarChart, MessageSquare } from 'lucide-react';
 
 const features = [
   {
-    icon: Database,
-    title: 'Premium B2B Data',
-    description: 'Access Cognism\'s comprehensive database of verified business contacts and company information.'
+    icon: Mail,
+    title: 'AI-Powered Email Personalization',
+    description: 'Generate highly personalized emails that speak directly to each prospect\'s situation, with AI that researches companies and identifies specific pain points.'
   },
   {
-    icon: Mail,
-    title: 'AI-Powered Email Outreach',
-    description: 'Create personalized, compliant email campaigns that resonate with your target audience.'
+    icon: MessageSquare,
+    title: 'Conversational Email AI',
+    description: 'Maintain natural conversation threads with prospects through AI that responds to replies intelligently, handles objections, and keeps conversations going.'
   },
   {
     icon: Phone,
-    title: 'Intelligent Phone Outreach',
-    description: 'Leverage AI to optimize your calling strategy and increase connection rates.'
+    title: 'AI Voice Calling',
+    description: 'Engage prospects with natural-sounding AI voice calls that adapt to responses in real-time, creating authentic conversations that convert.'
   },
   {
-    icon: Shield,
-    title: 'Global Compliance',
-    description: 'Stay compliant with GDPR, CCPA, and other regulations with built-in compliance features.'
+    icon: Calendar,
+    title: 'Intelligent Meeting Booking',
+    description: 'Automatically schedule meetings when prospects express interest, handling time zones, availability, and follow-ups without human intervention.'
+  },
+  {
+    icon: Brain,
+    title: 'Multi-Channel Coordination',
+    description: 'Seamlessly coordinate email and voice outreach with unified context across channels, creating a cohesive prospect experience.'
   },
   {
     icon: BarChart,
-    title: 'Advanced Analytics',
-    description: 'Track campaign performance and optimize your outreach with detailed analytics and insights.'
-  },
-  {
-    icon: Zap,
-    title: 'Sales Acceleration',
-    description: 'Automate repetitive tasks and focus on what matters - closing deals and growing revenue.'
+    title: 'In-depth Analytics',
+    description: 'Track campaign performance in real-time, measure response rates and conversions, and continuously optimize your outreach strategy based on data.'
   }
 ];
 
@@ -40,10 +40,10 @@ export function FeatureSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl font-bold text-white sm:text-4xl mb-4">
-            Everything you need to supercharge your sales
+            True Conversational AI for Sales Development
           </h2>
           <p className="text-lg text-gray-300">
-            Powerful features to help your team close more deals efficiently
+            ReachGenie doesn't just send messages — it builds relationships through authentic two-way conversations
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

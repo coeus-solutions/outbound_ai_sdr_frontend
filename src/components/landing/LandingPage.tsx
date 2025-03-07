@@ -4,6 +4,7 @@ import { HeroSection } from './HeroSection';
 import { FeatureSection } from './FeatureSection';
 import { PricingSection } from './PricingSection';
 import { HowItWorksSection } from './HowItWorksSection';
+import { TestimonialSection } from './TestimonialSection';
 import { Footer } from '../shared/Footer';
 import { motion } from 'framer-motion';
 
@@ -57,6 +58,9 @@ export function LandingPage() {
               <a onClick={scrollToSection('features')} href="#features" className="text-gray-300 hover:text-white cursor-pointer">
                 Features
               </a>
+              <a onClick={scrollToSection('testimonials')} href="#testimonials" className="text-gray-300 hover:text-white cursor-pointer">
+                Testimonials
+              </a>
               <a onClick={scrollToSection('pricing')} href="#pricing" className="text-gray-300 hover:text-white cursor-pointer">
                 Pricing
               </a>
@@ -74,6 +78,9 @@ export function LandingPage() {
         <HeroSection />
         <HowItWorksSection />
         <FeatureSection />
+        <div id="testimonials">
+          <TestimonialSection />
+        </div>
         <PricingSection />
       </main>
       <Footer />
