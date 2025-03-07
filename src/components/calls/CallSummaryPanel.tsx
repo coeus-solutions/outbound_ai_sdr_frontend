@@ -93,6 +93,14 @@ export function CallSummaryPanel({ isOpen, onClose, callLog }: CallSummaryPanelP
                   <span className="text-sm">{callLog.has_meeting_booked ? 'Meeting Booked' : 'No Meeting'}</span>
                 </div>
               </div>
+              {callLog.failure_reason && (
+                <div className="mt-2 pt-2 border-t border-gray-200">
+                  <div className="text-sm text-red-600">
+                    <span className="font-medium">Failure Reason: </span>
+                    {callLog.failure_reason}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

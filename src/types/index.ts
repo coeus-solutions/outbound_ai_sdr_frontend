@@ -21,6 +21,7 @@ export interface CallLog {
   has_meeting_booked: boolean;
   transcripts?: Transcript[];
   recording_url?: string;
+  failure_reason?: string;
 }
 
 export interface UserCompanyRole {
