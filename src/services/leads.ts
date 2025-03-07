@@ -17,32 +17,58 @@ export interface Lead {
 export interface LeadDetail extends Lead {
   first_name: string | null;
   last_name: string | null;
-  lead_source: string;
-  education: string;
-  personal_linkedin_url: string;
-  country: string;
-  city: string;
-  state: string;
-  mobile: string;
-  direct_phone: string;
+  lead_source: string | null;
+  education: string | null;
+  personal_linkedin_url: string | null;
+  country: string | null;
+  city: string | null;
+  state: string | null;
+  mobile: string | null;
+  direct_phone: string | null;
   office_phone: string | null;
   hq_location: string | null;
-  website: string;
-  headcount: number;
-  industries: string[];
-  department: string;
-  company_address: string;
-  company_city: string;
-  company_zip: string;
-  company_state: string;
-  company_country: string;
-  company_linkedin_url: string;
-  company_type: string;
-  company_description: string;
-  technologies: string[];
-  financials: { value: string };
-  company_founded_year: number;
-  seniority: string;
+  website: string | null;
+  headcount: number | null;
+  industries: string[] | null;
+  department: string | null;
+  company_address: string | null;
+  company_city: string | null;
+  company_zip: string | null;
+  company_state: string | null;
+  company_country: string | null;
+  company_linkedin_url: string | null;
+  company_type: string | null;
+  company_description: string | null;
+  technologies: string[] | null;
+  financials: { value: string } | null;
+  company_founded_year: number | null;
+  seniority: string | null;
+  enriched_data?: {
+    PAIN_POINTS?: Array<{
+      pain_point: string;
+      explanation: string;
+    }>;
+    BUYING_TRIGGERS?: Array<{
+      trigger: string;
+      explanation: string;
+    }>;
+    BUSINESS_OVERVIEW?: {
+      description: string;
+      company_highlights: string[];
+      products_and_services: string[];
+    };
+    INDUSTRY_CHALLENGES?: {
+      challenges: Array<{
+        impact: string;
+        challenge: string;
+      }>;
+      business_impact: string;
+    };
+    PROSPECT_PROFESSIONAL_INTERESTS?: Array<{
+      interest: string;
+      explanation: string;
+    }>;
+  } | null;
 }
 
 export interface CreateLeadPayload {
@@ -85,12 +111,12 @@ export interface CreateLeadPayload {
   company_type?: string;
   company_description?: string;
   technologies?: string[];
-  financials?: any;
+  financials?: { value: string };
   company_founded_year?: number;
   seniority?: string;
-  hiring_positions?: any[];
-  location_move?: any;
-  job_change?: any;
+  hiring_positions?: Record<string, unknown>[];
+  location_move?: Record<string, unknown>;
+  job_change?: Record<string, unknown>;
 }
 
 export async function getLeads(token: string, companyId: string): Promise<Lead[]> {
