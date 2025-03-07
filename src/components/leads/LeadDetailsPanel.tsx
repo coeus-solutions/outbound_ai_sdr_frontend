@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
-import { X, Building2, Mail, Phone, MapPin, Globe, Briefcase, Users, DollarSign, Calendar, Award, BookOpen, Linkedin, LucideIcon, Zap, Loader2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Building2, Mail, Phone, MapPin, Globe, Briefcase, Users, DollarSign, Calendar, Award, BookOpen, Linkedin, LucideIcon, Zap, Loader2, FileText, PhoneCall } from 'lucide-react';
 import { formatCurrency } from '../../utils/formatters';
 import { LeadDetail, enrichLeadData } from '../../services/leads';
 import { getToken } from '../../utils/auth';
 import { useToast } from '../../context/ToastContext';
 import { useParams } from 'react-router-dom';
+import { Product, getProducts } from '../../services/products';
+import { EmailScriptDialog } from './EmailScriptDialog';
+import { CallScriptDialog } from './CallScriptDialog';
 
 interface LeadDetailsPanelProps {
   isOpen: boolean;
@@ -19,8 +22,39 @@ type TabType = 'basic' | 'enriched';
 export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick, onLeadUpdated }: LeadDetailsPanelProps) {
   const [activeTab, setActiveTab] = useState<TabType>('basic');
   const [isEnriching, setIsEnriching] = useState(false);
+  const [isEmailScriptDialogOpen, setIsEmailScriptDialogOpen] = useState(false);
+  const [isCallScriptDialogOpen, setIsCallScriptDialogOpen] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const { showToast } = useToast();
   const { companyId } = useParams<{ companyId: string }>();
+
+  useEffect(() => {
+    if (isOpen && companyId) {
+      fetchProducts();
+    }
+  }, [isOpen, companyId]);
+
+  const fetchProducts = async () => {
+    if (!companyId) return;
+    
+    try {
+      setIsLoadingProducts(true);
+      const token = getToken();
+      if (!token) {
+        showToast('Authentication failed. Please try logging in again.', 'error');
+        return;
+      }
+      
+      const fetchedProducts = await getProducts(token, companyId);
+      setProducts(fetchedProducts);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      showToast('Failed to fetch products', 'error');
+    } finally {
+      setIsLoadingProducts(false);
+    }
+  };
 
   if (!isOpen || !leadDetails) return null;
 
@@ -48,6 +82,14 @@ export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick, on
     } finally {
       setIsEnriching(false);
     }
+  };
+
+  const handleEmailScriptClick = () => {
+    setIsEmailScriptDialogOpen(true);
+  };
+
+  const handleCallScriptClick = () => {
+    setIsCallScriptDialogOpen(true);
   };
 
   const DetailSection = ({ title, children }: { title: string; children: React.ReactNode }) => (
@@ -413,12 +455,27 @@ export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick, on
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
           <h2 className="text-lg font-medium text-gray-900">Lead Details</h2>
           <div className="flex items-center space-x-4">
+            <button
+              onClick={handleCallScriptClick}
+              className="text-indigo-600 hover:text-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              title="Generate Call Script"
+            >
+              <PhoneCall className="h-5 w-5" />
+            </button>
+            <button
+              onClick={handleEmailScriptClick}
+              className="text-indigo-600 hover:text-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              title="Generate Email Script"
+            >
+              <FileText className="h-5 w-5" />
+            </button>
             {onCallClick && (
               <button
                 onClick={onCallClick}
                 className="text-indigo-600 hover:text-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                title="Call Lead"
               >
-                <Phone className="h-6 w-6" />
+                <Phone className="h-5 w-5" />
               </button>
             )}
             <button
@@ -463,6 +520,28 @@ export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick, on
           {activeTab === 'basic' ? renderBasicInfo() : renderEnrichedData()}
         </div>
       </div>
+
+      {/* Email Script Dialog */}
+      {leadDetails && companyId && (
+        <EmailScriptDialog
+          isOpen={isEmailScriptDialogOpen}
+          onClose={() => setIsEmailScriptDialogOpen(false)}
+          companyId={companyId}
+          leadId={leadDetails.id}
+          products={isLoadingProducts ? [] : products}
+        />
+      )}
+
+      {/* Call Script Dialog */}
+      {leadDetails && companyId && (
+        <CallScriptDialog
+          isOpen={isCallScriptDialogOpen}
+          onClose={() => setIsCallScriptDialogOpen(false)}
+          companyId={companyId}
+          leadId={leadDetails.id}
+          products={isLoadingProducts ? [] : products}
+        />
+      )}
     </div>
   );
 } 

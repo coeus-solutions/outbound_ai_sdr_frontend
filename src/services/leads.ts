@@ -241,4 +241,45 @@ export async function enrichLeadData(token: string, companyId: string, leadId: s
 
   const result = await response.json();
   return result.data;
+}
+
+export interface EmailScriptResponse {
+  subject: string;
+  body: string;
+}
+
+export async function getLeadEmailScript(token: string, companyId: string, leadId: string, productId: string): Promise<EmailScriptResponse> {
+  const response = await fetch(`${apiEndpoints.companies.leads.list(companyId)}/${leadId}/emailscript?product_id=${productId}`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch email script');
+  }
+
+  const result = await response.json();
+  return result.data;
+}
+
+export interface CallScriptResponse {
+  script: string;
+}
+
+export async function getLeadCallScript(token: string, companyId: string, leadId: string, productId: string): Promise<CallScriptResponse> {
+  const response = await fetch(`${apiEndpoints.companies.leads.list(companyId)}/${leadId}/callscript?product_id=${productId}`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch call script');
+  }
+
+  const result = await response.json();
+  return result.data;
 } 
