@@ -47,27 +47,31 @@ export interface LeadDetail extends Lead {
     PAIN_POINTS?: Array<{
       pain_point: string;
       explanation: string;
-    }>;
+    }> | string[];
     BUYING_TRIGGERS?: Array<{
       trigger: string;
       explanation: string;
-    }>;
+    }> | string[];
     BUSINESS_OVERVIEW?: {
-      description: string;
-      company_highlights: string[];
-      products_and_services: string[];
+      description?: string;
+      company_highlights?: string[];
+      products_and_services?: string[];
+      company_name?: string;
+      business_model?: string;
+      market_position?: string;
+      key_products_services?: string[];
     };
     INDUSTRY_CHALLENGES?: {
-      challenges: Array<{
+      challenges?: Array<{
         impact: string;
         challenge: string;
       }>;
-      business_impact: string;
-    };
+      business_impact?: string;
+    } | string[];
     PROSPECT_PROFESSIONAL_INTERESTS?: Array<{
       interest: string;
       explanation: string;
-    }>;
+    }> | string[];
   } | null;
 }
 
@@ -208,18 +212,33 @@ export async function deleteLead(token: string, companyId: string, leadId: strin
 }
 
 export async function deleteLeads(token: string, companyId: string, leadIds: string[]): Promise<void> {
-  // Delete leads one by one
-  const errors: Error[] = [];
-  
-  for (const leadId of leadIds) {
-    try {
-      await deleteLead(token, companyId, leadId);
-    } catch (error) {
-      errors.push(error as Error);
-    }
+  const response = await fetch(`${apiEndpoints.companies.leads.list(companyId)}/bulk-delete`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ lead_ids: leadIds }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to delete leads');
+  }
+}
+
+export async function enrichLeadData(token: string, companyId: string, leadId: string): Promise<LeadDetail> {
+  const response = await fetch(`${apiEndpoints.companies.leads.list(companyId)}/${leadId}/enrich`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to enrich lead data');
   }
 
-  if (errors.length > 0) {
-    throw new Error(`Failed to delete ${errors.length} leads`);
-  }
+  const result = await response.json();
+  return result.data;
 } 

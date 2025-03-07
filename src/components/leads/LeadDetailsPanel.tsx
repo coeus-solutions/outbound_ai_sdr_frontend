@@ -1,21 +1,54 @@
 import React, { useState } from 'react';
-import { X, Building2, Mail, Phone, MapPin, Globe, Briefcase, Users, DollarSign, Calendar, Award, BookOpen, Linkedin, LucideIcon, Zap } from 'lucide-react';
+import { X, Building2, Mail, Phone, MapPin, Globe, Briefcase, Users, DollarSign, Calendar, Award, BookOpen, Linkedin, LucideIcon, Zap, Loader2 } from 'lucide-react';
 import { formatCurrency } from '../../utils/formatters';
-import { LeadDetail } from '../../services/leads';
+import { LeadDetail, enrichLeadData } from '../../services/leads';
+import { getToken } from '../../utils/auth';
+import { useToast } from '../../context/ToastContext';
+import { useParams } from 'react-router-dom';
 
 interface LeadDetailsPanelProps {
   isOpen: boolean;
   onClose: () => void;
   leadDetails: LeadDetail | null;
   onCallClick?: () => void;
+  onLeadUpdated?: (updatedLead: LeadDetail) => void;
 }
 
 type TabType = 'basic' | 'enriched';
 
-export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick }: LeadDetailsPanelProps) {
+export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick, onLeadUpdated }: LeadDetailsPanelProps) {
   const [activeTab, setActiveTab] = useState<TabType>('basic');
+  const [isEnriching, setIsEnriching] = useState(false);
+  const { showToast } = useToast();
+  const { companyId } = useParams<{ companyId: string }>();
 
   if (!isOpen || !leadDetails) return null;
+
+  const handleEnrichData = async () => {
+    if (!companyId || !leadDetails.id) return;
+    
+    try {
+      setIsEnriching(true);
+      const token = getToken();
+      if (!token) {
+        showToast('Authentication failed. Please try logging in again.', 'error');
+        return;
+      }
+
+      const enrichedLeadData = await enrichLeadData(token, companyId, leadDetails.id);
+      
+      if (onLeadUpdated) {
+        onLeadUpdated(enrichedLeadData);
+      }
+      
+      showToast('Lead data enriched successfully', 'success');
+    } catch (error) {
+      console.error('Error enriching lead data:', error);
+      showToast('Failed to enrich lead data', 'error');
+    } finally {
+      setIsEnriching(false);
+    }
+  };
 
   const DetailSection = ({ title, children }: { title: string; children: React.ReactNode }) => (
     <div className="mb-6">
@@ -110,29 +143,50 @@ export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick }: 
     </>
   );
 
-  const EnrichedDataItem = ({ title, items }: { title: string; items: Array<{ [key: string]: string }> }) => {
+  const EnrichedDataItem = ({ 
+    title, 
+    items 
+  }: { 
+    title: string; 
+    items: Array<{ [key: string]: string }> | string[] 
+  }) => {
     if (!items || items.length === 0) return null;
+    
+    // Check if items is an array of strings
+    const isStringArray = items.length > 0 && typeof items[0] === 'string';
     
     return (
       <div className="mb-6">
         <h3 className="text-sm font-semibold text-gray-900 mb-3">{title}</h3>
         <div className="space-y-4">
-          {items.map((item, index) => (
-            <div key={index} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
-              {Object.entries(item).map(([key, value]) => (
-                <div key={key} className="mb-2 last:mb-0">
-                  <p className="text-sm font-medium text-gray-900 mb-1">
-                    {key === 'pain_point' ? 'Pain Point' : 
-                     key === 'trigger' ? 'Trigger' : 
-                     key === 'interest' ? 'Interest' : 
-                     key === 'challenge' ? 'Challenge' : 
-                     key === 'impact' ? 'Impact' : key}
-                  </p>
-                  <p className="text-sm text-gray-600">{value}</p>
+          {isStringArray ? (
+            // Render array of strings
+            <div className="space-y-2">
+              {(items as string[]).map((item, index) => (
+                <div key={index} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                  <p className="text-sm text-gray-600">{item}</p>
                 </div>
               ))}
             </div>
-          ))}
+          ) : (
+            // Render structured data
+            (items as Array<{ [key: string]: string }>).map((item, index) => (
+              <div key={index} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                {Object.entries(item).map(([key, value]) => (
+                  <div key={key} className="mb-2 last:mb-0">
+                    <p className="text-sm font-medium text-gray-900 mb-1">
+                      {key === 'pain_point' ? 'Pain Point' : 
+                       key === 'trigger' ? 'Trigger' : 
+                       key === 'interest' ? 'Interest' : 
+                       key === 'challenge' ? 'Challenge' : 
+                       key === 'impact' ? 'Impact' : key}
+                    </p>
+                    <p className="text-sm text-gray-600">{value}</p>
+                  </div>
+                ))}
+              </div>
+            ))
+          )}
         </div>
       </div>
     );
@@ -143,6 +197,10 @@ export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick }: 
       description?: string;
       company_highlights?: string[];
       products_and_services?: string[];
+      company_name?: string;
+      business_model?: string;
+      market_position?: string;
+      key_products_services?: string[];
     } 
   }) => {
     if (!data) return null;
@@ -154,6 +212,27 @@ export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick }: 
           {data.description && (
             <div className="mb-4">
               <p className="text-sm text-gray-900 whitespace-pre-wrap">{data.description}</p>
+            </div>
+          )}
+          
+          {data.company_name && (
+            <div className="mb-4">
+              <p className="text-sm font-medium text-gray-900 mb-1">Company Name</p>
+              <p className="text-sm text-gray-600">{data.company_name}</p>
+            </div>
+          )}
+          
+          {data.business_model && (
+            <div className="mb-4">
+              <p className="text-sm font-medium text-gray-900 mb-1">Business Model</p>
+              <p className="text-sm text-gray-600">{data.business_model}</p>
+            </div>
+          )}
+          
+          {data.market_position && (
+            <div className="mb-4">
+              <p className="text-sm font-medium text-gray-900 mb-1">Market Position</p>
+              <p className="text-sm text-gray-600">{data.market_position}</p>
             </div>
           )}
           
@@ -169,10 +248,21 @@ export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick }: 
           )}
           
           {data.products_and_services && data.products_and_services.length > 0 && (
-            <div>
+            <div className="mb-4">
               <p className="text-sm font-medium text-gray-900 mb-2">Products & Services</p>
               <ul className="list-disc list-inside space-y-1">
                 {data.products_and_services.map((item: string, index: number) => (
+                  <li key={index} className="text-sm text-gray-600">{item}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          
+          {data.key_products_services && data.key_products_services.length > 0 && (
+            <div>
+              <p className="text-sm font-medium text-gray-900 mb-2">Key Products & Services</p>
+              <ul className="list-disc list-inside space-y-1">
+                {data.key_products_services.map((item: string, index: number) => (
                   <li key={index} className="text-sm text-gray-600">{item}</li>
                 ))}
               </ul>
@@ -190,32 +280,58 @@ export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick }: 
         challenge: string;
       }>;
       business_impact?: string;
-    } 
+    } | string[]
   }) => {
     if (!data) return null;
+    
+    // Check if data is an array of strings
+    const isStringArray = Array.isArray(data) && data.length > 0 && typeof data[0] === 'string';
+    
+    // Define a type for the structured data
+    type StructuredChallenges = {
+      challenges?: Array<{
+        impact: string;
+        challenge: string;
+      }>;
+      business_impact?: string;
+    };
     
     return (
       <div className="mb-6">
         <h3 className="text-sm font-semibold text-gray-900 mb-3">Industry Challenges</h3>
         <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-          {data.challenges && data.challenges.length > 0 && (
-            <div className="mb-4">
-              <div className="space-y-3">
-                {data.challenges.map((item, index) => (
-                  <div key={index} className="border-b border-gray-200 pb-3 last:border-b-0 last:pb-0">
-                    <p className="text-sm font-medium text-gray-900 mb-1">{item.challenge}</p>
-                    <p className="text-sm text-gray-600">{item.impact}</p>
+          {isStringArray ? (
+            // Render array of strings
+            <div className="space-y-2">
+              {(data as string[]).map((challenge, index) => (
+                <div key={index} className="border-b border-gray-200 pb-3 last:border-b-0 last:pb-0">
+                  <p className="text-sm text-gray-600">{challenge}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            // Render structured data
+            <>
+              {(data as StructuredChallenges).challenges && (data as StructuredChallenges).challenges!.length > 0 && (
+                <div className="mb-4">
+                  <div className="space-y-3">
+                    {(data as StructuredChallenges).challenges!.map((item, index) => (
+                      <div key={index} className="border-b border-gray-200 pb-3 last:border-b-0 last:pb-0">
+                        <p className="text-sm font-medium text-gray-900 mb-1">{item.challenge}</p>
+                        <p className="text-sm text-gray-600">{item.impact}</p>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
-          
-          {data.business_impact && (
-            <div>
-              <p className="text-sm font-medium text-gray-900 mb-1">Business Impact</p>
-              <p className="text-sm text-gray-600">{data.business_impact}</p>
-            </div>
+                </div>
+              )}
+              
+              {(data as StructuredChallenges).business_impact && (
+                <div>
+                  <p className="text-sm font-medium text-gray-900 mb-1">Business Impact</p>
+                  <p className="text-sm text-gray-600">{(data as StructuredChallenges).business_impact}</p>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -225,8 +341,25 @@ export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick }: 
   const renderEnrichedData = () => {
     if (!leadDetails.enriched_data) {
       return (
-        <div className="p-4 flex flex-col items-center justify-center h-full">
-          <p className="text-gray-500 text-center">No enriched data available for this lead.</p>
+        <div className="p-8 flex flex-col items-center justify-center h-64">
+          <p className="text-gray-500 text-center mb-6">No enriched data available for this lead.</p>
+          <button
+            onClick={handleEnrichData}
+            disabled={isEnriching}
+            className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isEnriching ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Enriching Data...
+              </>
+            ) : (
+              <>
+                <Zap className="h-4 w-4 mr-2" />
+                Enrich Data
+              </>
+            )}
+          </button>
         </div>
       );
     }

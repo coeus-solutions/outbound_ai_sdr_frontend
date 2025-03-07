@@ -10,7 +10,6 @@ import { LeadDetail, getLeadDetails, deleteLeads } from '../../services/leads';
 import { startCall } from '../../services/calls';
 import { CallDialog } from './CallDialog';
 import { LeadDetailsPanel } from './LeadDetailsPanel';
-import { useDebounce } from '../../hooks/useDebounce';
 
 interface LeadTableProps {
   leads: Lead[];
@@ -46,8 +45,6 @@ export function LeadTable({
   const [isDeleting, setIsDeleting] = useState(false);
   const [deletingProgress, setDeletingProgress] = useState(0);
   
-  const ITEMS_PER_PAGE = 10;
-
   // Filter leads based on debounced search query
   const filteredLeads = useMemo(() => leads, [leads]);
 
@@ -510,6 +507,9 @@ export function LeadTable({
         onCallClick={() => {
           setIsCallDialogOpen(true);
           setIsDetailsPanelOpen(false);
+        }}
+        onLeadUpdated={(updatedLead) => {
+          setSelectedLeadDetails(updatedLead);
         }}
       />
     </>
