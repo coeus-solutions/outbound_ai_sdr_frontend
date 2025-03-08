@@ -6,6 +6,7 @@ import { DashboardLayout } from './components/dashboard/DashboardLayout';
 import { LandingPage } from './components/landing/LandingPage';
 import { CognismLandingPage } from './components/landing/CognismLandingPage';
 import { SaasGroupLandingPage } from './components/landing/SaasGroupLandingPage';
+import { PartnerPage } from './components/landing/PartnerPage';
 import { UnauthenticatedApp } from './components/UnauthenticatedApp';
 import { CompanyList } from './components/companies/CompanyList';
 import { AddCompany } from './components/companies/AddCompany';
@@ -26,6 +27,19 @@ import { VerifyAccount } from './components/auth/VerifyAccount';
 import { InviteSignup } from './components/auth/InviteSignup';
 import { CompanyCampaignRuns } from './components/companies/CompanyCampaignRuns';
 
+// Import competitor pages
+import { JasonAIPage } from './components/competitors/JasonAIPage';
+import { AiSDRPage } from './components/competitors/AiSDRPage';
+import { JazonByLyzrPage } from './components/competitors/JazonByLyzrPage';
+import { AliceBy11xPage } from './components/competitors/AliceBy11xPage';
+import { LuruPage } from './components/competitors/LuruPage';
+import { RegieAIPage } from './components/competitors/RegieAIPage';
+import { BoshByRelevancePage } from './components/competitors/BoshByRelevancePage';
+import { PiperByQualifiedPage } from './components/competitors/PiperByQualifiedPage';
+import { MeetChaseAISDRPage } from './components/competitors/MeetChaseAISDRPage';
+import { GemEByUserGemsPage } from './components/competitors/GemEByUserGemsPage';
+import { ArtisanAIPage } from './components/competitors/ArtisanAIPage';
+
 export function App() {
   const { isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
@@ -42,12 +56,14 @@ export function App() {
         location.pathname !== '/' && 
         location.pathname !== '/cognism' && 
         location.pathname !== '/saas-group' && 
+        location.pathname !== '/partners' && 
         !location.pathname.startsWith('/login') && 
         !location.pathname.startsWith('/signup') && 
         !location.pathname.startsWith('/forgot-password') && 
         !location.pathname.startsWith('/reset-password') && 
         !location.pathname.startsWith('/verify-account') &&
-        !location.pathname.startsWith('/invite')) {
+        !location.pathname.startsWith('/invite') &&
+        !location.pathname.startsWith('/compare/')) {
       navigate('/login');
     } 
     // Only redirect to companies if on auth routes
@@ -65,6 +81,21 @@ export function App() {
       <Routes>
         <Route path="/cognism" element={<CognismLandingPage />} />
         <Route path="/saas-group" element={<SaasGroupLandingPage />} />
+        <Route path="/partners" element={<PartnerPage />} />
+        
+        {/* Competitor comparison routes */}
+        <Route path="/compare/jason-ai" element={<JasonAIPage />} />
+        <Route path="/compare/aisdr" element={<AiSDRPage />} />
+        <Route path="/compare/jazon-by-lyzr" element={<JazonByLyzrPage />} />
+        <Route path="/compare/alice-by-11x" element={<AliceBy11xPage />} />
+        <Route path="/compare/luru" element={<LuruPage />} />
+        <Route path="/compare/regie-ai" element={<RegieAIPage />} />
+        <Route path="/compare/bosh-by-relevance" element={<BoshByRelevancePage />} />
+        <Route path="/compare/piper-by-qualified" element={<PiperByQualifiedPage />} />
+        <Route path="/compare/meetchase-ai-sdr" element={<MeetChaseAISDRPage />} />
+        <Route path="/compare/gem-e-by-usergems" element={<GemEByUserGemsPage />} />
+        <Route path="/compare/artisan-ai" element={<ArtisanAIPage />} />
+        
         {!isAuthenticated ? (
           <>
             <Route path="/" element={<LandingPage />} />

@@ -28,7 +28,8 @@ export function LandingPage() {
     { name: 'How It Works', id: 'how-it-works' },
     { name: 'Features', id: 'features' },
     { name: 'Testimonials', id: 'testimonials' },
-    { name: 'Pricing', id: 'pricing' }
+    { name: 'Pricing', id: 'pricing' },
+    { name: 'Partners', path: '/partners' }
   ];
   
   return (
@@ -69,14 +70,24 @@ export function LandingPage() {
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-6">
               {navItems.map(item => (
-                <a 
-                  key={item.id}
-                  onClick={scrollToSection(item.id)} 
-                  href={`#${item.id}`} 
-                  className="text-gray-300 hover:text-white cursor-pointer"
-                >
-                  {item.name}
-                </a>
+                item.path ? (
+                  <Link 
+                    key={item.name}
+                    to={item.path}
+                    className="text-gray-300 hover:text-white cursor-pointer"
+                  >
+                    {item.name}
+                  </Link>
+                ) : (
+                  <a 
+                    key={item.id || ''}
+                    onClick={scrollToSection(item.id || '')} 
+                    href={`#${item.id}`} 
+                    className="text-gray-300 hover:text-white cursor-pointer"
+                  >
+                    {item.name}
+                  </a>
+                )
               ))}
               <Link
                 to="/login"
@@ -114,17 +125,28 @@ export function LandingPage() {
           >
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-gray-700">
               {navItems.map(item => (
-                <a
-                  key={item.id}
-                  onClick={(e) => {
-                    scrollToSection(item.id)(e);
-                    setMobileMenuOpen(false);
-                  }}
-                  href={`#${item.id}`}
-                  className="text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
-                >
-                  {item.name}
-                </a>
+                item.path ? (
+                  <Link 
+                    key={item.name}
+                    to={item.path}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
+                  >
+                    {item.name}
+                  </Link>
+                ) : (
+                  <a
+                    key={item.id || ''}
+                    onClick={(e) => {
+                      scrollToSection(item.id || '')(e);
+                      setMobileMenuOpen(false);
+                    }}
+                    href={`#${item.id}`}
+                    className="text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
+                  >
+                    {item.name}
+                  </a>
+                )
               ))}
               <Link
                 to="/login"

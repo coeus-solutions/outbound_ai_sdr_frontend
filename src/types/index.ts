@@ -46,3 +46,21 @@ export interface VoiceAgentSettings {
   speaking_rate?: number;
   pitch?: number;
 }
+
+export type PartnershipType = "RESELLER" | "REFERRAL" | "TECHNOLOGY";
+
+export type CompanySize = "1-10" | "11-50" | "51-200" | "201-500" | "501+";
+
+export type ApplicationStatus = "PENDING" | "REVIEWING" | "APPROVED" | "REJECTED";
+
+export interface PartnerApplication {
+  companyName: string;
+  contactName: string;
+  contactEmail: string;
+  contactPhone?: string;
+  website?: string;
+  partnershipType: PartnershipType;
+  companySize: CompanySize;
+  industry: string;
+  motivation: string;
+}
