@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { HeroSection } from './HeroSection';
+// import { HeroSection } from './HeroSection';
+import { StrapiHeroSection } from './StrapiHeroSection';
 import { FeatureSection } from './FeatureSection';
 import { PricingSection } from './PricingSection';
 import { HowItWorksSection } from './HowItWorksSection';
@@ -138,7 +139,7 @@ export function LandingPage() {
         )}
       </header>
       <main className="flex-grow">
-        <HeroSection />
+        <StrapiHeroSection pageIdentifier="home" />
         <HowItWorksSection />
         <FeatureSection />
         <div id="testimonials">
