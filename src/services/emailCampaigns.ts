@@ -49,6 +49,32 @@ export interface TestRunCampaignResponse {
   status: string;
 }
 
+export interface EmailQueue {
+  id: string;
+  company_id: string;
+  campaign_id: string;
+  campaign_run_id: string;
+  lead_id: string;
+  subject: string;
+  email_body: string;
+  status: string;
+  priority: number;
+  retry_count: number;
+  max_retries: number;
+  error_message: string | null;
+  created_at: string;
+  scheduled_for: string | null;
+  processed_at: string | null;
+}
+
+export interface PaginatedEmailQueueResponse {
+  items: EmailQueue[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
+
 export async function getCompanyCampaigns(token: string, companyId: string, type?: 'email' | 'call' | 'all'): Promise<Campaign[]> {
   const url = new URL(apiEndpoints.companies.emailCampaigns.list(companyId));
   if (type) {
@@ -151,4 +177,28 @@ export async function testRunCampaign(token: string, campaignId: string, leadCon
   }
 
   return data;
+}
+
+export async function getEmailQueues(
+  token: string,
+  campaignRunId: string,
+  page: number = 1,
+  limit: number = 20
+): Promise<PaginatedEmailQueueResponse> {
+  const url = new URL(`${apiEndpoints.campaigns.emailQueues.list(campaignRunId)}`);
+  url.searchParams.append('page_number', page.toString());
+  url.searchParams.append('limit', limit.toString());
+
+  const response = await fetch(url.toString(), {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch email queues');
+  }
+
+  return response.json();
 } 
