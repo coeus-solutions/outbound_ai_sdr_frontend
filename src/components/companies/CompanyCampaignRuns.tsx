@@ -261,6 +261,17 @@ export function CompanyCampaignRuns() {
                     >
                       View Details
                     </Link>
+                    {run.campaigns.type === 'email' && (
+                      <>
+                        <span className="mx-2 text-gray-300">|</span>
+                        <Link
+                          to={`/companies/${companyId}/campaign-runs/${run.id}/email-queues`}
+                          className="text-indigo-600 hover:text-indigo-900"
+                        >
+                          View Queues
+                        </Link>
+                      </>
+                    )}
                   </td>
                 </tr>
               ))}
