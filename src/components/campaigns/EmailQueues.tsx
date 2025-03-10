@@ -5,6 +5,7 @@ import { PageHeader } from '../shared/PageHeader';
 import { Loader2, Mail } from 'lucide-react';
 import { getToken } from '../../utils/auth';
 import { useToast } from '../../context/ToastContext';
+import { formatDateTime } from '../../utils/formatters';
 
 export function EmailQueues() {
   const { campaignRunId } = useParams<{ campaignRunId: string }>();
@@ -66,7 +67,6 @@ export function EmailQueues() {
                 <tr>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Retry Count</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Scheduled For</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Processed At</th>
@@ -81,9 +81,6 @@ export function EmailQueues() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="h-6 bg-gray-200 rounded-full animate-pulse w-20"></div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="h-4 bg-gray-200 rounded animate-pulse w-12"></div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="h-4 bg-gray-200 rounded animate-pulse w-16"></div>
@@ -139,7 +136,6 @@ export function EmailQueues() {
                 <tr>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Retry Count</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Scheduled For</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Processed At</th>
@@ -160,13 +156,12 @@ export function EmailQueues() {
                         {queue.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{queue.priority}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{queue.retry_count}/{queue.max_retries}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {queue.scheduled_for ? new Date(queue.scheduled_for).toLocaleString() : 'Not scheduled'}
+                      {queue.scheduled_for ? formatDateTime(queue.scheduled_for) : 'Not scheduled'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {queue.processed_at ? new Date(queue.processed_at).toLocaleString() : 'Not processed'}
+                      {queue.processed_at ? formatDateTime(queue.processed_at) : 'Not processed'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-red-500">{queue.error_message || '-'}</td>
                   </tr>
