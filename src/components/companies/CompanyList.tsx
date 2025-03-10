@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Building2, Plus, Package, Phone, Mail, Settings, Eye, ChevronDown, ChevronUp, Search, ExternalLink, Trash2, Pencil, Users, Megaphone } from 'lucide-react';
+import { Building2, Plus, Package, Phone, Mail, Settings, Eye, ChevronDown, ChevronUp, Search, ExternalLink, Trash2, Pencil, Users, Megaphone, Ban } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getToken } from '../../utils/auth';
 import { Company, getCompanies, getCompanyById, deleteCompany } from '../../services/companies';
@@ -13,6 +13,7 @@ import { CardSkeletonLoader } from '../shared/CardSkeletonLoader';
 import { useUserRole } from '../../hooks/useUserRole';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import { CompanyDetailsPanel } from './CompanyDetailsPanel';
+import { DoNotEmailDialog } from './DoNotEmailDialog';
 
 interface ProductStats {
   id: string;
@@ -356,6 +357,7 @@ export function CompanyList() {
 
 function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: CompanyCardProps) {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [isDoNotEmailDialogOpen, setIsDoNotEmailDialogOpen] = useState(false);
   const { isAdmin } = useUserRole(company.id);
 
   if (isLoadingDetails) {
@@ -505,10 +507,10 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
                 <Tooltip.Root>
                   <Tooltip.Trigger asChild>
                     <button
-                      onClick={onDelete}
+                      onClick={() => setIsDoNotEmailDialogOpen(true)}
                       className="p-2 text-gray-400 hover:text-red-600"
                     >
-                      <Trash2 className="w-5 h-5" />
+                      <Ban className="w-5 h-5" />
                     </button>
                   </Tooltip.Trigger>
                   <Tooltip.Portal>
@@ -516,7 +518,7 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
                       className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
                       sideOffset={5}
                     >
-                      Delete company
+                      Upload do-not-email list
                       <Tooltip.Arrow className="fill-gray-900" />
                     </Tooltip.Content>
                   </Tooltip.Portal>
@@ -574,6 +576,12 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
           </div>
         )}
       </div>
+
+      <DoNotEmailDialog
+        isOpen={isDoNotEmailDialogOpen}
+        onClose={() => setIsDoNotEmailDialogOpen(false)}
+        companyId={company.id}
+      />
     </div>
   );
 }
