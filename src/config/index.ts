@@ -59,6 +59,9 @@ export const apiEndpoints = {
     voiceAgentSettings: (companyId: string) => `${config.apiUrl}/api/companies/${companyId}/voice_agent_settings`,
     invite: (companyId: string) => `${config.apiUrl}/api/companies/${companyId}/invite`,
     users: (companyId: string) => `${config.apiUrl}/api/companies/${companyId}/users`,
+    doNotEmail: {
+      upload: (companyId: string) => `${config.apiUrl}/api/companies/${companyId}/do-not-email/upload`,
+    },
   },
   calls: {
     details: (callId: string) => `${config.apiUrl}/api/calls/${callId}`,
