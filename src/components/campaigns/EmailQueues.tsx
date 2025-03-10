@@ -2,10 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getEmailQueues, PaginatedEmailQueueResponse, EmailQueue } from '../../services/emailCampaigns';
 import { PageHeader } from '../shared/PageHeader';
-import { Loader2, Mail } from 'lucide-react';
+import { Loader2, Mail, Eye } from 'lucide-react';
 import { getToken } from '../../utils/auth';
 import { useToast } from '../../context/ToastContext';
 import { formatDateTime } from '../../utils/formatters';
+import { EmailQueueDialog } from './EmailQueueDialog';
 
 export function EmailQueues() {
   const { campaignRunId } = useParams<{ campaignRunId: string }>();
@@ -15,6 +16,7 @@ export function EmailQueues() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<PaginatedEmailQueueResponse | null>(null);
+  const [selectedEmailQueue, setSelectedEmailQueue] = useState<EmailQueue | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -71,6 +73,7 @@ export function EmailQueues() {
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Scheduled For</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Processed At</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Error</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -93,6 +96,9 @@ export function EmailQueues() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="h-4 bg-gray-200 rounded animate-pulse w-32"></div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="h-4 bg-gray-200 rounded animate-pulse w-8"></div>
                     </td>
                   </tr>
                 ))}
@@ -140,6 +146,7 @@ export function EmailQueues() {
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Scheduled For</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Processed At</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Error</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -164,6 +171,14 @@ export function EmailQueues() {
                       {queue.processed_at ? formatDateTime(queue.processed_at) : 'Not processed'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-red-500">{queue.error_message || '-'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <button
+                        onClick={() => setSelectedEmailQueue(queue)}
+                        className="text-indigo-600 hover:text-indigo-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 rounded-md"
+                      >
+                        <Eye className="h-5 w-5" />
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -218,6 +233,12 @@ export function EmailQueues() {
           </div>
         </div>
       )}
+
+      <EmailQueueDialog
+        isOpen={selectedEmailQueue !== null}
+        onClose={() => setSelectedEmailQueue(null)}
+        emailQueue={selectedEmailQueue}
+      />
     </div>
   );
 } 
