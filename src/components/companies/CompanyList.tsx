@@ -502,15 +502,39 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
               </Tooltip.Root>
             </Tooltip.Provider>
 
+            {/* Do Not Email Button */}
+            <Tooltip.Provider>
+              <Tooltip.Root>
+                <Tooltip.Trigger asChild>
+                  <button
+                    onClick={() => setIsDoNotEmailDialogOpen(true)}
+                    className="p-2 text-gray-400 hover:text-red-600"
+                  >
+                    <Ban className="w-5 h-5" />
+                  </button>
+                </Tooltip.Trigger>
+                <Tooltip.Portal>
+                  <Tooltip.Content
+                    className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
+                    sideOffset={5}
+                  >
+                    Upload do-not-email list
+                    <Tooltip.Arrow className="fill-gray-900" />
+                  </Tooltip.Content>
+                </Tooltip.Portal>
+              </Tooltip.Root>
+            </Tooltip.Provider>
+
+            {/* Delete Button - Admin Only */}
             {isAdmin && (
               <Tooltip.Provider>
                 <Tooltip.Root>
                   <Tooltip.Trigger asChild>
                     <button
-                      onClick={() => setIsDoNotEmailDialogOpen(true)}
+                      onClick={onDelete}
                       className="p-2 text-gray-400 hover:text-red-600"
                     >
-                      <Ban className="w-5 h-5" />
+                      <Trash2 className="w-5 h-5" />
                     </button>
                   </Tooltip.Trigger>
                   <Tooltip.Portal>
@@ -518,7 +542,7 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
                       className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
                       sideOffset={5}
                     >
-                      Upload do-not-email list
+                      Delete company
                       <Tooltip.Arrow className="fill-gray-900" />
                     </Tooltip.Content>
                   </Tooltip.Portal>
@@ -526,6 +550,7 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
               </Tooltip.Provider>
             )}
 
+            {/* Expand/Collapse Button */}
             <button 
               onClick={() => setIsExpanded(!isExpanded)}
               className="p-2 text-gray-400 hover:text-gray-600"
