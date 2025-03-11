@@ -259,7 +259,7 @@ export function CompanyCampaignRuns() {
                       to={`/companies/${companyId}/${run.campaigns.type === 'email' ? 'emails' : 'calls'}?campaign_run_id=${run.id}`}
                       className="text-indigo-600 hover:text-indigo-900"
                     >
-                      Sent Emails
+                      {run.campaigns.type === 'email' ? 'Email Log' : (run.campaigns.type === 'call' ? 'Call Log' : '')}
                     </Link>
                     {run.campaigns.type === 'email' && (
                       <>
