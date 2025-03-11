@@ -7,9 +7,10 @@ import { getToken } from '../../utils/auth';
 import { useToast } from '../../context/ToastContext';
 import { formatDateTime } from '../../utils/formatters';
 import { EmailQueueDialog } from './EmailQueueDialog';
+import { getCompanyById, type Company } from '../../services/companies';
 
 export function EmailQueues() {
-  const { campaignRunId } = useParams<{ campaignRunId: string }>();
+  const { campaignRunId, companyId } = useParams<{ campaignRunId: string; companyId: string }>();
   const { showToast } = useToast();
   const [page, setPage] = useState(1);
   const [pageSize] = useState(20);
@@ -17,12 +18,13 @@ export function EmailQueues() {
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<PaginatedEmailQueueResponse | null>(null);
   const [selectedEmailQueue, setSelectedEmailQueue] = useState<EmailQueue | null>(null);
+  const [company, setCompany] = useState<Company | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       console.log('Fetching email queues with campaignRunId:', campaignRunId);
-      if (!campaignRunId) {
-        console.error('No campaignRunId provided');
+      if (!campaignRunId || !companyId) {
+        console.error('No campaignRunId or companyId provided');
         return;
       }
 
@@ -37,13 +39,17 @@ export function EmailQueues() {
           return;
         }
 
+        // Fetch company details
+        const companyData = await getCompanyById(token, companyId);
+        setCompany(companyData);
+
         console.log('Making API call to fetch email queues...');
         const response = await getEmailQueues(token, campaignRunId, page, pageSize);
         console.log('API response:', response);
         setData(response);
       } catch (err) {
-        const errorMessage = 'Failed to fetch email queues';
-        console.error('Error fetching email queues:', err);
+        const errorMessage = 'Failed to fetch data';
+        console.error('Error fetching data:', err);
         setError(errorMessage);
         showToast(errorMessage, 'error');
       } finally {
@@ -52,7 +58,7 @@ export function EmailQueues() {
     };
 
     fetchData();
-  }, [campaignRunId, page, pageSize, showToast]);
+  }, [campaignRunId, companyId, page, pageSize, showToast]);
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
@@ -61,7 +67,7 @@ export function EmailQueues() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Email Queues" subtitle="Campaign Run" />
+        <PageHeader title="Loading..." subtitle="Email Queue for" />
         <div className="bg-white shadow rounded-lg">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -126,7 +132,7 @@ export function EmailQueues() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Email Queues" subtitle="Campaign Run" />
+      <PageHeader title={company?.name || 'Company'} subtitle="Email Queue for" />
 
       {data?.items.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-lg shadow">
