@@ -65,6 +65,8 @@ export interface EmailQueue {
   created_at: string;
   scheduled_for: string | null;
   processed_at: string | null;
+  lead_name: string | null;
+  lead_email: string | null;
 }
 
 export interface PaginatedEmailQueueResponse {

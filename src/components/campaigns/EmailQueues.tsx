@@ -79,6 +79,7 @@ export function EmailQueues() {
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Scheduled For</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Processed At</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Error</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lead</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
@@ -99,6 +100,9 @@ export function EmailQueues() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="h-4 bg-gray-200 rounded animate-pulse w-24"></div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="h-4 bg-gray-200 rounded animate-pulse w-32"></div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="h-4 bg-gray-200 rounded animate-pulse w-32"></div>
@@ -152,6 +156,7 @@ export function EmailQueues() {
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Scheduled For</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Processed At</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Error</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lead</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
@@ -178,6 +183,10 @@ export function EmailQueues() {
                       {queue.processed_at ? formatDateTime(queue.processed_at) : 'Not processed'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-red-500">{queue.error_message || '-'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <div>{queue.lead_name || 'Unknown'}</div>
+                      <div className="text-sm text-gray-500">{queue.lead_email || 'No email'}</div>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <button
                         onClick={() => setSelectedEmailQueue(queue)}
