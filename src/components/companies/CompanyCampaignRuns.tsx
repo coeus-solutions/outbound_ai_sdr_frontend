@@ -259,7 +259,7 @@ export function CompanyCampaignRuns() {
                       to={`/companies/${companyId}/${run.campaigns.type === 'email' ? 'emails' : 'calls'}?campaign_run_id=${run.id}`}
                       className="text-indigo-600 hover:text-indigo-900"
                     >
-                      View Details
+                      Sent Emails
                     </Link>
                     {run.campaigns.type === 'email' && (
                       <>
@@ -268,7 +268,7 @@ export function CompanyCampaignRuns() {
                           to={`/companies/${companyId}/campaign-runs/${run.id}/email-queues`}
                           className="text-indigo-600 hover:text-indigo-900"
                         >
-                          View Queues
+                          Queued Emails
                         </Link>
                       </>
                     )}
