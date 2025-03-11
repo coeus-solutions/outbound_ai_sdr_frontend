@@ -518,7 +518,7 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
                     className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
                     sideOffset={5}
                   >
-                    Upload do-not-email list
+                    View do-not-email list
                     <Tooltip.Arrow className="fill-gray-900" />
                   </Tooltip.Content>
                 </Tooltip.Portal>
@@ -602,6 +602,7 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
         )}
       </div>
 
+      {/* Do Not Email Dialog */}
       <DoNotEmailDialog
         isOpen={isDoNotEmailDialogOpen}
         onClose={() => setIsDoNotEmailDialogOpen(false)}

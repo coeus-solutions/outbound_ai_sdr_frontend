@@ -62,6 +62,21 @@ export interface PaginatedLeadResponse {
   total_pages: number;
 }
 
+export interface DoNotEmailEntry {
+  id: string;
+  email: string;
+  reason?: string;
+  created_at: string;
+}
+
+export interface PaginatedDoNotEmailResponse {
+  items: DoNotEmailEntry[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
+
 export async function getCompanies(token: string): Promise<Company[]> {
   const response = await fetch(apiEndpoints.companies.list(true), {
     headers: {
@@ -246,4 +261,28 @@ export async function updateCompany(token: string, companyId: string, data: Part
 
   const updatedCompany: Company = await response.json();
   return updatedCompany;
+}
+
+export async function getDoNotEmailList(
+  token: string,
+  companyId: string,
+  page: number = 1,
+  limit: number = 1,
+): Promise<PaginatedDoNotEmailResponse> {
+  const url = new URL(apiEndpoints.companies.doNotEmail.list(companyId));
+  url.searchParams.append('page_number', page.toString());
+  url.searchParams.append('limit', limit.toString());
+
+  const response = await fetch(url.toString(), {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch do-not-email list');
+  }
+
+  return response.json();
 } 
