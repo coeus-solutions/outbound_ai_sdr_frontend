@@ -61,6 +61,7 @@ export const apiEndpoints = {
     users: (companyId: string) => `${config.apiUrl}/api/companies/${companyId}/users`,
     doNotEmail: {
       upload: (companyId: string) => `${config.apiUrl}/api/companies/${companyId}/do-not-email/upload`,
+      list: (companyId: string) => `${config.apiUrl}/api/companies/${companyId}/do-not-email`,
     },
   },
   calls: {
