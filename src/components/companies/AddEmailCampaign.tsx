@@ -26,19 +26,82 @@ export function AddEmailCampaign() {
     type: 'email' as 'email' | 'call' | 'both',
     product_id: '',
     template: '',
-    drip_settings: {
-      reminder_count: 3,
-      reminder_interval_days: 3,
-      on_reply_action: 'stop_campaign' as 'stop_campaign' | 'auto_reply'
-    },
-    combined_settings: {
-      call_trigger: 'after_email_sent' as 'after_email_sent' | 'when_opened',
-      stop_on_any_reply: true
-    }
+    number_of_reminders: 0,
+    days_between_reminders: 0,
+    auto_reply_enabled: false,
+    call_trigger: 'after_email_sent' as 'after_email_sent' | 'when_opened',
+    stop_on_any_reply: false
   });
 
   // Add state for active tab
   const [activeTab, setActiveTab] = useState<'email' | 'phone' | 'combined'>('email');
+
+  const [validationErrors, setValidationErrors] = useState<{
+    number_of_reminders?: string;
+    days_between_reminders?: string;
+  }>({});
+
+  // Handler for number of reminders changes
+  const handleRemindersChange = (value: number) => {
+    const isValid = !isNaN(value) && value >= 0 && value <= 10;
+    const newValue = isValid ? value : 0;
+
+    setFormData(prev => ({
+      ...prev,
+      number_of_reminders: newValue,
+      // If reminders are set to 0, automatically set days to 0
+      days_between_reminders: newValue === 0 ? 0 : prev.days_between_reminders
+    }));
+
+    // Clear validation errors when valid
+    if (isValid) {
+      setValidationErrors(prev => ({
+        ...prev,
+        number_of_reminders: undefined
+      }));
+    }
+  };
+
+  // Handler for days between reminders changes
+  const handleDaysChange = (value: number) => {
+    const isValid = !isNaN(value) && value >= 0 && value <= 30;
+    const newValue = isValid ? value : 0;
+
+    setFormData(prev => ({
+      ...prev,
+      days_between_reminders: newValue
+    }));
+
+    // Clear validation errors when valid
+    if (isValid) {
+      setValidationErrors(prev => ({
+        ...prev,
+        days_between_reminders: undefined
+      }));
+    }
+  };
+
+  // Validation function
+  const validateForm = (): boolean => {
+    const errors: { number_of_reminders?: string; days_between_reminders?: string } = {};
+    
+    // Validate reminder settings
+    if (formData.number_of_reminders > 0 && formData.days_between_reminders === 0) {
+      errors.days_between_reminders = 'Days between reminders must be set when reminders are enabled';
+    }
+    if (formData.number_of_reminders === 0 && formData.days_between_reminders > 0) {
+      errors.days_between_reminders = 'Days must be 0 when no reminders are set';
+    }
+    if (formData.days_between_reminders > 30) {
+      errors.days_between_reminders = 'Days between reminders cannot exceed 30';
+    }
+    if (formData.number_of_reminders > 10) {
+      errors.number_of_reminders = 'Number of reminders cannot exceed 10';
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const initializeEditor = async () => {
     if (!editorContainerRef.current || editorInitialized) return;
@@ -206,6 +269,13 @@ export function AddEmailCampaign() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate form before submission
+    if (!validateForm()) {
+      showToast('Please fix the validation errors before submitting', 'error');
+      return;
+    }
+
     setIsSaving(true);
 
     try {
@@ -243,6 +313,78 @@ export function AddEmailCampaign() {
       [e.target.name]: e.target.value
     }));
   };
+
+  // Update the reminder input fields to use the new handlers and show validation errors
+  const renderReminderInputs = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label htmlFor="number_of_reminders" className="block text-sm font-medium text-gray-700 mb-1">
+          Number of Reminders
+        </label>
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Calendar className="h-5 w-5 text-gray-400" />
+          </div>
+          <input
+            type="number"
+            name="number_of_reminders"
+            id="number_of_reminders"
+            min="0"
+            max="10"
+            value={formData.number_of_reminders}
+            onChange={(e) => {
+              const value = parseInt(e.target.value);
+              handleRemindersChange(value);
+            }}
+            className={`form-input ${validationErrors.number_of_reminders ? 'border-red-300' : ''}`}
+            placeholder="Number of follow-up emails"
+          />
+        </div>
+        {validationErrors.number_of_reminders && (
+          <p className="mt-1 text-xs text-red-500">
+            {validationErrors.number_of_reminders}
+          </p>
+        )}
+        <p className="mt-1 text-xs text-gray-500">
+          How many follow-up emails to send if no response (0-10)
+        </p>
+      </div>
+
+      <div>
+        <label htmlFor="days_between_reminders" className="block text-sm font-medium text-gray-700 mb-1">
+          Days Between Reminders
+        </label>
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Calendar className="h-5 w-5 text-gray-400" />
+          </div>
+          <input
+            type="number"
+            name="days_between_reminders"
+            id="days_between_reminders"
+            min="0"
+            max="30"
+            value={formData.days_between_reminders}
+            onChange={(e) => {
+              const value = parseInt(e.target.value);
+              handleDaysChange(value);
+            }}
+            className={`form-input ${validationErrors.days_between_reminders ? 'border-red-300' : ''}`}
+            placeholder="Days between emails"
+            disabled={formData.number_of_reminders === 0}
+          />
+        </div>
+        {validationErrors.days_between_reminders && (
+          <p className="mt-1 text-xs text-red-500">
+            {validationErrors.days_between_reminders}
+          </p>
+        )}
+        <p className="mt-1 text-xs text-gray-500">
+          Number of days to wait between follow-up emails (1-30)
+        </p>
+      </div>
+    </div>
+  );
 
   if (isLoading) {
     return (
@@ -392,6 +534,7 @@ export function AddEmailCampaign() {
             </div>
           </div>
 
+          {/* Remove the top-level reminder settings */}
           {formData.type === 'email' && (
             <>
               <div>
@@ -406,129 +549,26 @@ export function AddEmailCampaign() {
                 </div>
               </div>
 
-              <div className="border-t border-gray-200 pt-4 mt-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Drip Campaign Settings</h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="reminder_count" className="block text-sm font-medium text-gray-700 mb-1">
-                      Number of Reminders
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Calendar className="h-5 w-5 text-gray-400" />
-                      </div>
-                      <input
-                        type="number"
-                        name="drip_settings.reminder_count"
-                        id="reminder_count"
-                        min="0"
-                        max="10"
-                        value={formData.drip_settings.reminder_count}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value);
-                          setFormData(prev => ({
-                            ...prev,
-                            drip_settings: {
-                              ...prev.drip_settings,
-                              reminder_count: isNaN(value) ? 0 : value
-                            }
-                          }));
-                        }}
-                        className="form-input"
-                        placeholder="Number of follow-up emails"
-                      />
-                    </div>
-                    <p className="mt-1 text-xs text-gray-500">
-                      How many follow-up emails to send if no response (0-10)
-                    </p>
-                  </div>
-
-                  <div>
-                    <label htmlFor="reminder_interval" className="block text-sm font-medium text-gray-700 mb-1">
-                      Days Between Reminders
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Calendar className="h-5 w-5 text-gray-400" />
-                      </div>
-                      <input
-                        type="number"
-                        name="drip_settings.reminder_interval_days"
-                        id="reminder_interval"
-                        min="1"
-                        max="30"
-                        value={formData.drip_settings.reminder_interval_days}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value);
-                          setFormData(prev => ({
-                            ...prev,
-                            drip_settings: {
-                              ...prev.drip_settings,
-                              reminder_interval_days: isNaN(value) ? 1 : value
-                            }
-                          }));
-                        }}
-                        className="form-input"
-                        placeholder="Days between emails"
-                      />
-                    </div>
-                    <p className="mt-1 text-xs text-gray-500">
-                      Number of days to wait between follow-up emails (1-30)
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    If Prospect Replies
+              <div className="space-y-4 border-t pt-4 mt-4">
+                <h3 className="text-lg font-medium text-gray-900">Reminder Settings</h3>
+                {renderReminderInputs()}
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    name="auto_reply_enabled"
+                    id="auto_reply_enabled"
+                    checked={formData.auto_reply_enabled}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      auto_reply_enabled: e.target.checked
+                    }))}
+                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="auto_reply_enabled" className="ml-2 block text-sm text-gray-900">
+                    Enable Auto-Reply
                   </label>
-                  <div className="space-y-2">
-                    <div className="flex items-center">
-                      <input
-                        id="stop_campaign_email"
-                        name="on_reply_action"
-                        type="radio"
-                        checked={formData.drip_settings.on_reply_action === 'stop_campaign'}
-                        onChange={() => {
-                          setFormData(prev => ({
-                            ...prev,
-                            drip_settings: {
-                              ...prev.drip_settings,
-                              on_reply_action: 'stop_campaign'
-                            }
-                          }));
-                        }}
-                        className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
-                      />
-                      <label htmlFor="stop_campaign_email" className="ml-3 block text-sm font-medium text-gray-700">
-                        Stop campaign for this prospect
-                      </label>
-                    </div>
-                    <div className="flex items-center">
-                      <input
-                        id="auto_reply_email"
-                        name="on_reply_action"
-                        type="radio"
-                        checked={formData.drip_settings.on_reply_action === 'auto_reply'}
-                        onChange={() => {
-                          setFormData(prev => ({
-                            ...prev,
-                            drip_settings: {
-                              ...prev.drip_settings,
-                              on_reply_action: 'auto_reply'
-                            }
-                          }));
-                        }}
-                        className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
-                      />
-                      <label htmlFor="auto_reply_email" className="ml-3 block text-sm font-medium text-gray-700">
-                        Auto-reply using AI agent
-                      </label>
-                    </div>
-                  </div>
-                  <p className="mt-1 text-xs text-gray-500">
-                    How to handle the campaign when a prospect replies to an email
+                  <p className="ml-8 text-xs text-gray-500">
+                    When enabled, AI will automatically handle prospect replies
                   </p>
                 </div>
               </div>
@@ -537,76 +577,10 @@ export function AddEmailCampaign() {
 
           {formData.type === 'call' && (
             <div className="border-t border-gray-200 pt-4 mt-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Drip Campaign Settings</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Phone Campaign Settings</h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="phone_retry_count" className="block text-sm font-medium text-gray-700 mb-1">
-                    Number of Retries
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Phone className="h-5 w-5 text-gray-400" />
-                    </div>
-                    <input
-                      type="number"
-                      name="drip_settings.reminder_count"
-                      id="phone_retry_count"
-                      min="0"
-                      max="10"
-                      value={formData.drip_settings.reminder_count}
-                      onChange={(e) => {
-                        const value = parseInt(e.target.value);
-                        setFormData(prev => ({
-                          ...prev,
-                          drip_settings: {
-                            ...prev.drip_settings,
-                            reminder_count: isNaN(value) ? 0 : value
-                          }
-                        }));
-                      }}
-                      className="form-input"
-                      placeholder="Number of call retries"
-                    />
-                  </div>
-                  <p className="mt-1 text-xs text-gray-500">
-                    How many times to retry calling if no response (0-10)
-                  </p>
-                </div>
-
-                <div>
-                  <label htmlFor="phone_retry_interval" className="block text-sm font-medium text-gray-700 mb-1">
-                    Days Between Retries
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Calendar className="h-5 w-5 text-gray-400" />
-                    </div>
-                    <input
-                      type="number"
-                      name="drip_settings.reminder_interval_days"
-                      id="phone_retry_interval"
-                      min="1"
-                      max="30"
-                      value={formData.drip_settings.reminder_interval_days}
-                      onChange={(e) => {
-                        const value = parseInt(e.target.value);
-                        setFormData(prev => ({
-                          ...prev,
-                          drip_settings: {
-                            ...prev.drip_settings,
-                            reminder_interval_days: isNaN(value) ? 1 : value
-                          }
-                        }));
-                      }}
-                      className="form-input"
-                      placeholder="Days between call retries"
-                    />
-                  </div>
-                  <p className="mt-1 text-xs text-gray-500">
-                    Number of days to wait between call retries (1-30)
-                  </p>
-                </div>
+                {renderReminderInputs()}
               </div>
             </div>
           )}
@@ -665,129 +639,26 @@ export function AddEmailCampaign() {
                     </div>
                   </div>
 
-                  <div className="border-t border-gray-200 pt-4 mt-6">
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Drip Campaign Settings</h3>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label htmlFor="reminder_count" className="block text-sm font-medium text-gray-700 mb-1">
-                          Number of Reminders
-                        </label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Calendar className="h-5 w-5 text-gray-400" />
-                          </div>
-                          <input
-                            type="number"
-                            name="drip_settings.reminder_count"
-                            id="reminder_count"
-                            min="0"
-                            max="10"
-                            value={formData.drip_settings.reminder_count}
-                            onChange={(e) => {
-                              const value = parseInt(e.target.value);
-                              setFormData(prev => ({
-                                ...prev,
-                                drip_settings: {
-                                  ...prev.drip_settings,
-                                  reminder_count: isNaN(value) ? 0 : value
-                                }
-                              }));
-                            }}
-                            className="form-input"
-                            placeholder="Number of follow-up emails"
-                          />
-                        </div>
-                        <p className="mt-1 text-xs text-gray-500">
-                          How many follow-up emails to send if no response (0-10)
-                        </p>
-                      </div>
-
-                      <div>
-                        <label htmlFor="reminder_interval" className="block text-sm font-medium text-gray-700 mb-1">
-                          Days Between Reminders
-                        </label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Calendar className="h-5 w-5 text-gray-400" />
-                          </div>
-                          <input
-                            type="number"
-                            name="drip_settings.reminder_interval_days"
-                            id="reminder_interval"
-                            min="1"
-                            max="30"
-                            value={formData.drip_settings.reminder_interval_days}
-                            onChange={(e) => {
-                              const value = parseInt(e.target.value);
-                              setFormData(prev => ({
-                                ...prev,
-                                drip_settings: {
-                                  ...prev.drip_settings,
-                                  reminder_interval_days: isNaN(value) ? 1 : value
-                                }
-                              }));
-                            }}
-                            className="form-input"
-                            placeholder="Days between emails"
-                          />
-                        </div>
-                        <p className="mt-1 text-xs text-gray-500">
-                          Number of days to wait between follow-up emails (1-30)
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="mt-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        If Prospect Replies
+                  <div className="space-y-4 border-t pt-4 mt-4">
+                    <h3 className="text-lg font-medium text-gray-900">Reminder Settings</h3>
+                    {renderReminderInputs()}
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        name="auto_reply_enabled"
+                        id="auto_reply_enabled"
+                        checked={formData.auto_reply_enabled}
+                        onChange={(e) => setFormData(prev => ({
+                          ...prev,
+                          auto_reply_enabled: e.target.checked
+                        }))}
+                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                      />
+                      <label htmlFor="auto_reply_enabled" className="ml-2 block text-sm text-gray-900">
+                        Enable Auto-Reply
                       </label>
-                      <div className="space-y-2">
-                        <div className="flex items-center">
-                          <input
-                            id="stop_campaign"
-                            name="on_reply_action"
-                            type="radio"
-                            checked={formData.drip_settings.on_reply_action === 'stop_campaign'}
-                            onChange={() => {
-                              setFormData(prev => ({
-                                ...prev,
-                                drip_settings: {
-                                  ...prev.drip_settings,
-                                  on_reply_action: 'stop_campaign'
-                                }
-                              }));
-                            }}
-                            className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
-                          />
-                          <label htmlFor="stop_campaign" className="ml-3 block text-sm font-medium text-gray-700">
-                            Stop campaign for this prospect
-                          </label>
-                        </div>
-                        <div className="flex items-center">
-                          <input
-                            id="auto_reply"
-                            name="on_reply_action"
-                            type="radio"
-                            checked={formData.drip_settings.on_reply_action === 'auto_reply'}
-                            onChange={() => {
-                              setFormData(prev => ({
-                                ...prev,
-                                drip_settings: {
-                                  ...prev.drip_settings,
-                                  on_reply_action: 'auto_reply'
-                                }
-                              }));
-                            }}
-                            className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
-                          />
-                          <label htmlFor="auto_reply" className="ml-3 block text-sm font-medium text-gray-700">
-                            Auto-reply using AI agent
-                          </label>
-                        </div>
-                      </div>
-                      <p className="mt-1 text-xs text-gray-500">
-                        How to handle the campaign when a prospect replies to an email
+                      <p className="ml-8 text-xs text-gray-500">
+                        When enabled, AI will automatically handle prospect replies
                       </p>
                     </div>
                   </div>
@@ -796,76 +667,10 @@ export function AddEmailCampaign() {
 
               {activeTab === 'phone' && (
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">Phone Drip Campaign Settings</h3>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Phone Campaign Settings</h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="phone_retry_count" className="block text-sm font-medium text-gray-700 mb-1">
-                        Number of Retries
-                      </label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <Phone className="h-5 w-5 text-gray-400" />
-                        </div>
-                        <input
-                          type="number"
-                          name="drip_settings.reminder_count"
-                          id="phone_retry_count"
-                          min="0"
-                          max="10"
-                          value={formData.drip_settings.reminder_count}
-                          onChange={(e) => {
-                            const value = parseInt(e.target.value);
-                            setFormData(prev => ({
-                              ...prev,
-                              drip_settings: {
-                                ...prev.drip_settings,
-                                reminder_count: isNaN(value) ? 0 : value
-                              }
-                            }));
-                          }}
-                          className="form-input"
-                          placeholder="Number of call retries"
-                        />
-                      </div>
-                      <p className="mt-1 text-xs text-gray-500">
-                        How many times to retry calling if no response (0-10)
-                      </p>
-                    </div>
-
-                    <div>
-                      <label htmlFor="phone_retry_interval" className="block text-sm font-medium text-gray-700 mb-1">
-                        Days Between Retries
-                      </label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <Calendar className="h-5 w-5 text-gray-400" />
-                        </div>
-                        <input
-                          type="number"
-                          name="drip_settings.reminder_interval_days"
-                          id="phone_retry_interval"
-                          min="1"
-                          max="30"
-                          value={formData.drip_settings.reminder_interval_days}
-                          onChange={(e) => {
-                            const value = parseInt(e.target.value);
-                            setFormData(prev => ({
-                              ...prev,
-                              drip_settings: {
-                                ...prev.drip_settings,
-                                reminder_interval_days: isNaN(value) ? 1 : value
-                              }
-                            }));
-                          }}
-                          className="form-input"
-                          placeholder="Days between call retries"
-                        />
-                      </div>
-                      <p className="mt-1 text-xs text-gray-500">
-                        Number of days to wait between call retries (1-30)
-                      </p>
-                    </div>
+                    {renderReminderInputs()}
                   </div>
                 </div>
               )}
@@ -885,14 +690,11 @@ export function AddEmailCampaign() {
                             id="after_email_sent"
                             name="call_trigger"
                             type="radio"
-                            checked={formData.combined_settings.call_trigger === 'after_email_sent'}
+                            checked={formData.call_trigger === 'after_email_sent'}
                             onChange={() => {
                               setFormData(prev => ({
                                 ...prev,
-                                combined_settings: {
-                                  ...prev.combined_settings,
-                                  call_trigger: 'after_email_sent'
-                                }
+                                call_trigger: 'after_email_sent'
                               }));
                             }}
                             className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
@@ -906,14 +708,11 @@ export function AddEmailCampaign() {
                             id="when_opened"
                             name="call_trigger"
                             type="radio"
-                            checked={formData.combined_settings.call_trigger === 'when_opened'}
+                            checked={formData.call_trigger === 'when_opened'}
                             onChange={() => {
                               setFormData(prev => ({
                                 ...prev,
-                                combined_settings: {
-                                  ...prev.combined_settings,
-                                  call_trigger: 'when_opened'
-                                }
+                                call_trigger: 'when_opened'
                               }));
                             }}
                             className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
@@ -934,14 +733,11 @@ export function AddEmailCampaign() {
                           id="stop_on_any_reply"
                           name="stop_on_any_reply"
                           type="checkbox"
-                          checked={formData.combined_settings.stop_on_any_reply}
+                          checked={formData.stop_on_any_reply}
                           onChange={(e) => {
                             setFormData(prev => ({
                               ...prev,
-                              combined_settings: {
-                                ...prev.combined_settings,
-                                stop_on_any_reply: e.target.checked
-                              }
+                              stop_on_any_reply: e.target.checked
                             }));
                           }}
                           className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
