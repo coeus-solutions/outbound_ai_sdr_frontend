@@ -36,6 +36,73 @@ export function AddEmailCampaign() {
   // Add state for active tab
   const [activeTab, setActiveTab] = useState<'email' | 'phone' | 'combined'>('email');
 
+  const [validationErrors, setValidationErrors] = useState<{
+    number_of_reminders?: string;
+    days_between_reminders?: string;
+  }>({});
+
+  // Handler for number of reminders changes
+  const handleRemindersChange = (value: number) => {
+    const isValid = !isNaN(value) && value >= 0 && value <= 10;
+    const newValue = isValid ? value : 0;
+
+    setFormData(prev => ({
+      ...prev,
+      number_of_reminders: newValue,
+      // If reminders are set to 0, automatically set days to 0
+      days_between_reminders: newValue === 0 ? 0 : prev.days_between_reminders
+    }));
+
+    // Clear validation errors when valid
+    if (isValid) {
+      setValidationErrors(prev => ({
+        ...prev,
+        number_of_reminders: undefined
+      }));
+    }
+  };
+
+  // Handler for days between reminders changes
+  const handleDaysChange = (value: number) => {
+    const isValid = !isNaN(value) && value >= 0 && value <= 30;
+    const newValue = isValid ? value : 0;
+
+    setFormData(prev => ({
+      ...prev,
+      days_between_reminders: newValue
+    }));
+
+    // Clear validation errors when valid
+    if (isValid) {
+      setValidationErrors(prev => ({
+        ...prev,
+        days_between_reminders: undefined
+      }));
+    }
+  };
+
+  // Validation function
+  const validateForm = (): boolean => {
+    const errors: { number_of_reminders?: string; days_between_reminders?: string } = {};
+    
+    // Validate reminder settings
+    if (formData.number_of_reminders > 0 && formData.days_between_reminders === 0) {
+      errors.days_between_reminders = 'Days between reminders must be set when reminders are enabled';
+    }
+    if (formData.number_of_reminders === 0 && formData.days_between_reminders > 0) {
+      errors.days_between_reminders = 'Days must be 0 when no reminders are set';
+    }
+    if (formData.days_between_reminders > 30) {
+      errors.days_between_reminders = 'Days between reminders cannot exceed 30';
+    }
+    if (formData.number_of_reminders > 10) {
+      errors.number_of_reminders = 'Number of reminders cannot exceed 10';
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const initializeEditor = async () => {
     if (!editorContainerRef.current || editorInitialized) return;
 
@@ -202,6 +269,13 @@ export function AddEmailCampaign() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate form before submission
+    if (!validateForm()) {
+      showToast('Please fix the validation errors before submitting', 'error');
+      return;
+    }
+
     setIsSaving(true);
 
     try {
@@ -239,6 +313,78 @@ export function AddEmailCampaign() {
       [e.target.name]: e.target.value
     }));
   };
+
+  // Update the reminder input fields to use the new handlers and show validation errors
+  const renderReminderInputs = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label htmlFor="number_of_reminders" className="block text-sm font-medium text-gray-700 mb-1">
+          Number of Reminders
+        </label>
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Calendar className="h-5 w-5 text-gray-400" />
+          </div>
+          <input
+            type="number"
+            name="number_of_reminders"
+            id="number_of_reminders"
+            min="0"
+            max="10"
+            value={formData.number_of_reminders}
+            onChange={(e) => {
+              const value = parseInt(e.target.value);
+              handleRemindersChange(value);
+            }}
+            className={`form-input ${validationErrors.number_of_reminders ? 'border-red-300' : ''}`}
+            placeholder="Number of follow-up emails"
+          />
+        </div>
+        {validationErrors.number_of_reminders && (
+          <p className="mt-1 text-xs text-red-500">
+            {validationErrors.number_of_reminders}
+          </p>
+        )}
+        <p className="mt-1 text-xs text-gray-500">
+          How many follow-up emails to send if no response (0-10)
+        </p>
+      </div>
+
+      <div>
+        <label htmlFor="days_between_reminders" className="block text-sm font-medium text-gray-700 mb-1">
+          Days Between Reminders
+        </label>
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Calendar className="h-5 w-5 text-gray-400" />
+          </div>
+          <input
+            type="number"
+            name="days_between_reminders"
+            id="days_between_reminders"
+            min="0"
+            max="30"
+            value={formData.days_between_reminders}
+            onChange={(e) => {
+              const value = parseInt(e.target.value);
+              handleDaysChange(value);
+            }}
+            className={`form-input ${validationErrors.days_between_reminders ? 'border-red-300' : ''}`}
+            placeholder="Days between emails"
+            disabled={formData.number_of_reminders === 0}
+          />
+        </div>
+        {validationErrors.days_between_reminders && (
+          <p className="mt-1 text-xs text-red-500">
+            {validationErrors.days_between_reminders}
+          </p>
+        )}
+        <p className="mt-1 text-xs text-gray-500">
+          Number of days to wait between follow-up emails (1-30)
+        </p>
+      </div>
+    </div>
+  );
 
   if (isLoading) {
     return (
@@ -405,71 +551,7 @@ export function AddEmailCampaign() {
 
               <div className="space-y-4 border-t pt-4 mt-4">
                 <h3 className="text-lg font-medium text-gray-900">Reminder Settings</h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="number_of_reminders" className="block text-sm font-medium text-gray-700 mb-1">
-                      Number of Reminders
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Calendar className="h-5 w-5 text-gray-400" />
-                      </div>
-                      <input
-                        type="number"
-                        name="number_of_reminders"
-                        id="number_of_reminders"
-                        min="0"
-                        max="10"
-                        value={formData.number_of_reminders}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value);
-                          setFormData(prev => ({
-                            ...prev,
-                            number_of_reminders: isNaN(value) ? 0 : value
-                          }));
-                        }}
-                        className="form-input"
-                        placeholder="Number of follow-up emails"
-                      />
-                    </div>
-                    <p className="mt-1 text-xs text-gray-500">
-                      How many follow-up emails to send if no response (0-10)
-                    </p>
-                  </div>
-
-                  <div>
-                    <label htmlFor="days_between_reminders" className="block text-sm font-medium text-gray-700 mb-1">
-                      Days Between Reminders
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Calendar className="h-5 w-5 text-gray-400" />
-                      </div>
-                      <input
-                        type="number"
-                        name="days_between_reminders"
-                        id="days_between_reminders"
-                        min="1"
-                        max="30"
-                        value={formData.days_between_reminders}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value);
-                          setFormData(prev => ({
-                            ...prev,
-                            days_between_reminders: isNaN(value) ? 1 : value
-                          }));
-                        }}
-                        className="form-input"
-                        placeholder="Days between emails"
-                      />
-                    </div>
-                    <p className="mt-1 text-xs text-gray-500">
-                      Number of days to wait between follow-up emails (1-30)
-                    </p>
-                  </div>
-                </div>
-
+                {renderReminderInputs()}
                 <div className="flex items-center">
                   <input
                     type="checkbox"
@@ -498,67 +580,7 @@ export function AddEmailCampaign() {
               <h3 className="text-lg font-medium text-gray-900 mb-4">Phone Campaign Settings</h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="number_of_reminders" className="block text-sm font-medium text-gray-700 mb-1">
-                    Number of Retries
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Phone className="h-5 w-5 text-gray-400" />
-                    </div>
-                    <input
-                      type="number"
-                      name="number_of_reminders"
-                      id="number_of_reminders"
-                      min="0"
-                      max="10"
-                      value={formData.number_of_reminders}
-                      onChange={(e) => {
-                        const value = parseInt(e.target.value);
-                        setFormData(prev => ({
-                          ...prev,
-                          number_of_reminders: isNaN(value) ? 0 : value
-                        }));
-                      }}
-                      className="form-input"
-                      placeholder="Number of call retries"
-                    />
-                  </div>
-                  <p className="mt-1 text-xs text-gray-500">
-                    How many times to retry calling if no response (0-10)
-                  </p>
-                </div>
-
-                <div>
-                  <label htmlFor="days_between_reminders" className="block text-sm font-medium text-gray-700 mb-1">
-                    Days Between Retries
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Calendar className="h-5 w-5 text-gray-400" />
-                    </div>
-                    <input
-                      type="number"
-                      name="days_between_reminders"
-                      id="days_between_reminders"
-                      min="1"
-                      max="30"
-                      value={formData.days_between_reminders}
-                      onChange={(e) => {
-                        const value = parseInt(e.target.value);
-                        setFormData(prev => ({
-                          ...prev,
-                          days_between_reminders: isNaN(value) ? 1 : value
-                        }));
-                      }}
-                      className="form-input"
-                      placeholder="Days between calls"
-                    />
-                  </div>
-                  <p className="mt-1 text-xs text-gray-500">
-                    Number of days to wait between call retries (1-30)
-                  </p>
-                </div>
+                {renderReminderInputs()}
               </div>
             </div>
           )}
@@ -619,71 +641,7 @@ export function AddEmailCampaign() {
 
                   <div className="space-y-4 border-t pt-4 mt-4">
                     <h3 className="text-lg font-medium text-gray-900">Reminder Settings</h3>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label htmlFor="number_of_reminders" className="block text-sm font-medium text-gray-700 mb-1">
-                          Number of Reminders
-                        </label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Calendar className="h-5 w-5 text-gray-400" />
-                          </div>
-                          <input
-                            type="number"
-                            name="number_of_reminders"
-                            id="number_of_reminders"
-                            min="0"
-                            max="10"
-                            value={formData.number_of_reminders}
-                            onChange={(e) => {
-                              const value = parseInt(e.target.value);
-                              setFormData(prev => ({
-                                ...prev,
-                                number_of_reminders: isNaN(value) ? 0 : value
-                              }));
-                            }}
-                            className="form-input"
-                            placeholder="Number of follow-up emails"
-                          />
-                        </div>
-                        <p className="mt-1 text-xs text-gray-500">
-                          How many follow-up emails to send if no response (0-10)
-                        </p>
-                      </div>
-
-                      <div>
-                        <label htmlFor="days_between_reminders" className="block text-sm font-medium text-gray-700 mb-1">
-                          Days Between Reminders
-                        </label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Calendar className="h-5 w-5 text-gray-400" />
-                          </div>
-                          <input
-                            type="number"
-                            name="days_between_reminders"
-                            id="days_between_reminders"
-                            min="1"
-                            max="30"
-                            value={formData.days_between_reminders}
-                            onChange={(e) => {
-                              const value = parseInt(e.target.value);
-                              setFormData(prev => ({
-                                ...prev,
-                                days_between_reminders: isNaN(value) ? 1 : value
-                              }));
-                            }}
-                            className="form-input"
-                            placeholder="Days between emails"
-                          />
-                        </div>
-                        <p className="mt-1 text-xs text-gray-500">
-                          Number of days to wait between follow-up emails (1-30)
-                        </p>
-                      </div>
-                    </div>
-
+                    {renderReminderInputs()}
                     <div className="flex items-center">
                       <input
                         type="checkbox"
@@ -712,67 +670,7 @@ export function AddEmailCampaign() {
                   <h3 className="text-lg font-medium text-gray-900 mb-4">Phone Campaign Settings</h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="number_of_reminders" className="block text-sm font-medium text-gray-700 mb-1">
-                        Number of Retries
-                      </label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <Phone className="h-5 w-5 text-gray-400" />
-                        </div>
-                        <input
-                          type="number"
-                          name="number_of_reminders"
-                          id="number_of_reminders"
-                          min="0"
-                          max="10"
-                          value={formData.number_of_reminders}
-                          onChange={(e) => {
-                            const value = parseInt(e.target.value);
-                            setFormData(prev => ({
-                              ...prev,
-                              number_of_reminders: isNaN(value) ? 0 : value
-                            }));
-                          }}
-                          className="form-input"
-                          placeholder="Number of call retries"
-                        />
-                      </div>
-                      <p className="mt-1 text-xs text-gray-500">
-                        How many times to retry calling if no response (0-10)
-                      </p>
-                    </div>
-
-                    <div>
-                      <label htmlFor="days_between_reminders" className="block text-sm font-medium text-gray-700 mb-1">
-                        Days Between Retries
-                      </label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <Calendar className="h-5 w-5 text-gray-400" />
-                        </div>
-                        <input
-                          type="number"
-                          name="days_between_reminders"
-                          id="days_between_reminders"
-                          min="1"
-                          max="30"
-                          value={formData.days_between_reminders}
-                          onChange={(e) => {
-                            const value = parseInt(e.target.value);
-                            setFormData(prev => ({
-                              ...prev,
-                              days_between_reminders: isNaN(value) ? 1 : value
-                            }));
-                          }}
-                          className="form-input"
-                          placeholder="Days between calls"
-                        />
-                      </div>
-                      <p className="mt-1 text-xs text-gray-500">
-                        Number of days to wait between call retries (1-30)
-                      </p>
-                    </div>
+                    {renderReminderInputs()}
                   </div>
                 </div>
               )}
