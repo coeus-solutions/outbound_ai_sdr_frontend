@@ -21,6 +21,11 @@ export interface CampaignCreate {
   type: 'email' | 'call';
   product_id: string;
   template?: string;
+  number_of_reminders?: number;
+  days_between_reminders?: number;
+  auto_reply_enabled?: boolean;
+  call_trigger?: 'after_email_sent' | 'when_opened';
+  stop_on_any_reply?: boolean;
 }
 
 export interface RunCampaignResponse {
