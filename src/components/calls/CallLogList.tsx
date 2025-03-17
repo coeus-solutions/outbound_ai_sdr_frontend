@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Phone, Clock, ThumbsUp, ThumbsDown, Minus, CalendarCheck, ChevronRight, Filter, PlayCircle, X } from 'lucide-react';
+import { Phone, Clock, ThumbsUp, ThumbsDown, Minus, CalendarCheck, ChevronRight, Filter, PlayCircle, X, PhoneOff } from 'lucide-react';
 import { CallLog } from '../../types';
 import { formatDuration, formatDateTime } from '../../utils/formatters';
 import { CallTranscriptsDialog } from './CallTranscriptsDialog';
@@ -60,6 +60,8 @@ export function CallLogList({ callLogs, isLoading }: CallLogListProps) {
         return <ThumbsUp className="h-4 w-4" />;
       case 'negative':
         return <ThumbsDown className="h-4 w-4" />;
+      case 'not_connected':
+        return <PhoneOff className="h-4 w-4" />;
       default:
         return <Minus className="h-4 w-4" />;
     }
@@ -71,6 +73,8 @@ export function CallLogList({ callLogs, isLoading }: CallLogListProps) {
         return 'text-green-600';
       case 'negative':
         return 'text-red-600';
+      case 'not_connected':
+        return 'text-gray-500';
       default:
         return 'text-gray-600';
     }
