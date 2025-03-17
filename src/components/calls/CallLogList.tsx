@@ -7,7 +7,7 @@ import { CallSummaryPanel } from './CallSummaryPanel';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 
 interface CallLogFilters {
-  sentiment?: 'positive' | 'negative' | 'neutral';
+  sentiment?: 'positive' | 'negative' | 'not_connected';
   hasMeeting?: boolean;
 }
 
@@ -160,15 +160,15 @@ export function CallLogList({ callLogs, isLoading }: CallLogListProps) {
                           </DropdownMenu.Item>
                           <DropdownMenu.Item
                             className={`text-sm px-2 py-1 my-1 rounded cursor-pointer flex items-center ${
-                              filters.sentiment === 'neutral' ? 'bg-indigo-50 text-indigo-600' : 'hover:bg-gray-100'
+                              filters.sentiment === 'not_connected' ? 'bg-indigo-50 text-indigo-600' : 'hover:bg-gray-100'
                             }`}
                             onClick={() => setFilters(f => ({
                               ...f,
-                              sentiment: f.sentiment === 'neutral' ? undefined : 'neutral'
+                              sentiment: f.sentiment === 'not_connected' ? undefined : 'not_connected'
                             }))}
                           >
-                            <Minus className="h-4 w-4 mr-2" />
-                            Neutral
+                            <PhoneOff className="h-4 w-4 mr-2" />
+                            Not Connected
                           </DropdownMenu.Item>
                           <DropdownMenu.Separator className="my-2 h-px bg-gray-200" />
                           <div className="px-2 py-1 text-xs font-medium text-gray-500 uppercase">
