@@ -293,7 +293,13 @@ export function AddEmailCampaign() {
       const campaignData = {
         ...formData,
         type: campaignType,
-        template: formData.type === 'call' ? undefined : formData.template
+        template: formData.type === 'call' ? undefined : formData.template,
+        // For call campaigns, use the reminder values for phone-specific fields
+        phone_number_of_reminders: formData.type === 'call' ? formData.number_of_reminders : undefined,
+        phone_days_between_reminders: formData.type === 'call' ? formData.days_between_reminders : undefined,
+        // Clear email-specific fields for call campaigns
+        number_of_reminders: formData.type === 'call' ? undefined : formData.number_of_reminders,
+        days_between_reminders: formData.type === 'call' ? undefined : formData.days_between_reminders,
       };
 
       await createCampaign(token, companyId!, campaignData);
