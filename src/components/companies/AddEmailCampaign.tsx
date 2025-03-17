@@ -346,7 +346,9 @@ export function AddEmailCampaign() {
           </p>
         )}
         <p className="mt-1 text-xs text-gray-500">
-          How many follow-up emails to send if no response (0-10)
+          {formData.type === 'call' 
+            ? 'How many retries to perform if no response (0-10)'
+            : 'How many follow-up emails to send if no response (0-10)'}
         </p>
       </div>
 
@@ -380,7 +382,9 @@ export function AddEmailCampaign() {
           </p>
         )}
         <p className="mt-1 text-xs text-gray-500">
-          Number of days to wait between follow-up emails (1-30)
+          {formData.type === 'call'
+            ? 'Number of days to wait between retries (1-30)'
+            : 'Number of days to wait between follow-up emails (1-30)'}
         </p>
       </div>
     </div>
