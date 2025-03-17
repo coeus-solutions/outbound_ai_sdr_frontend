@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Phone, Clock, ThumbsUp, ThumbsDown, Minus, CalendarCheck, ChevronRight, Filter, PlayCircle, X } from 'lucide-react';
+import { Phone, Clock, ThumbsUp, ThumbsDown, Minus, CalendarCheck, ChevronRight, Filter, PlayCircle, X, PhoneOff } from 'lucide-react';
 import { CallLog } from '../../types';
 import { formatDuration, formatDateTime } from '../../utils/formatters';
 import { CallTranscriptsDialog } from './CallTranscriptsDialog';
@@ -7,7 +7,7 @@ import { CallSummaryPanel } from './CallSummaryPanel';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 
 interface CallLogFilters {
-  sentiment?: 'positive' | 'negative' | 'neutral';
+  sentiment?: 'positive' | 'negative' | 'not_connected';
   hasMeeting?: boolean;
 }
 
@@ -60,6 +60,8 @@ export function CallLogList({ callLogs, isLoading }: CallLogListProps) {
         return <ThumbsUp className="h-4 w-4" />;
       case 'negative':
         return <ThumbsDown className="h-4 w-4" />;
+      case 'not_connected':
+        return <PhoneOff className="h-4 w-4" />;
       default:
         return <Minus className="h-4 w-4" />;
     }
@@ -71,6 +73,8 @@ export function CallLogList({ callLogs, isLoading }: CallLogListProps) {
         return 'text-green-600';
       case 'negative':
         return 'text-red-600';
+      case 'not_connected':
+        return 'text-gray-500';
       default:
         return 'text-gray-600';
     }
@@ -156,15 +160,15 @@ export function CallLogList({ callLogs, isLoading }: CallLogListProps) {
                           </DropdownMenu.Item>
                           <DropdownMenu.Item
                             className={`text-sm px-2 py-1 my-1 rounded cursor-pointer flex items-center ${
-                              filters.sentiment === 'neutral' ? 'bg-indigo-50 text-indigo-600' : 'hover:bg-gray-100'
+                              filters.sentiment === 'not_connected' ? 'bg-indigo-50 text-indigo-600' : 'hover:bg-gray-100'
                             }`}
                             onClick={() => setFilters(f => ({
                               ...f,
-                              sentiment: f.sentiment === 'neutral' ? undefined : 'neutral'
+                              sentiment: f.sentiment === 'not_connected' ? undefined : 'not_connected'
                             }))}
                           >
-                            <Minus className="h-4 w-4 mr-2" />
-                            Neutral
+                            <PhoneOff className="h-4 w-4 mr-2" />
+                            Unable to connect
                           </DropdownMenu.Item>
                           <DropdownMenu.Separator className="my-2 h-px bg-gray-200" />
                           <div className="px-2 py-1 text-xs font-medium text-gray-500 uppercase">
@@ -240,7 +244,7 @@ export function CallLogList({ callLogs, isLoading }: CallLogListProps) {
                     <div className="flex items-center space-x-4">
                       <div className={`flex items-center ${getSentimentColor(log.sentiment)}`}>
                         {getSentimentIcon(log.sentiment)}
-                        <span className="ml-1 text-sm capitalize">{log.sentiment}</span>
+                        <span className="ml-1 text-sm capitalize">{log.sentiment === 'not_connected' ? 'Unable to connect' : log.sentiment}</span>
                       </div>
                       {log.has_meeting_booked && (
                         <div className="flex items-center text-purple-600">

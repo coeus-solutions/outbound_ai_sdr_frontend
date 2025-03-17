@@ -293,7 +293,13 @@ export function AddEmailCampaign() {
       const campaignData = {
         ...formData,
         type: campaignType,
-        template: formData.type === 'call' ? undefined : formData.template
+        template: formData.type === 'call' ? undefined : formData.template,
+        // For call campaigns, use the reminder values for phone-specific fields
+        phone_number_of_reminders: formData.type === 'call' ? formData.number_of_reminders : undefined,
+        phone_days_between_reminders: formData.type === 'call' ? formData.days_between_reminders : undefined,
+        // Clear email-specific fields for call campaigns
+        number_of_reminders: formData.type === 'call' ? undefined : formData.number_of_reminders,
+        days_between_reminders: formData.type === 'call' ? undefined : formData.days_between_reminders,
       };
 
       await createCampaign(token, companyId!, campaignData);
@@ -319,7 +325,7 @@ export function AddEmailCampaign() {
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
         <label htmlFor="number_of_reminders" className="block text-sm font-medium text-gray-700 mb-1">
-          Number of Reminders
+          {formData.type === 'call' ? 'Number of Retries' : 'Number of Reminders'}
         </label>
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -346,13 +352,15 @@ export function AddEmailCampaign() {
           </p>
         )}
         <p className="mt-1 text-xs text-gray-500">
-          How many follow-up emails to send if no response (0-10)
+          {formData.type === 'call' 
+            ? 'How many retries to perform if no response (0-10)'
+            : 'How many follow-up emails to send if no response (0-10)'}
         </p>
       </div>
 
       <div>
         <label htmlFor="days_between_reminders" className="block text-sm font-medium text-gray-700 mb-1">
-          Days Between Reminders
+          {formData.type === 'call' ? 'Days Between Retries' : 'Days Between Reminders'}
         </label>
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -380,7 +388,9 @@ export function AddEmailCampaign() {
           </p>
         )}
         <p className="mt-1 text-xs text-gray-500">
-          Number of days to wait between follow-up emails (1-30)
+          {formData.type === 'call'
+            ? 'Number of days to wait between retries (1-30)'
+            : 'Number of days to wait between follow-up emails (1-30)'}
         </p>
       </div>
     </div>

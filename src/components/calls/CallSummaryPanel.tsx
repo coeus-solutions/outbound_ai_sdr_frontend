@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, ThumbsUp, ThumbsDown, Minus, X, CalendarCheck } from 'lucide-react';
+import { Clock, ThumbsUp, ThumbsDown, Minus, X, CalendarCheck, PhoneOff } from 'lucide-react';
 import { CallLog } from '../../types';
 import { formatDuration, formatDateTime } from '../../utils/formatters';
 
@@ -18,6 +18,8 @@ export function CallSummaryPanel({ isOpen, onClose, callLog }: CallSummaryPanelP
         return <ThumbsUp className="h-4 w-4" />;
       case 'negative':
         return <ThumbsDown className="h-4 w-4" />;
+      case 'not_connected':
+        return <PhoneOff className="h-4 w-4" />;
       default:
         return <Minus className="h-4 w-4" />;
     }
@@ -29,6 +31,8 @@ export function CallSummaryPanel({ isOpen, onClose, callLog }: CallSummaryPanelP
         return 'text-green-600';
       case 'negative':
         return 'text-red-600';
+      case 'not_connected':
+        return 'text-gray-500';
       default:
         return 'text-gray-600';
     }
@@ -86,7 +90,7 @@ export function CallSummaryPanel({ isOpen, onClose, callLog }: CallSummaryPanelP
               <div className="flex items-center justify-between mb-4">
                 <div className={`flex items-center ${getSentimentColor(callLog.sentiment)}`}>
                   {getSentimentIcon(callLog.sentiment)}
-                  <span className="ml-2 font-medium capitalize">{callLog.sentiment} Sentiment</span>
+                  <span className="ml-2 font-medium capitalize">{callLog.sentiment === 'not_connected' ? 'Unable to connect' : callLog.sentiment}</span>
                 </div>
                 <div className={`flex items-center ${callLog.has_meeting_booked ? 'text-purple-600' : 'text-gray-400'}`}>
                   <CalendarCheck className="h-4 w-4 mr-1" />
