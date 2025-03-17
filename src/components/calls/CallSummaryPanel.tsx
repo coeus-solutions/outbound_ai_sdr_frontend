@@ -90,7 +90,7 @@ export function CallSummaryPanel({ isOpen, onClose, callLog }: CallSummaryPanelP
               <div className="flex items-center justify-between mb-4">
                 <div className={`flex items-center ${getSentimentColor(callLog.sentiment)}`}>
                   {getSentimentIcon(callLog.sentiment)}
-                  <span className="ml-2 font-medium capitalize">{callLog.sentiment}</span>
+                  <span className="ml-2 font-medium capitalize">{callLog.sentiment === 'not_connected' ? 'Unable to connect' : callLog.sentiment}</span>
                 </div>
                 <div className={`flex items-center ${callLog.has_meeting_booked ? 'text-purple-600' : 'text-gray-400'}`}>
                   <CalendarCheck className="h-4 w-4 mr-1" />

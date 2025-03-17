@@ -168,7 +168,7 @@ export function CallLogList({ callLogs, isLoading }: CallLogListProps) {
                             }))}
                           >
                             <PhoneOff className="h-4 w-4 mr-2" />
-                            Not Connected
+                            Unable to connect
                           </DropdownMenu.Item>
                           <DropdownMenu.Separator className="my-2 h-px bg-gray-200" />
                           <div className="px-2 py-1 text-xs font-medium text-gray-500 uppercase">
@@ -244,7 +244,7 @@ export function CallLogList({ callLogs, isLoading }: CallLogListProps) {
                     <div className="flex items-center space-x-4">
                       <div className={`flex items-center ${getSentimentColor(log.sentiment)}`}>
                         {getSentimentIcon(log.sentiment)}
-                        <span className="ml-1 text-sm capitalize">{log.sentiment}</span>
+                        <span className="ml-1 text-sm capitalize">{log.sentiment === 'not_connected' ? 'Unable to connect' : log.sentiment}</span>
                       </div>
                       {log.has_meeting_booked && (
                         <div className="flex items-center text-purple-600">

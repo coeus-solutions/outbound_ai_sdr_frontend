@@ -16,7 +16,7 @@ export interface CallLog {
   campaign_name: string;
   created_at: string;
   duration: number; // in seconds
-  sentiment: 'positive' | 'neutral' | 'negative';
+  sentiment: 'positive' | 'negative' | 'not_connected';
   summary: string;
   has_meeting_booked: boolean;
   transcripts?: Transcript[];
