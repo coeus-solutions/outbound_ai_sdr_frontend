@@ -319,7 +319,7 @@ export function AddEmailCampaign() {
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
         <label htmlFor="number_of_reminders" className="block text-sm font-medium text-gray-700 mb-1">
-          Number of Reminders
+          {formData.type === 'call' ? 'Number of Retries' : 'Number of Reminders'}
         </label>
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -352,7 +352,7 @@ export function AddEmailCampaign() {
 
       <div>
         <label htmlFor="days_between_reminders" className="block text-sm font-medium text-gray-700 mb-1">
-          Days Between Reminders
+          {formData.type === 'call' ? 'Days Between Retries' : 'Days Between Reminders'}
         </label>
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
