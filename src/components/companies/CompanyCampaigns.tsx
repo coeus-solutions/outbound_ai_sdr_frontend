@@ -193,7 +193,7 @@ export function CompanyCampaigns() {
       <TestRunDialog
         isOpen={testRunDialog.isOpen}
         onClose={() => setTestRunDialog({ isOpen: false, campaign: null })}
-        campaignType={testRunDialog.campaign?.type || 'email'}
+        campaignType={testRunDialog.campaign?.type === 'email_and_call' ? 'email' : testRunDialog.campaign?.type || 'email'}
         campaignName={testRunDialog.campaign?.name || ''}
         onSubmit={handleTestRun}
       />
