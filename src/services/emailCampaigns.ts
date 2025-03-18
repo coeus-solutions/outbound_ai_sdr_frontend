@@ -82,10 +82,18 @@ export interface PaginatedEmailQueueResponse {
   total_pages: number;
 }
 
-export async function getCompanyCampaigns(token: string, companyId: string, type?: 'email' | 'call' | 'email_and_call' | 'all'): Promise<Campaign[]> {
+export async function getCompanyCampaigns(
+  token: string, 
+  companyId: string, 
+  type?: ('email' | 'call' | 'email_and_call' | 'all') | Array<'email' | 'call' | 'email_and_call' | 'all'>
+): Promise<Campaign[]> {
   const url = new URL(apiEndpoints.companies.emailCampaigns.list(companyId));
   if (type) {
-    url.searchParams.append('type', type);
+    if (Array.isArray(type)) {
+      type.forEach(t => url.searchParams.append('type', t));
+    } else {
+      url.searchParams.append('type', type);
+    }
   }
 
   const response = await fetch(url.toString(), {
