@@ -29,8 +29,7 @@ export function AddEmailCampaign() {
     number_of_reminders: 0,
     days_between_reminders: 0,
     auto_reply_enabled: false,
-    call_trigger: 'after_email_sent' as 'after_email_sent' | 'when_opened',
-    stop_on_any_reply: false
+    call_trigger: 'after_email_sent' as 'after_email_sent' | 'when_opened'
   });
 
   // Add state for active tab
@@ -734,30 +733,6 @@ export function AddEmailCampaign() {
                       </div>
                       <p className="mt-1 text-xs text-gray-500">
                         Choose when the phone call should be triggered
-                      </p>
-                    </div>
-
-                    <div>
-                      <div className="flex items-center">
-                        <input
-                          id="stop_on_any_reply"
-                          name="stop_on_any_reply"
-                          type="checkbox"
-                          checked={formData.stop_on_any_reply}
-                          onChange={(e) => {
-                            setFormData(prev => ({
-                              ...prev,
-                              stop_on_any_reply: e.target.checked
-                            }));
-                          }}
-                          className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                        />
-                        <label htmlFor="stop_on_any_reply" className="ml-3 block text-sm font-medium text-gray-700">
-                          If customer replies to phone or email, stop campaign
-                        </label>
-                      </div>
-                      <p className="mt-1 ml-7 text-xs text-gray-500">
-                        Automatically stop all campaign activities if the prospect responds through any channel
                       </p>
                     </div>
                   </div>
