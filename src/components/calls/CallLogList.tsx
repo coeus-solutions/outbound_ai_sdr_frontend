@@ -158,18 +158,6 @@ export function CallLogList({ callLogs, isLoading }: CallLogListProps) {
                             <ThumbsDown className="h-4 w-4 mr-2" />
                             Negative
                           </DropdownMenu.Item>
-                          <DropdownMenu.Item
-                            className={`text-sm px-2 py-1 my-1 rounded cursor-pointer flex items-center ${
-                              filters.sentiment === 'not_connected' ? 'bg-indigo-50 text-indigo-600' : 'hover:bg-gray-100'
-                            }`}
-                            onClick={() => setFilters(f => ({
-                              ...f,
-                              sentiment: f.sentiment === 'not_connected' ? undefined : 'not_connected'
-                            }))}
-                          >
-                            <PhoneOff className="h-4 w-4 mr-2" />
-                            Unable to connect
-                          </DropdownMenu.Item>
                           <DropdownMenu.Separator className="my-2 h-px bg-gray-200" />
                           <div className="px-2 py-1 text-xs font-medium text-gray-500 uppercase">
                             Meeting Status
