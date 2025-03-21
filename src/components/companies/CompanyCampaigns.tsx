@@ -193,7 +193,7 @@ export function CompanyCampaigns() {
       <TestRunDialog
         isOpen={testRunDialog.isOpen}
         onClose={() => setTestRunDialog({ isOpen: false, campaign: null })}
-        campaignType={testRunDialog.campaign?.type || 'email'}
+        campaignType={testRunDialog.campaign?.type === 'email_and_call' ? 'email' : testRunDialog.campaign?.type || 'email'}
         campaignName={testRunDialog.campaign?.name || ''}
         onSubmit={handleTestRun}
       />
@@ -258,12 +258,23 @@ export function CompanyCampaigns() {
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${
                         campaign.type === 'email' 
                           ? 'bg-blue-100 text-blue-800'
-                          : 'bg-purple-100 text-purple-800'
+                          : campaign.type === 'call'
+                          ? 'bg-purple-100 text-purple-800'
+                          : campaign.type === 'email_and_call'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-gray-100 text-gray-800'
                       }`}>
                         {campaign.type === 'email' ? (
                           <Mail className="h-3 w-3 mr-1" />
-                        ) : (
+                        ) : campaign.type === 'call' ? (
                           <Phone className="h-3 w-3 mr-1" />
+                        ) : campaign.type === 'email_and_call' ? (
+                          <div className="flex items-center">
+                            <Mail className="h-3 w-3" />
+                            <Phone className="h-3 w-3 ml-1 mr-1" />
+                          </div>
+                        ) : (
+                          <Mail className="h-3 w-3 mr-1" />
                         )}
                         {campaign.type}
                       </span>

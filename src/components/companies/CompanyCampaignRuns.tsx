@@ -224,6 +224,11 @@ export function CompanyCampaignRuns() {
                         <Mail className="w-4 h-4 text-blue-500 mr-2" />
                       ) : run.campaigns.type === 'call' ? (
                         <Phone className="w-4 h-4 text-purple-500 mr-2" />
+                      ) : run.campaigns.type === 'email_and_call' ? (
+                        <div className="flex items-center">
+                          <Mail className="w-4 h-4 text-blue-500" />
+                          <Phone className="w-4 h-4 text-purple-500 ml-1 mr-2" />
+                        </div>
                       ) : (
                         <span className="w-4 h-4 mr-2" />
                       )}
@@ -256,12 +261,12 @@ export function CompanyCampaignRuns() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <Link
-                      to={`/companies/${companyId}/${run.campaigns.type === 'email' ? 'emails' : 'calls'}?campaign_run_id=${run.id}`}
+                      to={`/companies/${companyId}/${(run.campaigns.type === 'email' || run.campaigns.type === 'email_and_call') ? 'emails' : 'calls'}?campaign_run_id=${run.id}`}
                       className="text-indigo-600 hover:text-indigo-900"
                     >
-                      {run.campaigns.type === 'email' ? 'Email Log' : (run.campaigns.type === 'call' ? 'Call Log' : '')}
+                      {(run.campaigns.type === 'email' || run.campaigns.type === 'email_and_call') ? 'Email Log' : (run.campaigns.type === 'call' ? 'Call Log' : '')}
                     </Link>
-                    {run.campaigns.type === 'email' && (
+                    {(run.campaigns.type === 'email' || run.campaigns.type === 'email_and_call') && (
                       <>
                         <span className="mx-2 text-gray-300">|</span>
                         <Link

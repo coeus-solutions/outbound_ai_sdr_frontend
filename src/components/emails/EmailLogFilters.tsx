@@ -29,7 +29,7 @@ export function EmailLogFilters({ filters, onFilterChange, companyId }: EmailLog
         const token = getToken();
         if (!token) return;
 
-        const campaignsData = await getCompanyCampaigns(token, companyId, 'email');
+        const campaignsData = await getCompanyCampaigns(token, companyId, ['email', 'email_and_call'] as const);
         setCampaigns(campaignsData);
       } catch (error) {
         console.error('Error fetching campaigns:', error);

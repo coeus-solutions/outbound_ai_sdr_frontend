@@ -4,7 +4,7 @@ export interface Campaign {
   id: string;
   name: string;
   description: string | null;
-  type: 'email' | 'call';
+  type: 'email' | 'call' | 'email_and_call';
   product_id: string;
   company_id: string;
   created_at: string;
@@ -18,7 +18,7 @@ interface CampaignsResponse {
 export interface CampaignCreate {
   name: string;
   description?: string;
-  type: 'email' | 'call';
+  type: 'email' | 'call' | 'email_and_call';
   product_id: string;
   template?: string;
   number_of_reminders?: number;
@@ -44,7 +44,7 @@ export interface CampaignRun {
   created_at: string;
   campaigns: {
     name: string;
-    type: 'email' | 'call';
+    type: 'email' | 'call' | 'email_and_call';
   };
 }
 
@@ -82,10 +82,18 @@ export interface PaginatedEmailQueueResponse {
   total_pages: number;
 }
 
-export async function getCompanyCampaigns(token: string, companyId: string, type?: 'email' | 'call' | 'all'): Promise<Campaign[]> {
+export async function getCompanyCampaigns(
+  token: string, 
+  companyId: string, 
+  type?: ('email' | 'call' | 'email_and_call' | 'all') | Array<'email' | 'call' | 'email_and_call' | 'all'>
+): Promise<Campaign[]> {
   const url = new URL(apiEndpoints.companies.emailCampaigns.list(companyId));
   if (type) {
-    url.searchParams.append('type', type);
+    if (Array.isArray(type)) {
+      type.forEach(t => url.searchParams.append('type', t));
+    } else {
+      url.searchParams.append('type', type);
+    }
   }
 
   const response = await fetch(url.toString(), {
