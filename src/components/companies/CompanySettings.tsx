@@ -379,7 +379,8 @@ export function CompanySettings() {
           prompt,
           call_from_number: callFromNumber,
           transfer_phone_number: transferNumber,
-          agent_name: agentName
+          agent_name: agentName,
+          record: true
         }),
       });
 

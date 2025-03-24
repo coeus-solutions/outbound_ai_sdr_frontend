@@ -51,6 +51,7 @@ export interface VoiceAgentSettings {
   call_from_number?: string;
   transfer_phone_number?: string;
   agent_name?: string;
+  record?: boolean;
 }
 
 export type PartnershipType = "RESELLER" | "REFERRAL" | "TECHNOLOGY";
