@@ -666,28 +666,6 @@ function ProductCard({ product, companyId }: ProductCardProps) {
           </div>
         </div>
         <div className="flex items-center space-x-2">
-          <Tooltip.Provider>
-            <Tooltip.Root>
-              <Tooltip.Trigger asChild>
-                <Link
-                  to={`/companies/${companyId}/products/${product.id}/leads`}
-                  className="p-2 text-gray-400 hover:text-indigo-600"
-                >
-                  <Plus className="w-5 h-5" />
-                </Link>
-              </Tooltip.Trigger>
-              <Tooltip.Portal>
-                <Tooltip.Content
-                  className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
-                  sideOffset={5}
-                >
-                  Add/Upload leads
-                  <Tooltip.Arrow className="fill-gray-900" />
-                </Tooltip.Content>
-              </Tooltip.Portal>
-            </Tooltip.Root>
-          </Tooltip.Provider>
-
           <button 
             onClick={() => setIsExpanded(!isExpanded)}
             className="p-2 text-gray-400 hover:text-gray-600"
