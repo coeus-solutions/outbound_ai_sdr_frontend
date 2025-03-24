@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { getEmailQueues, PaginatedEmailQueueResponse, EmailQueue } from '../../services/emailCampaigns';
+import { getEmailQueues, PaginatedEmailQueueResponse, EmailQueue, retryFailedCampaignEmails } from '../../services/emailCampaigns';
 import { PageHeader } from '../shared/PageHeader';
-import { Loader2, Mail, Eye } from 'lucide-react';
+import { Loader2, Mail, Eye, RefreshCw } from 'lucide-react';
 import { getToken } from '../../utils/auth';
 import { useToast } from '../../context/ToastContext';
 import { formatDateTime } from '../../utils/formatters';
@@ -15,53 +15,84 @@ export function EmailQueues() {
   const [page, setPage] = useState(1);
   const [pageSize] = useState(20);
   const [loading, setLoading] = useState(true);
+  const [retrying, setRetrying] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<PaginatedEmailQueueResponse | null>(null);
   const [selectedEmailQueue, setSelectedEmailQueue] = useState<EmailQueue | null>(null);
   const [company, setCompany] = useState<Company | null>(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      console.log('Fetching email queues with campaignRunId:', campaignRunId);
-      if (!campaignRunId || !companyId) {
-        console.error('No campaignRunId or companyId provided');
+  const fetchData = async () => {
+    console.log('Fetching email queues with campaignRunId:', campaignRunId);
+    if (!campaignRunId || !companyId) {
+      console.error('No campaignRunId or companyId provided');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      const token = getToken();
+      if (!token) {
+        console.error('No auth token found');
+        setError('Authentication token not found');
+        showToast('Authentication failed. Please try logging in again.', 'error');
         return;
       }
 
-      try {
-        setLoading(true);
-        setError(null);
-        const token = getToken();
-        if (!token) {
-          console.error('No auth token found');
-          setError('Authentication token not found');
-          showToast('Authentication failed. Please try logging in again.', 'error');
-          return;
-        }
+      // Fetch company details
+      const companyData = await getCompanyById(token, companyId);
+      setCompany(companyData);
 
-        // Fetch company details
-        const companyData = await getCompanyById(token, companyId);
-        setCompany(companyData);
+      console.log('Making API call to fetch email queues...');
+      const response = await getEmailQueues(token, campaignRunId, page, pageSize);
+      console.log('API response:', response);
+      setData(response);
+    } catch (err) {
+      const errorMessage = 'Failed to fetch data';
+      console.error('Error fetching data:', err);
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        console.log('Making API call to fetch email queues...');
-        const response = await getEmailQueues(token, campaignRunId, page, pageSize);
-        console.log('API response:', response);
-        setData(response);
-      } catch (err) {
-        const errorMessage = 'Failed to fetch data';
-        console.error('Error fetching data:', err);
-        setError(errorMessage);
-        showToast(errorMessage, 'error');
-      } finally {
-        setLoading(false);
-      }
-    };
-
+  useEffect(() => {
     fetchData();
   }, [campaignRunId, companyId, page, pageSize, showToast]);
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
+  };
+
+  const handleRetryFailedItems = async () => {
+    if (!campaignRunId) {
+      console.error('No campaignRunId provided');
+      return;
+    }
+
+    try {
+      setRetrying(true);
+      const token = getToken();
+      if (!token) {
+        console.error('No auth token found');
+        setError('Authentication token not found');
+        showToast('Authentication failed. Please try logging in again.', 'error');
+        return;
+      }
+
+      const response = await retryFailedCampaignEmails(token, campaignRunId);
+      showToast('Retry initiated successfully', 'success');
+      // Refresh the data
+      fetchData();
+    } catch (err) {
+      const errorMessage = 'Failed to retry failed items';
+      console.error('Error retrying failed items:', err);
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
+    } finally {
+      setRetrying(false);
+    }
   };
 
   if (loading) {
@@ -136,7 +167,26 @@ export function EmailQueues() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title={company?.name || 'Company'} subtitle="Email Queue for" />
+      <div className="flex justify-between items-center">
+        <PageHeader title={company?.name || 'Company'} subtitle="Email Queue for" />
+        <button
+          onClick={handleRetryFailedItems}
+          disabled={retrying}
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {retrying ? (
+            <>
+              <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
+              Retrying...
+            </>
+          ) : (
+            <>
+              <RefreshCw className="-ml-1 mr-2 h-4 w-4" />
+              Retry Failed Items
+            </>
+          )}
+        </button>
+      </div>
 
       {data?.items.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-lg shadow">
@@ -250,11 +300,13 @@ export function EmailQueues() {
         </div>
       )}
 
-      <EmailQueueDialog
-        isOpen={selectedEmailQueue !== null}
-        onClose={() => setSelectedEmailQueue(null)}
-        emailQueue={selectedEmailQueue}
-      />
+      {selectedEmailQueue && (
+        <EmailQueueDialog
+          isOpen={selectedEmailQueue !== null}
+          emailQueue={selectedEmailQueue}
+          onClose={() => setSelectedEmailQueue(null)}
+        />
+      )}
     </div>
   );
 } 
