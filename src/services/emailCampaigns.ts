@@ -82,6 +82,12 @@ export interface PaginatedEmailQueueResponse {
   total_pages: number;
 }
 
+export interface RetryResponse {
+  message: string;
+  campaign_run_id: string;
+  status: string;
+}
+
 export async function getCompanyCampaigns(
   token: string, 
   companyId: string, 
@@ -216,4 +222,30 @@ export async function getEmailQueues(
   }
 
   return response.json();
+}
+
+export async function retryFailedCampaignEmails(
+  token: string,
+  campaignRunId: string
+): Promise<RetryResponse> {
+  const response = await fetch(apiEndpoints.campaigns.retry(campaignRunId), {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  const data = await response.json();
+  
+  if (!response.ok) {
+    const error = new Error('Failed to retry campaign emails') as any;
+    error.response = {
+      status: response.status,
+      data: data
+    };
+    throw error;
+  }
+
+  return data;
 } 
