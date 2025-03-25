@@ -1,6 +1,33 @@
 import { apiEndpoints } from '../config';
 import { CallLog } from '../types';
 
+export interface CallQueue {
+  id: string;
+  company_id: string;
+  campaign_id: string;
+  campaign_run_id: string;
+  lead_id: string;
+  status: string;
+  call_script: string | null;
+  priority: number;
+  retry_count: number;
+  max_retries: number;
+  error_message: string | null;
+  created_at: string;
+  scheduled_for: string | null;
+  processed_at: string | null;
+  lead_name: string | null;
+  lead_phone: string | null;
+}
+
+export interface PaginatedCallQueueResponse {
+  items: CallQueue[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
+
 export async function getCompanyCalls(token: string, companyId: string, campaignId?: string, campaignRunId?: string, leadId?: string): Promise<CallLog[]> {
   const url = new URL(apiEndpoints.companies.calls.list(companyId));
   if (campaignId) {
@@ -56,6 +83,29 @@ export async function getCallDetails(token: string, callId: string): Promise<Cal
 
   if (!response.ok) {
     throw new Error('Failed to fetch call details');
+  }
+
+  return response.json();
+}
+
+export async function getCallQueues(
+  token: string,
+  campaignRunId: string,
+  page: number = 1,
+  limit: number = 20
+): Promise<PaginatedCallQueueResponse> {
+  let url = apiEndpoints.campaigns.callQueues.list(campaignRunId);
+  url += `?page_number=${page}&limit=${limit}`;
+
+  const response = await fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch call queues');
   }
 
   return response.json();

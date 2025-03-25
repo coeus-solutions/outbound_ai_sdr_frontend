@@ -27,6 +27,7 @@ import { VerifyAccount } from './components/auth/VerifyAccount';
 import { InviteSignup } from './components/auth/InviteSignup';
 import { CompanyCampaignRuns } from './components/companies/CompanyCampaignRuns';
 import { EmailQueues } from './components/campaigns/EmailQueues';
+import { CallQueues } from './components/campaigns/CallQueues';
 
 // Import competitor pages
 import { JasonAIPage } from './components/competitors/JasonAIPage';
@@ -130,6 +131,7 @@ export function App() {
             <Route path="/getting-started" element={<GettingStarted />} />
             <Route path="/profile" element={<UserProfile />} />
             <Route path="/companies/:companyId/campaign-runs/:campaignRunId/email-queues" element={<EmailQueues />} />
+            <Route path="/companies/:companyId/campaign-runs/:campaignRunId/call-queues" element={<CallQueues />} />
             <Route path="*" element={<Navigate to="/companies" replace />} />
           </Route>
         )}

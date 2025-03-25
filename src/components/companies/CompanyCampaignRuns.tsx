@@ -277,6 +277,17 @@ export function CompanyCampaignRuns() {
                         </Link>
                       </>
                     )}
+                    {(run.campaigns.type === 'call' || run.campaigns.type === 'email_and_call') && (
+                      <>
+                        <span className="mx-2 text-gray-300">|</span>
+                        <Link
+                          to={`/companies/${companyId}/campaign-runs/${run.id}/call-queues`}
+                          className="text-indigo-600 hover:text-indigo-900"
+                        >
+                          Queued Calls
+                        </Link>
+                      </>
+                    )}
                   </td>
                 </tr>
               ))}
