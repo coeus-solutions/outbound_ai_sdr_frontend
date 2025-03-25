@@ -74,6 +74,9 @@ export const apiEndpoints = {
     emailQueues: {
       list: (campaignRunId: string) => `${config.apiUrl}/api/campaigns/${campaignRunId}/email-queues`,
     },
+    callQueues: {
+      list: (campaignRunId: string) => `${config.apiUrl}/api/campaigns/${campaignRunId}/call-queues`,
+    },
     retry: (campaignRunId: string) => `${config.apiUrl}/api/campaign-runs/${campaignRunId}/retry`,
   },
   generate: {

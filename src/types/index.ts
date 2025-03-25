@@ -45,6 +45,13 @@ export interface VoiceAgentSettings {
   accent?: string;
   speaking_rate?: number;
   pitch?: number;
+  voice?: string;
+  background_track?: string;
+  prompt?: string;
+  call_from_number?: string;
+  transfer_phone_number?: string;
+  agent_name?: string;
+  record?: boolean;
 }
 
 export type PartnershipType = "RESELLER" | "REFERRAL" | "TECHNOLOGY";

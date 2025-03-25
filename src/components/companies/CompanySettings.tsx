@@ -165,7 +165,7 @@ interface VoiceAgentSettings {
   language: string;
   prompt: string;
   call_from_number: string;
-  transfer_number: string;
+  transfer_phone_number: string;
   agent_name: string;
 }
 
@@ -261,7 +261,7 @@ export function CompanySettings() {
             setSelectedLanguage(settings.language ? [settings.language] : []);
             setPrompt(settings.prompt || '');
             setCallFromNumber(settings.call_from_number || '');
-            setTransferNumber(settings.transfer_number || '');
+            setTransferNumber(settings.transfer_phone_number || '');
             setAgentName(settings.agent_name || '');
           }
 
@@ -378,8 +378,9 @@ export function CompanySettings() {
           language: selectedLanguage.join(','),
           prompt,
           call_from_number: callFromNumber,
-          transfer_number: transferNumber,
-          agent_name: agentName
+          transfer_phone_number: transferNumber,
+          agent_name: agentName,
+          record: true
         }),
       });
 
