@@ -7,6 +7,7 @@ import { getToken } from '../../utils/auth';
 import { useToast } from '../../context/ToastContext';
 import { formatDateTime } from '../../utils/formatters';
 import { getCompanyById, type Company } from '../../services/companies';
+import { CallQueueDialog } from './CallQueueDialog';
 
 export function CallQueues() {
   const { campaignRunId, companyId } = useParams<{ campaignRunId: string; companyId: string }>();
@@ -217,66 +218,11 @@ export function CallQueues() {
       )}
 
       {selectedCallQueue && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full">
-            <div className="flex justify-between items-start mb-4">
-              <h3 className="text-lg font-medium">Call Queue Details</h3>
-              <button
-                onClick={() => setSelectedCallQueue(null)}
-                className="text-gray-400 hover:text-gray-500"
-              >
-                <span className="sr-only">Close</span>
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <h4 className="text-sm font-medium text-gray-500">Lead Information</h4>
-                <p className="mt-1">{selectedCallQueue.lead_name || 'Unknown'}</p>
-                <p className="text-sm text-gray-500">{selectedCallQueue.lead_phone || 'No phone'}</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-medium text-gray-500">Call Script</h4>
-                <pre className="mt-1 whitespace-pre-wrap text-sm text-gray-900 bg-gray-50 p-4 rounded-md">
-                  {selectedCallQueue.call_script || 'No script available'}
-                </pre>
-              </div>
-              <div>
-                <h4 className="text-sm font-medium text-gray-500">Status Information</h4>
-                <dl className="mt-1 grid grid-cols-2 gap-4">
-                  <div>
-                    <dt className="text-sm text-gray-500">Status</dt>
-                    <dd className="mt-1 text-sm text-gray-900">{selectedCallQueue.status}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm text-gray-500">Retry Count</dt>
-                    <dd className="mt-1 text-sm text-gray-900">{selectedCallQueue.retry_count}/{selectedCallQueue.max_retries}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm text-gray-500">Scheduled For</dt>
-                    <dd className="mt-1 text-sm text-gray-900">
-                      {selectedCallQueue.scheduled_for ? formatDateTime(selectedCallQueue.scheduled_for) : 'Not scheduled'}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm text-gray-500">Processed At</dt>
-                    <dd className="mt-1 text-sm text-gray-900">
-                      {selectedCallQueue.processed_at ? formatDateTime(selectedCallQueue.processed_at) : 'Not processed'}
-                    </dd>
-                  </div>
-                </dl>
-              </div>
-              {selectedCallQueue.error_message && (
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500">Error Message</h4>
-                  <p className="mt-1 text-sm text-red-500">{selectedCallQueue.error_message}</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+        <CallQueueDialog
+          isOpen={selectedCallQueue !== null}
+          callQueue={selectedCallQueue}
+          onClose={() => setSelectedCallQueue(null)}
+        />
       )}
     </div>
   );
