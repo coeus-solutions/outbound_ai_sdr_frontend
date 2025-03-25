@@ -98,7 +98,13 @@ export function CallQueues() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Loading..." subtitle="Call Queue for" />
+        <div className="flex justify-between items-center">
+          <div>
+            <div className="h-8 w-48 bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-4 w-32 bg-gray-200 rounded mt-2 animate-pulse"></div>
+          </div>
+          <div className="h-10 w-32 bg-gray-200 rounded animate-pulse"></div>
+        </div>
         <div className="bg-white shadow rounded-lg">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -113,6 +119,34 @@ export function CallQueues() {
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {[...Array(5)].map((_, index) => (
+                  <tr key={index}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
+                      <div className="h-3 w-24 bg-gray-200 rounded mt-1 animate-pulse"></div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="h-5 w-16 bg-gray-200 rounded animate-pulse"></div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="h-4 w-12 bg-gray-200 rounded animate-pulse"></div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="h-8 w-8 bg-gray-200 rounded animate-pulse"></div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
             </table>
           </div>
         </div>
