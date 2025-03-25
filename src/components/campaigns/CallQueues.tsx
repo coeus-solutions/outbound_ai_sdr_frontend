@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { getCallQueues, PaginatedCallQueueResponse, CallQueue } from '../../services/calls';
+import { getCallQueues, PaginatedCallQueueResponse, CallQueue, retryFailedCampaignCalls } from '../../services/calls';
 import { PageHeader } from '../shared/PageHeader';
 import { Loader2, Phone, Eye, RefreshCw } from 'lucide-react';
 import { getToken } from '../../utils/auth';
@@ -22,6 +22,7 @@ export function CallQueues() {
   const [company, setCompany] = useState<Company | null>(null);
 
   const fetchData = async () => {
+    console.log('Fetching call queues with campaignRunId:', campaignRunId);
     if (!campaignRunId || !companyId) {
       console.error('No campaignRunId or companyId provided');
       return;
@@ -42,7 +43,9 @@ export function CallQueues() {
       const companyData = await getCompanyById(token, companyId);
       setCompany(companyData);
 
+      console.log('Making API call to fetch call queues...');
       const response = await getCallQueues(token, campaignRunId, page, pageSize);
+      console.log('API response:', response);
       setData(response);
     } catch (err) {
       const errorMessage = 'Failed to fetch data';
@@ -60,6 +63,36 @@ export function CallQueues() {
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
+  };
+
+  const handleRetryFailedItems = async () => {
+    if (!campaignRunId) {
+      console.error('No campaignRunId provided');
+      return;
+    }
+
+    try {
+      setRetrying(true);
+      const token = getToken();
+      if (!token) {
+        console.error('No auth token found');
+        setError('Authentication token not found');
+        showToast('Authentication failed. Please try logging in again.', 'error');
+        return;
+      }
+
+      const response = await retryFailedCampaignCalls(token, campaignRunId);
+      showToast('Retry initiated successfully', 'success');
+      // Refresh the data
+      fetchData();
+    } catch (err) {
+      const errorMessage = 'Failed to retry failed items';
+      console.error('Error retrying failed items:', err);
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
+    } finally {
+      setRetrying(false);
+    }
   };
 
   if (loading) {
@@ -105,6 +138,23 @@ export function CallQueues() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <PageHeader title={company?.name || 'Company'} subtitle="Call Queue for" />
+        <button
+          onClick={handleRetryFailedItems}
+          disabled={retrying}
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {retrying ? (
+            <>
+              <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
+              Retrying...
+            </>
+          ) : (
+            <>
+              <RefreshCw className="-ml-1 mr-2 h-4 w-4" />
+              Retry Failed Items
+            </>
+          )}
+        </button>
       </div>
 
       {data?.items.length === 0 ? (

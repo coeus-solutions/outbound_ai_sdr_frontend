@@ -28,6 +28,12 @@ export interface PaginatedCallQueueResponse {
   total_pages: number;
 }
 
+export interface RetryResponse {
+  message: string;
+  campaign_run_id: string;
+  status: string;
+}
+
 export async function getCompanyCalls(token: string, companyId: string, campaignId?: string, campaignRunId?: string, leadId?: string): Promise<CallLog[]> {
   const url = new URL(apiEndpoints.companies.calls.list(companyId));
   if (campaignId) {
@@ -109,4 +115,30 @@ export async function getCallQueues(
   }
 
   return response.json();
+}
+
+export async function retryFailedCampaignCalls(
+  token: string,
+  campaignRunId: string
+): Promise<RetryResponse> {
+  const response = await fetch(`${apiEndpoints.campaigns.retry(campaignRunId)}/call`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  const data = await response.json();
+  
+  if (!response.ok) {
+    const error = new Error('Failed to retry campaign calls') as any;
+    error.response = {
+      status: response.status,
+      data: data
+    };
+    throw error;
+  }
+
+  return data;
 } 
