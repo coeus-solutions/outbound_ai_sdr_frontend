@@ -276,7 +276,10 @@ export function CompanyCampaigns() {
                         ) : (
                           <Mail className="h-3 w-3 mr-1" />
                         )}
-                        {campaign.type}
+                        {campaign.type === 'email' ? 'Email' : 
+                         campaign.type === 'call' ? 'Call' : 
+                         campaign.type === 'email_and_call' ? 'Email + Call' : 
+                         campaign.type}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
