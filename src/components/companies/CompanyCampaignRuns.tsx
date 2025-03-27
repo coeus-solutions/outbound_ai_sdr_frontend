@@ -260,14 +260,14 @@ export function CompanyCampaignRuns() {
                     {run.leads_processed}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <Link
-                      to={`/companies/${companyId}/${(run.campaigns.type === 'email' || run.campaigns.type === 'email_and_call') ? 'emails' : 'calls'}?campaign_run_id=${run.id}`}
-                      className="text-indigo-600 hover:text-indigo-900"
-                    >
-                      {(run.campaigns.type === 'email' || run.campaigns.type === 'email_and_call') ? 'Email Log' : (run.campaigns.type === 'call' ? 'Call Log' : '')}
-                    </Link>
                     {(run.campaigns.type === 'email' || run.campaigns.type === 'email_and_call') && (
                       <>
+                        <Link
+                          to={`/companies/${companyId}/emails?campaign_run_id=${run.id}`}
+                          className="text-indigo-600 hover:text-indigo-900"
+                        >
+                          Email Log
+                        </Link>
                         <span className="mx-2 text-gray-300">|</span>
                         <Link
                           to={`/companies/${companyId}/campaign-runs/${run.id}/email-queues`}
@@ -279,6 +279,13 @@ export function CompanyCampaignRuns() {
                     )}
                     {(run.campaigns.type === 'call' || run.campaigns.type === 'email_and_call') && (
                       <>
+                        {run.campaigns.type === 'email_and_call' && <span className="mx-2 text-gray-300">|</span>}
+                        <Link
+                          to={`/companies/${companyId}/calls?campaign_run_id=${run.id}`}
+                          className="text-indigo-600 hover:text-indigo-900"
+                        >
+                          Call Log
+                        </Link>
                         <span className="mx-2 text-gray-300">|</span>
                         <Link
                           to={`/companies/${companyId}/campaign-runs/${run.id}/call-queues`}
