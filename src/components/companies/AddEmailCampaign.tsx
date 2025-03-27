@@ -215,22 +215,26 @@ export function AddEmailCampaign() {
 
   // Initialize editor when loading is complete
   useEffect(() => {
-    if (!isLoading && (formData.type === 'email' || (formData.type === 'both' && activeTab === 'email'))) {
-      initializeEditor();
+    if (!isLoading) {
+      const shouldShowEditor = (formData.type === 'email' || formData.type === 'both') && activeTab === 'email';
+      
+      if (shouldShowEditor) {
+        // Clean up existing editor if any
+        if (quillEditorRef.current) {
+          quillEditorRef.current = null;
+          setEditorInitialized(false);
+        }
+        // Initialize new editor
+        initializeEditor();
+      } else {
+        // Clean up editor when not needed
+        if (quillEditorRef.current) {
+          quillEditorRef.current = null;
+          setEditorInitialized(false);
+        }
+      }
     }
   }, [isLoading, formData.type, activeTab]);
-
-  // Handle type changes and tab changes
-  useEffect(() => {
-    if (formData.type === 'call' || (formData.type === 'both' && activeTab !== 'email')) {
-      if (quillEditorRef.current) {
-        quillEditorRef.current = null;
-        setEditorInitialized(false);
-      }
-    } else if ((formData.type === 'email' || (formData.type === 'both' && activeTab === 'email')) && !editorInitialized) {
-      initializeEditor();
-    }
-  }, [formData.type, activeTab]);
 
   // Cleanup effect
   useEffect(() => {
