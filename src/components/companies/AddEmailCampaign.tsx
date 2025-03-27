@@ -23,7 +23,7 @@ export function AddEmailCampaign() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    type: 'email' as 'email' | 'call' | 'both',
+    type: 'email' as 'email' | 'call' | 'both' | 'email_and_call',
     product_id: '',
     template: '',
     number_of_reminders: 0,
@@ -284,9 +284,8 @@ export function AddEmailCampaign() {
         return;
       }
 
-      // For 'both' type campaigns, send as 'email' type to backend for now
-      // Later we can update the backend to handle 'both' type properly
-      const campaignType = formData.type === 'both' ? 'email' : formData.type;
+      // For 'both' type campaigns, send as 'email_and_call' type to backend
+      const campaignType = formData.type === 'both' ? 'email_and_call' : formData.type;
 
       // Create campaign data without template for Call type
       const campaignData = {
