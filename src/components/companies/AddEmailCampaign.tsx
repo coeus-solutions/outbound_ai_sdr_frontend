@@ -26,8 +26,12 @@ export function AddEmailCampaign() {
     type: 'email' as 'email' | 'call' | 'both' | 'email_and_call',
     product_id: '',
     template: '',
-    number_of_reminders: 0,
-    days_between_reminders: 0,
+    // Email-specific fields
+    email_number_of_reminders: 0,
+    email_days_between_reminders: 0,
+    // Phone-specific fields
+    phone_number_of_reminders: 0,
+    phone_days_between_reminders: 0,
     auto_reply_enabled: false,
     call_trigger: 'after_email_sent' as 'after_email_sent' | 'when_opened'
   });
@@ -36,8 +40,10 @@ export function AddEmailCampaign() {
   const [activeTab, setActiveTab] = useState<'email' | 'phone' | 'combined'>('email');
 
   const [validationErrors, setValidationErrors] = useState<{
-    number_of_reminders?: string;
-    days_between_reminders?: string;
+    email_number_of_reminders?: string;
+    email_days_between_reminders?: string;
+    phone_number_of_reminders?: string;
+    phone_days_between_reminders?: string;
   }>({});
 
   // Handler for number of reminders changes
@@ -47,16 +53,20 @@ export function AddEmailCampaign() {
 
     setFormData(prev => ({
       ...prev,
-      number_of_reminders: newValue,
-      // If reminders are set to 0, automatically set days to 0
-      days_between_reminders: newValue === 0 ? 0 : prev.days_between_reminders
+      email_number_of_reminders: newValue,
+      email_days_between_reminders: newValue === 0 ? 0 : prev.email_days_between_reminders,
+      phone_number_of_reminders: newValue,
+      phone_days_between_reminders: newValue === 0 ? 0 : prev.phone_days_between_reminders
     }));
 
     // Clear validation errors when valid
     if (isValid) {
       setValidationErrors(prev => ({
         ...prev,
-        number_of_reminders: undefined
+        email_number_of_reminders: undefined,
+        email_days_between_reminders: undefined,
+        phone_number_of_reminders: undefined,
+        phone_days_between_reminders: undefined
       }));
     }
   };
@@ -68,34 +78,48 @@ export function AddEmailCampaign() {
 
     setFormData(prev => ({
       ...prev,
-      days_between_reminders: newValue
+      email_days_between_reminders: newValue,
+      phone_days_between_reminders: newValue
     }));
 
     // Clear validation errors when valid
     if (isValid) {
       setValidationErrors(prev => ({
         ...prev,
-        days_between_reminders: undefined
+        email_days_between_reminders: undefined,
+        phone_days_between_reminders: undefined
       }));
     }
   };
 
   // Validation function
   const validateForm = (): boolean => {
-    const errors: { number_of_reminders?: string; days_between_reminders?: string } = {};
+    const errors: { email_number_of_reminders?: string; email_days_between_reminders?: string; phone_number_of_reminders?: string; phone_days_between_reminders?: string } = {};
     
     // Validate reminder settings
-    if (formData.number_of_reminders > 0 && formData.days_between_reminders === 0) {
-      errors.days_between_reminders = 'Days between reminders must be set when reminders are enabled';
+    if (formData.email_number_of_reminders > 0 && formData.email_days_between_reminders === 0) {
+      errors.email_days_between_reminders = 'Days between reminders must be set when reminders are enabled';
     }
-    if (formData.number_of_reminders === 0 && formData.days_between_reminders > 0) {
-      errors.days_between_reminders = 'Days must be 0 when no reminders are set';
+    if (formData.email_number_of_reminders === 0 && formData.email_days_between_reminders > 0) {
+      errors.email_days_between_reminders = 'Days must be 0 when no reminders are set';
     }
-    if (formData.days_between_reminders > 30) {
-      errors.days_between_reminders = 'Days between reminders cannot exceed 30';
+    if (formData.email_days_between_reminders > 30) {
+      errors.email_days_between_reminders = 'Days between reminders cannot exceed 30';
     }
-    if (formData.number_of_reminders > 10) {
-      errors.number_of_reminders = 'Number of reminders cannot exceed 10';
+    if (formData.email_number_of_reminders > 10) {
+      errors.email_number_of_reminders = 'Number of reminders cannot exceed 10';
+    }
+    if (formData.phone_number_of_reminders > 0 && formData.phone_days_between_reminders === 0) {
+      errors.phone_days_between_reminders = 'Days between reminders must be set when reminders are enabled';
+    }
+    if (formData.phone_number_of_reminders === 0 && formData.phone_days_between_reminders > 0) {
+      errors.phone_days_between_reminders = 'Days must be 0 when no reminders are set';
+    }
+    if (formData.phone_days_between_reminders > 30) {
+      errors.phone_days_between_reminders = 'Days between reminders cannot exceed 30';
+    }
+    if (formData.phone_number_of_reminders > 10) {
+      errors.phone_number_of_reminders = 'Number of reminders cannot exceed 10';
     }
 
     setValidationErrors(errors);
@@ -292,12 +316,12 @@ export function AddEmailCampaign() {
         ...formData,
         type: campaignType,
         template: formData.type === 'call' ? undefined : formData.template,
-        // For call campaigns, use the reminder values for phone-specific fields
-        phone_number_of_reminders: formData.type === 'call' ? formData.number_of_reminders : undefined,
-        phone_days_between_reminders: formData.type === 'call' ? formData.days_between_reminders : undefined,
-        // Clear email-specific fields for call campaigns
-        number_of_reminders: formData.type === 'call' ? undefined : formData.number_of_reminders,
-        days_between_reminders: formData.type === 'call' ? undefined : formData.days_between_reminders,
+        // For call campaigns and both type, use the phone-specific fields
+        phone_number_of_reminders: formData.type === 'call' || formData.type === 'both' ? formData.phone_number_of_reminders : undefined,
+        phone_days_between_reminders: formData.type === 'call' || formData.type === 'both' ? formData.phone_days_between_reminders : undefined,
+        // For email campaigns and both type, use the email-specific fields
+        number_of_reminders: formData.type === 'call' ? undefined : formData.email_number_of_reminders,
+        days_between_reminders: formData.type === 'call' ? undefined : formData.email_days_between_reminders,
       };
 
       await createCampaign(token, companyId!, campaignData);
@@ -319,80 +343,113 @@ export function AddEmailCampaign() {
   };
 
   // Update the reminder input fields to use the new handlers and show validation errors
-  const renderReminderInputs = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div>
-        <label htmlFor="number_of_reminders" className="block text-sm font-medium text-gray-700 mb-1">
-          {formData.type === 'call' ? 'Number of Retries' : 'Number of Reminders'}
-        </label>
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Calendar className="h-5 w-5 text-gray-400" />
-          </div>
-          <input
-            type="number"
-            name="number_of_reminders"
-            id="number_of_reminders"
-            min="0"
-            max="10"
-            value={formData.number_of_reminders}
-            onChange={(e) => {
-              const value = parseInt(e.target.value);
-              handleRemindersChange(value);
-            }}
-            className={`form-input ${validationErrors.number_of_reminders ? 'border-red-300' : ''}`}
-            placeholder="Number of follow-up emails"
-          />
-        </div>
-        {validationErrors.number_of_reminders && (
-          <p className="mt-1 text-xs text-red-500">
-            {validationErrors.number_of_reminders}
-          </p>
-        )}
-        <p className="mt-1 text-xs text-gray-500">
-          {formData.type === 'call' 
-            ? 'How many retries to perform if no response (0-10)'
-            : 'How many follow-up emails to send if no response (0-10)'}
-        </p>
-      </div>
+  const renderReminderInputs = (type: 'email' | 'phone') => {
+    const isEmail = type === 'email';
+    const prefix = isEmail ? 'email_' : 'phone_';
+    const labelPrefix = isEmail ? 'Email' : 'Phone';
+    const value = isEmail ? formData.email_number_of_reminders : formData.phone_number_of_reminders;
+    const daysValue = isEmail ? formData.email_days_between_reminders : formData.phone_days_between_reminders;
+    const error = isEmail ? validationErrors.email_number_of_reminders : validationErrors.phone_number_of_reminders;
+    const daysError = isEmail ? validationErrors.email_days_between_reminders : validationErrors.phone_days_between_reminders;
 
-      <div>
-        <label htmlFor="days_between_reminders" className="block text-sm font-medium text-gray-700 mb-1">
-          {formData.type === 'call' ? 'Days Between Retries' : 'Days Between Reminders'}
-        </label>
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Calendar className="h-5 w-5 text-gray-400" />
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label htmlFor={`${prefix}number_of_reminders`} className="block text-sm font-medium text-gray-700 mb-1">
+            {labelPrefix} Number of {isEmail ? 'Reminders' : 'Retries'}
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Calendar className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              type="number"
+              name={`${prefix}number_of_reminders`}
+              id={`${prefix}number_of_reminders`}
+              min="0"
+              max="10"
+              value={value}
+              onChange={(e) => {
+                const newValue = parseInt(e.target.value);
+                const isValid = !isNaN(newValue) && newValue >= 0 && newValue <= 10;
+                const finalValue = isValid ? newValue : 0;
+
+                setFormData(prev => ({
+                  ...prev,
+                  [`${prefix}number_of_reminders`]: finalValue,
+                  [`${prefix}days_between_reminders`]: finalValue === 0 ? 0 : prev[`${prefix}days_between_reminders`]
+                }));
+
+                if (isValid) {
+                  setValidationErrors(prev => ({
+                    ...prev,
+                    [`${prefix}number_of_reminders`]: undefined
+                  }));
+                }
+              }}
+              className={`form-input ${error ? 'border-red-300' : ''}`}
+              placeholder={`Number of ${isEmail ? 'follow-up emails' : 'retries'}`}
+            />
           </div>
-          <input
-            type="number"
-            name="days_between_reminders"
-            id="days_between_reminders"
-            min="0"
-            max="30"
-            value={formData.days_between_reminders}
-            onChange={(e) => {
-              const value = parseInt(e.target.value);
-              handleDaysChange(value);
-            }}
-            className={`form-input ${validationErrors.days_between_reminders ? 'border-red-300' : ''}`}
-            placeholder="Days between emails"
-            disabled={formData.number_of_reminders === 0}
-          />
-        </div>
-        {validationErrors.days_between_reminders && (
-          <p className="mt-1 text-xs text-red-500">
-            {validationErrors.days_between_reminders}
+          {error && (
+            <p className="mt-1 text-xs text-red-500">
+              {error}
+            </p>
+          )}
+          <p className="mt-1 text-xs text-gray-500">
+            How many {isEmail ? 'follow-up emails' : 'retries'} to {isEmail ? 'send' : 'perform'} if no response (0-10)
           </p>
-        )}
-        <p className="mt-1 text-xs text-gray-500">
-          {formData.type === 'call'
-            ? 'Number of days to wait between retries (1-30)'
-            : 'Number of days to wait between follow-up emails (1-30)'}
-        </p>
+        </div>
+
+        <div>
+          <label htmlFor={`${prefix}days_between_reminders`} className="block text-sm font-medium text-gray-700 mb-1">
+            {labelPrefix} Days Between {isEmail ? 'Reminders' : 'Retries'}
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Calendar className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              type="number"
+              name={`${prefix}days_between_reminders`}
+              id={`${prefix}days_between_reminders`}
+              min="0"
+              max="30"
+              value={daysValue}
+              onChange={(e) => {
+                const newValue = parseInt(e.target.value);
+                const isValid = !isNaN(newValue) && newValue >= 0 && newValue <= 30;
+                const finalValue = isValid ? newValue : 0;
+
+                setFormData(prev => ({
+                  ...prev,
+                  [`${prefix}days_between_reminders`]: finalValue
+                }));
+
+                if (isValid) {
+                  setValidationErrors(prev => ({
+                    ...prev,
+                    [`${prefix}days_between_reminders`]: undefined
+                  }));
+                }
+              }}
+              className={`form-input ${daysError ? 'border-red-300' : ''}`}
+              placeholder={`Days between ${isEmail ? 'emails' : 'retries'}`}
+              disabled={value === 0}
+            />
+          </div>
+          {daysError && (
+            <p className="mt-1 text-xs text-red-500">
+              {daysError}
+            </p>
+          )}
+          <p className="mt-1 text-xs text-gray-500">
+            Number of days to wait between {isEmail ? 'follow-up emails' : 'retries'} (1-30)
+          </p>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   if (isLoading) {
     return (
@@ -559,7 +616,7 @@ export function AddEmailCampaign() {
 
               <div className="space-y-4 border-t pt-4 mt-4">
                 <h3 className="text-lg font-medium text-gray-900">Reminder Settings</h3>
-                {renderReminderInputs()}
+                {renderReminderInputs('email')}
                 <div className="flex items-center">
                   <input
                     type="checkbox"
@@ -587,9 +644,7 @@ export function AddEmailCampaign() {
             <div className="border-t border-gray-200 pt-4 mt-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Phone Campaign Settings</h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {renderReminderInputs()}
-              </div>
+              {renderReminderInputs('phone')}
             </div>
           )}
 
@@ -649,7 +704,7 @@ export function AddEmailCampaign() {
 
                   <div className="space-y-4 border-t pt-4 mt-4">
                     <h3 className="text-lg font-medium text-gray-900">Reminder Settings</h3>
-                    {renderReminderInputs()}
+                    {renderReminderInputs('email')}
                     <div className="flex items-center">
                       <input
                         type="checkbox"
@@ -677,9 +732,7 @@ export function AddEmailCampaign() {
                 <div>
                   <h3 className="text-lg font-medium text-gray-900 mb-4">Phone Campaign Settings</h3>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {renderReminderInputs()}
-                  </div>
+                  {renderReminderInputs('phone')}
                 </div>
               )}
 
