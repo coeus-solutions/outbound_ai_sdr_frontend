@@ -348,7 +348,7 @@ export function AddEmailCampaign() {
   const renderReminderInputs = (type: 'email' | 'phone') => {
     const isEmail = type === 'email';
     const prefix = isEmail ? 'email_' : 'phone_';
-    const labelPrefix = isEmail ? 'Email' : 'Phone';
+    const labelPrefix = '';
     const value = isEmail ? formData.email_number_of_reminders : formData.phone_number_of_reminders;
     const daysValue = isEmail ? formData.email_days_between_reminders : formData.phone_days_between_reminders;
     const error = isEmail ? validationErrors.email_number_of_reminders : validationErrors.phone_number_of_reminders;
