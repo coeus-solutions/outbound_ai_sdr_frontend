@@ -322,6 +322,8 @@ export function AddEmailCampaign() {
         // For email campaigns and both type, use the email-specific fields
         number_of_reminders: formData.type === 'call' ? undefined : formData.email_number_of_reminders,
         days_between_reminders: formData.type === 'call' ? undefined : formData.email_days_between_reminders,
+        // Map call_trigger to trigger_call_on for the API
+        trigger_call_on: formData.type === 'both' ? (formData.call_trigger === 'when_opened' ? 'after_email_open' : 'after_email_sent') : undefined,
       };
 
       await createCampaign(token, companyId!, campaignData);
