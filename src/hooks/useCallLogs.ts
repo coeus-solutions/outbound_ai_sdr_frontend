@@ -47,22 +47,55 @@ export function useCallLogs(companyId: string, campaignRunId?: string) {
   const filteredCallLogs = callLogs.filter(log => {
     // Date range filter
     if (filters.dateRange !== 'all') {
-      const logDate = new Date(log.last_called_at);
+      // Use last_called_at if available, otherwise fall back to created_at
+      const dateValue = log.last_called_at || log.created_at;
+      if (!dateValue) {
+        console.warn('Call log missing date value:', log.id);
+        return true; // Include logs with missing date values
+      }
+
+      const logDate = new Date(dateValue);
       const now = new Date();
-      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // Start of today
       const thisWeek = new Date(today);
-      thisWeek.setDate(today.getDate() - today.getDay());
-      const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      thisWeek.setDate(today.getDate() - today.getDay()); // Start of current week (Sunday)
+      const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1); // Start of current month
+
+      // For debugging
+      console.log('Filtering log:', {
+        id: log.id,
+        date: dateValue,
+        parsedDate: logDate,
+        today: today,
+        thisWeek: thisWeek,
+        thisMonth: thisMonth,
+        filter: filters.dateRange
+      });
 
       switch (filters.dateRange) {
         case 'today':
-          if (logDate < today) return false;
+          // Compare date parts only (ignore time)
+          if (logDate.getFullYear() !== today.getFullYear() ||
+              logDate.getMonth() !== today.getMonth() ||
+              logDate.getDate() !== today.getDate()) {
+            return false;
+          }
           break;
         case 'week':
-          if (logDate < thisWeek) return false;
+          // Check if the date is within the current week
+          const weekEnd = new Date(thisWeek);
+          weekEnd.setDate(weekEnd.getDate() + 7);
+          if (logDate < thisWeek || logDate >= weekEnd) {
+            return false;
+          }
           break;
         case 'month':
-          if (logDate < thisMonth) return false;
+          // Check if the date is within the current month
+          const nextMonth = new Date(thisMonth);
+          nextMonth.setMonth(nextMonth.getMonth() + 1);
+          if (logDate < thisMonth || logDate >= nextMonth) {
+            return false;
+          }
           break;
       }
     }
