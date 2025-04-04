@@ -47,7 +47,7 @@ export function useCallLogs(companyId: string, campaignRunId?: string) {
   const filteredCallLogs = callLogs.filter(log => {
     // Date range filter
     if (filters.dateRange !== 'all') {
-      const logDate = new Date(log.created_at);
+      const logDate = new Date(log.last_called_at);
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       const thisWeek = new Date(today);

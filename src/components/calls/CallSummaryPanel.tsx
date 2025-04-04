@@ -71,7 +71,7 @@ export function CallSummaryPanel({ isOpen, onClose, callLog }: CallSummaryPanelP
               </div>
               <div>
                 <div className="text-sm text-gray-500">Called At</div>
-                <div className="font-medium">{formatDateTime(callLog.created_at)}</div>
+                <div className="font-medium">{formatDateTime(callLog.last_called_at)}</div>
               </div>
               <div>
                 <div className="text-sm text-gray-500">Duration</div>
