@@ -15,6 +15,7 @@ export interface CallLog {
   product_id: string;
   campaign_name: string;
   created_at: string;
+  last_called_at: string;
   duration: number; // in seconds
   sentiment: 'positive' | 'negative' | 'not_connected';
   summary: string;

@@ -35,8 +35,8 @@ export function CallSummaryDialog({ isOpen, onClose, callLog }: CallSummaryDialo
             }`}>
               {callLog.sentiment === 'positive' && <ThumbsUp className="h-3 w-3 mr-1" />}
               {callLog.sentiment === 'negative' && <ThumbsDown className="h-3 w-3 mr-1" />}
-              {callLog.sentiment === 'neutral' && <Minus className="h-3 w-3 mr-1" />}
-              {callLog.sentiment}
+              {callLog.sentiment === 'not_connected' && <Minus className="h-3 w-3 mr-1" />}
+              {callLog.sentiment === 'not_connected' ? 'Unable to connect' : callLog.sentiment}
             </span>
           </div>
           <div className="mt-2 flex items-center space-x-4 text-sm text-gray-500">
@@ -44,7 +44,7 @@ export function CallSummaryDialog({ isOpen, onClose, callLog }: CallSummaryDialo
               <Clock className="h-4 w-4 mr-1" />
               {formatDuration(callLog.duration)}
             </div>
-            <div>{formatDateTime(callLog.created_at)}</div>
+            <div>{formatDateTime(callLog.last_called_at)}</div>
           </div>
         </div>
         
