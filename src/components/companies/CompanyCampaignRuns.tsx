@@ -35,6 +35,10 @@ export function CompanyCampaignRuns() {
         const token = localStorage.getItem('token');
         if (!token) return;
         
+        // Fetch company data
+        const companyData = await getCompanyById(token, companyId);
+        setCompany(companyData);
+        
         const response = await getCampaignRuns(token, companyId, campaignId, page, pageSize);
         setCampaignRuns(response.items);
         setTotalItems(response.total);
