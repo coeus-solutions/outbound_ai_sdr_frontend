@@ -176,8 +176,8 @@ export async function getCampaignRuns(
   if (campaignId) {
     params.append('campaign_id', campaignId);
   }
-  params.append('page', page.toString());
-  params.append('page_size', pageSize.toString());
+  params.append('page_number', page.toString());
+  params.append('limit', pageSize.toString());
 
   const response = await fetch(
     `${apiEndpoints.companies.campaignRuns.list(companyId)}?${params.toString()}`,
