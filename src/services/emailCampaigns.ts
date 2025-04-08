@@ -36,16 +36,25 @@ export interface RunCampaignResponse {
 
 export interface CampaignRun {
   id: string;
+  company_id: string;
   campaign_id: string;
   run_at: string;
+  status: string;
   leads_total: number;
   leads_processed: number;
-  status: string;
-  created_at: string;
   campaigns: {
+    id: string;
     name: string;
     type: 'email' | 'call' | 'email_and_call';
   };
+}
+
+export interface PaginatedCampaignRunResponse {
+  items: CampaignRun[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
 }
 
 export interface TestRunCampaignResponse {
@@ -156,18 +165,28 @@ export async function runCampaign(token: string, campaignId: string): Promise<Ru
   return data;
 }
 
-export async function getCampaignRuns(token: string, companyId: string, campaignId?: string): Promise<CampaignRun[]> {
-  let url = apiEndpoints.companies.campaignRuns.list(companyId);
+export async function getCampaignRuns(
+  token: string,
+  companyId: string,
+  campaignId?: string,
+  page: number = 1,
+  pageSize: number = 20
+): Promise<PaginatedCampaignRunResponse> {
+  const params = new URLSearchParams();
   if (campaignId) {
-    url += `?campaign_id=${campaignId}`;
+    params.append('campaign_id', campaignId);
   }
+  params.append('page', page.toString());
+  params.append('page_size', pageSize.toString());
 
-  const response = await fetch(url, {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-  });
+  const response = await fetch(
+    `${apiEndpoints.companies.campaignRuns.list(companyId)}?${params.toString()}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
 
   if (!response.ok) {
     throw new Error('Failed to fetch campaign runs');
