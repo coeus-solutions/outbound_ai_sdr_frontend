@@ -25,13 +25,23 @@ export interface EmailHistory {
   to_email: string | null;
 }
 
+export interface PaginatedEmailLogResponse {
+  items: EmailLog[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
+
 export async function getCompanyEmails(
   token: string,
   companyId: string,
   campaignId?: string,
   leadId?: string,
-  campaignRunId?: string
-): Promise<EmailLog[]> {
+  campaignRunId?: string,
+  page: number = 1,
+  pageSize: number = 10
+): Promise<PaginatedEmailLogResponse> {
   const url = new URL(apiEndpoints.companies.emails.list(companyId));
   if (campaignId) {
     url.searchParams.append('campaign_id', campaignId);
@@ -42,6 +52,8 @@ export async function getCompanyEmails(
   if (campaignRunId) {
     url.searchParams.append('campaign_run_id', campaignRunId);
   }
+  url.searchParams.append('page', page.toString());
+  url.searchParams.append('page_size', pageSize.toString());
 
   const response = await fetch(url.toString(), {
     headers: {

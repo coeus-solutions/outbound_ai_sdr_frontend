@@ -15,7 +15,17 @@ export function CompanyEmails() {
   const queryParams = new URLSearchParams(location.search);
   const campaignRunId = queryParams.get('campaign_run_id') || undefined;
   const { showToast } = useToast();
-  const { emailLogs, isLoading: isLoadingEmails, error: emailLogsError, filters, setFilters } = useEmailLogs(companyId || '', campaignRunId);
+  const {
+    emailLogs,
+    loading: isLoadingEmails,
+    error: emailLogsError,
+    page,
+    pageSize,
+    totalPages,
+    total,
+    setPage,
+    setPageSize,
+  } = useEmailLogs({ companyId: companyId || '', campaignRunId });
   const [company, setCompany] = useState<Company | null>(null);
   const [isLoadingCompany, setIsLoadingCompany] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -56,7 +66,9 @@ export function CompanyEmails() {
   if (error || emailLogsError) {
     return (
       <div className="text-center py-12">
-        <div className="text-red-600 mb-4">{error || emailLogsError}</div>
+        <div className="text-red-600 mb-4">
+          {error || (emailLogsError instanceof Error ? emailLogsError.message : 'An error occurred')}
+        </div>
         <button
           onClick={() => window.location.reload()}
           className="text-indigo-600 hover:text-indigo-500"
@@ -74,8 +86,16 @@ export function CompanyEmails() {
         subtitle="Email logs for"
       />
 
-      <EmailLogFilters filters={filters} onFilterChange={setFilters} companyId={companyId || ''} />
-      <EmailLogList emailLogs={emailLogs} isLoading={isLoading} />
+      <EmailLogList
+        emailLogs={emailLogs}
+        isLoading={isLoading}
+        page={page}
+        pageSize={pageSize}
+        totalPages={totalPages}
+        total={total}
+        onPageChange={setPage}
+        onPageSizeChange={setPageSize}
+      />
     </div>
   );
 } 
