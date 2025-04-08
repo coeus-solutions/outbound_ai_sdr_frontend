@@ -1,7 +1,12 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { getToken } from '../utils/auth';
 import { EmailLog, getCompanyEmails } from '../services/emails';
 import { useToast } from '../context/ToastContext';
+
+export interface EmailLogFilters {
+  campaign_id?: string;
+  lead_id?: string;
+}
 
 interface UseEmailLogsProps {
   companyId: string;
@@ -16,8 +21,10 @@ interface UseEmailLogsReturn {
   pageSize: number;
   totalPages: number;
   total: number;
+  filters: EmailLogFilters;
   setPage: (page: number) => void;
   setPageSize: (pageSize: number) => void;
+  setFilters: (filters: EmailLogFilters) => void;
   refetch: () => Promise<void>;
 }
 
@@ -39,6 +46,14 @@ export function useEmailLogs({ companyId, campaignRunId }: UseEmailLogsProps): U
   const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [filters, setFilters] = useState<EmailLogFilters>({});
+  
+  // Use refs to track previous values for comparison
+  const prevFiltersRef = useRef<EmailLogFilters>({});
+  const prevPageRef = useRef<number>(1);
+  const prevPageSizeRef = useRef<number>(10);
+  const prevCompanyIdRef = useRef<string>('');
+  const prevCampaignRunIdRef = useRef<string | undefined>(undefined);
 
   const fetchEmailLogs = useCallback(async () => {
     const token = getToken();
@@ -51,8 +66,8 @@ export function useEmailLogs({ companyId, campaignRunId }: UseEmailLogsProps): U
       const response = await getCompanyEmails(
         token,
         companyId,
-        undefined,
-        undefined,
+        filters.campaign_id,
+        filters.lead_id,
         campaignRunId,
         page,
         pageSize
@@ -67,11 +82,35 @@ export function useEmailLogs({ companyId, campaignRunId }: UseEmailLogsProps): U
     } finally {
       setLoading(false);
     }
-  }, [companyId, campaignRunId, page, pageSize, showToast]);
+  }, [companyId, campaignRunId, page, pageSize, filters, showToast]);
 
+  // Only fetch when dependencies actually change
   useEffect(() => {
-    fetchEmailLogs();
-  }, [fetchEmailLogs]);
+    const shouldFetch = 
+      companyId !== prevCompanyIdRef.current ||
+      campaignRunId !== prevCampaignRunIdRef.current ||
+      page !== prevPageRef.current ||
+      pageSize !== prevPageSizeRef.current ||
+      JSON.stringify(filters) !== JSON.stringify(prevFiltersRef.current);
+    
+    if (shouldFetch) {
+      fetchEmailLogs();
+      
+      // Update refs with current values
+      prevCompanyIdRef.current = companyId;
+      prevCampaignRunIdRef.current = campaignRunId;
+      prevPageRef.current = page;
+      prevPageSizeRef.current = pageSize;
+      prevFiltersRef.current = { ...filters };
+    }
+  }, [companyId, campaignRunId, page, pageSize, filters, fetchEmailLogs]);
+
+  // Reset page to 1 when filters change
+  useEffect(() => {
+    if (JSON.stringify(filters) !== JSON.stringify(prevFiltersRef.current)) {
+      setPage(1);
+    }
+  }, [filters]);
 
   return {
     emailLogs,
@@ -81,8 +120,10 @@ export function useEmailLogs({ companyId, campaignRunId }: UseEmailLogsProps): U
     pageSize,
     totalPages,
     total,
+    filters,
     setPage,
     setPageSize,
+    setFilters,
     refetch: fetchEmailLogs,
   };
 } 

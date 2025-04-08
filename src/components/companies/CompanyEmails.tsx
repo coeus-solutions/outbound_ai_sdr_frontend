@@ -23,8 +23,10 @@ export function CompanyEmails() {
     pageSize,
     totalPages,
     total,
+    filters,
     setPage,
     setPageSize,
+    setFilters,
   } = useEmailLogs({ companyId: companyId || '', campaignRunId });
   const [company, setCompany] = useState<Company | null>(null);
   const [isLoadingCompany, setIsLoadingCompany] = useState(true);
@@ -86,6 +88,12 @@ export function CompanyEmails() {
         subtitle="Email logs for"
       />
 
+      <EmailLogFilters 
+        filters={filters} 
+        onFilterChange={setFilters} 
+        companyId={companyId || ''} 
+      />
+      
       <EmailLogList
         emailLogs={emailLogs}
         isLoading={isLoading}
