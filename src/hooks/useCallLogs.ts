@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { CallLog } from '../types';
 import { getCompanyCalls } from '../services/calls';
 import { getToken } from '../utils/auth';
@@ -99,10 +99,39 @@ export const useCallLogs = (
       return;
     }
     
-    // Reset to first page when filters change
+    // Trigger API call for campaign_id and lead_id changes
     setCurrentPage(1);
     fetchCallLogs();
-  }, [filters.dateRange, filters.campaign_id, filters.lead_id, fetchCallLogs]);
+  }, [filters.campaign_id, filters.lead_id, fetchCallLogs]);
+
+  // Filter call logs based on date range on the client side
+  const filteredCallLogs = useMemo(() => {
+    if (filters.dateRange === 'all') {
+      return callLogs;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - today.getDay()); // Start of current week (Sunday)
+
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+    return callLogs.filter(log => {
+      const callDate = new Date(log.last_called_at);
+      switch (filters.dateRange) {
+        case 'today':
+          return callDate >= today;
+        case 'week':
+          return callDate >= startOfWeek;
+        case 'month':
+          return callDate >= startOfMonth;
+        default:
+          return true;
+      }
+    });
+  }, [callLogs, filters.dateRange]);
 
   const handleSetPage = (page: number) => {
     setCurrentPage(page);
@@ -117,10 +146,10 @@ export const useCallLogs = (
   const totalPages = Math.ceil(totalItems / currentPageSize);
 
   return {
-    callLogs,
+    callLogs: filteredCallLogs,
     isLoading,
     error,
-    totalItems,
+    totalItems: filteredCallLogs.length,
     totalPages,
     currentPage,
     currentPageSize,

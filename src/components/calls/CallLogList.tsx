@@ -9,6 +9,7 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 interface CallLogFilters {
   sentiment?: 'positive' | 'negative' | 'not_connected';
   hasMeeting?: boolean;
+  dateRange?: 'today' | 'week' | 'month' | 'all';
 }
 
 interface CallLogListProps {
