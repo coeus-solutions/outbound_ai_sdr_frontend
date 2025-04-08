@@ -42,30 +42,34 @@ export async function getCompanyEmails(
   page: number = 1,
   pageSize: number = 10
 ): Promise<PaginatedEmailLogResponse> {
-  const url = new URL(apiEndpoints.companies.emails.list(companyId));
+  const url = new URL(`${apiEndpoints.companies.emails.list(companyId)}`);
+  
   if (campaignId) {
     url.searchParams.append('campaign_id', campaignId);
   }
+  
   if (leadId) {
     url.searchParams.append('lead_id', leadId);
   }
+  
   if (campaignRunId) {
     url.searchParams.append('campaign_run_id', campaignRunId);
   }
-  url.searchParams.append('page', page.toString());
-  url.searchParams.append('page_size', pageSize.toString());
-
+  
+  url.searchParams.append('page_number', page.toString());
+  url.searchParams.append('limit', pageSize.toString());
+  
   const response = await fetch(url.toString(), {
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
   });
-
+  
   if (!response.ok) {
-    throw new Error('Failed to fetch email logs');
+    throw new Error('Failed to fetch company emails');
   }
-
+  
   return response.json();
 }
 

@@ -21,6 +21,15 @@ interface UseEmailLogsReturn {
   refetch: () => Promise<void>;
 }
 
+/**
+ * Hook to fetch and manage email logs with pagination
+ * 
+ * @param companyId - The ID of the company to fetch emails for
+ * @param campaignRunId - Optional campaign run ID to filter by
+ * @returns Object containing email logs, loading state, error state, and pagination controls
+ * 
+ * The API uses page_number and limit parameters for pagination
+ */
 export function useEmailLogs({ companyId, campaignRunId }: UseEmailLogsProps): UseEmailLogsReturn {
   const { showToast } = useToast();
   const [emailLogs, setEmailLogs] = useState<EmailLog[]>([]);
