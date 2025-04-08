@@ -135,7 +135,7 @@ export function CompanyCampaignRuns() {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {campaignRuns.map((run) => (
-                <tr key={run.id}>
+                <tr key={run.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {formatDate(run.run_at)}
                   </td>
