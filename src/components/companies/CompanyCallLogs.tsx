@@ -15,7 +15,7 @@ export function CompanyCallLogs() {
   const queryParams = new URLSearchParams(location.search);
   const campaignRunId = queryParams.get('campaign_run_id');
   const { showToast } = useToast();
-  const { callLogs, isLoading: isLoadingCalls, error: callLogsError, filters, setFilters, totalItems, currentPage, currentPageSize, setPage, setPageSize } = useCallLogs({
+  const { callLogs, isLoading: isLoadingCalls, error: callLogsError, filters, setFilters, totalItems, currentPage, currentPageSize, setPage } = useCallLogs({
     companyId: companyId || '',
     campaignRunId: campaignRunId || undefined,
   });
@@ -97,7 +97,6 @@ export function CompanyCallLogs() {
         pageSize={currentPageSize}
         totalItems={totalItems}
         onPageChange={setPage}
-        onPageSizeChange={setPageSize}
       />
     </div>
   );

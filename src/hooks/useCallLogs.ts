@@ -31,7 +31,6 @@ interface UseCallLogsReturn {
   filters: CallLogFilters;
   setFilters: (filters: CallLogFilters) => void;
   setPage: (page: number) => void;
-  setPageSize: (pageSize: number) => void;
 }
 
 export const useCallLogs = (
@@ -128,6 +127,5 @@ export const useCallLogs = (
     filters,
     setFilters,
     setPage: handleSetPage,
-    setPageSize: handleSetPageSize,
   };
 };
