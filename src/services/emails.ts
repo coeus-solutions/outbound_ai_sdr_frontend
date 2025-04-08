@@ -25,35 +25,51 @@ export interface EmailHistory {
   to_email: string | null;
 }
 
+export interface PaginatedEmailLogResponse {
+  items: EmailLog[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
+
 export async function getCompanyEmails(
   token: string,
   companyId: string,
   campaignId?: string,
   leadId?: string,
-  campaignRunId?: string
-): Promise<EmailLog[]> {
-  const url = new URL(apiEndpoints.companies.emails.list(companyId));
+  campaignRunId?: string,
+  page: number = 1,
+  pageSize: number = 10
+): Promise<PaginatedEmailLogResponse> {
+  const url = new URL(`${apiEndpoints.companies.emails.list(companyId)}`);
+  
   if (campaignId) {
     url.searchParams.append('campaign_id', campaignId);
   }
+  
   if (leadId) {
     url.searchParams.append('lead_id', leadId);
   }
+  
   if (campaignRunId) {
     url.searchParams.append('campaign_run_id', campaignRunId);
   }
-
+  
+  url.searchParams.append('page_number', page.toString());
+  url.searchParams.append('limit', pageSize.toString());
+  
   const response = await fetch(url.toString(), {
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
   });
-
+  
   if (!response.ok) {
-    throw new Error('Failed to fetch email logs');
+    throw new Error('Failed to fetch company emails');
   }
-
+  
   return response.json();
 }
 

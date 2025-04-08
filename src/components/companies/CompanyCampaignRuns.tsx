@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { CampaignRun, getCampaignRuns } from '../../services/emailCampaigns';
+import { getCampaignRuns, type CampaignRun } from '../../services/emailCampaigns';
 import { formatDate } from '../../utils/date';
 import { EmptyState } from './EmptyState';
 import { SkeletonLoader } from '../shared/SkeletonLoader';
@@ -9,145 +9,66 @@ import { TableSkeletonLoader } from '../shared/TableSkeletonLoader';
 import { PageHeader } from '../shared/PageHeader';
 import { getCompanyById, type Company } from '../../services/companies';
 import { useToast } from '../../context/ToastContext';
-import { Mail, Phone } from 'lucide-react';
+import { Mail, Phone, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LoadingButton } from '../shared/LoadingButton';
 
 export function CompanyCampaignRuns() {
-  const { companyId } = useParams<{ companyId: string }>();
-  const { isAuthenticated } = useAuth();
+  const { companyId, campaignId } = useParams();
+  const auth = useAuth();
   const { showToast } = useToast();
   const [campaignRuns, setCampaignRuns] = useState<CampaignRun[]>([]);
   const [company, setCompany] = useState<Company | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(20);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
   useEffect(() => {
-    const fetchData = async () => {
+    async function fetchData() {
+      if (!companyId || !auth.isAuthenticated) return;
+
       try {
-        if (!companyId) return;
+        setLoading(true);
+        setError(null);
         const token = localStorage.getItem('token');
         if (!token) return;
-
-        // Fetch company details
+        
+        // Fetch company data
         const companyData = await getCompanyById(token, companyId);
         setCompany(companyData);
-
-        // Fetch campaign runs
-        const runsData = await getCampaignRuns(token, companyId);
-        setCampaignRuns(runsData);
+        
+        const response = await getCampaignRuns(token, companyId, campaignId, page, pageSize);
+        setCampaignRuns(response.items);
+        setTotalItems(response.total);
+        setTotalPages(response.total_pages);
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to fetch data';
+        const errorMessage = err instanceof Error ? err.message : 'Failed to fetch campaign runs';
         setError(errorMessage);
         showToast(errorMessage, 'error');
       } finally {
         setLoading(false);
       }
-    };
+    }
 
     fetchData();
-  }, [companyId, showToast]);
+  }, [companyId, campaignId, auth.isAuthenticated, page, pageSize, showToast]);
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+  };
 
   if (loading) {
-    return (
-      <div className="space-y-6">
-        <PageHeader
-          title="Loading..."
-          subtitle="Campaign runs for"
-        />
-        <div className="bg-white shadow rounded-lg">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Run At
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Campaign
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Progress
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Total Leads
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Processed Leads
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {[...Array(5)].map((_, index) => (
-                  <tr key={index}>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="h-4 bg-gray-200 rounded animate-pulse w-24"></div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="h-4 bg-gray-200 rounded animate-pulse w-32"></div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="h-6 bg-gray-200 rounded-full animate-pulse w-20"></div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="w-full bg-gray-200 rounded-full h-2.5 animate-pulse"></div>
-                        <div className="ml-2 h-4 bg-gray-200 rounded animate-pulse w-10"></div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="h-4 bg-gray-200 rounded animate-pulse w-12"></div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="h-4 bg-gray-200 rounded animate-pulse w-12"></div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="h-4 bg-gray-200 rounded animate-pulse w-20"></div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    );
+    return <SkeletonLoader />;
   }
 
   if (error) {
-    return (
-      <div className="text-center py-12">
-        <div className="text-red-600 mb-4">{error}</div>
-        <button
-          onClick={() => window.location.reload()}
-          className="text-indigo-600 hover:text-indigo-500"
-        >
-          Try again
-        </button>
-      </div>
-    );
+    return <div className="text-red-500">{error}</div>;
   }
 
-  if (campaignRuns.length === 0) {
-    return (
-      <>
-        <PageHeader
-          title={company?.name || 'Company'}
-          subtitle="Campaign runs for"
-        />
-        <EmptyState
-          title="No Campaign Runs"
-          description="There are no campaign runs yet."
-          actionLink={`/companies/${companyId}/campaigns`}
-          actionText="View Campaigns"
-        />
-      </>
-    );
-  }
+  const startItem = (page - 1) * pageSize + 1;
+  const endItem = Math.min(page * pageSize, totalItems);
 
   const getStatusBadgeClass = (status: string) => {
     switch (status.toLowerCase()) {
@@ -214,7 +135,7 @@ export function CompanyCampaignRuns() {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {campaignRuns.map((run) => (
-                <tr key={run.id}>
+                <tr key={run.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {formatDate(run.run_at)}
                   </td>
@@ -300,6 +221,52 @@ export function CompanyCampaignRuns() {
               ))}
             </tbody>
           </table>
+        </div>
+
+        <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+          <div className="flex-1 flex justify-between sm:hidden">
+            <button
+              onClick={() => handlePageChange(Math.max(page - 1, 1))}
+              disabled={page === 1}
+              className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => handlePageChange(Math.min(page + 1, totalPages))}
+              disabled={page === totalPages}
+              className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+            >
+              Next
+            </button>
+          </div>
+          <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm text-gray-700">
+                Showing <span className="font-medium">{startItem}</span> to{' '}
+                <span className="font-medium">{endItem}</span> of{' '}
+                <span className="font-medium">{totalItems}</span> results
+              </p>
+            </div>
+            <div>
+              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                <button
+                  onClick={() => handlePageChange(Math.max(page - 1, 1))}
+                  disabled={page === 1}
+                  className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                >
+                  Previous
+                </button>
+                <button
+                  onClick={() => handlePageChange(Math.min(page + 1, totalPages))}
+                  disabled={page === totalPages}
+                  className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                >
+                  Next
+                </button>
+              </nav>
+            </div>
+          </div>
         </div>
       </div>
     </div>
