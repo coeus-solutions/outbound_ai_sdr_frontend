@@ -33,16 +33,8 @@ export function CallLogList({
   const [filters, setFilters] = useState<CallLogFilters>({});
   const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
 
-  // Add debug logging
-  console.log('Call Logs Data:', callLogs.map(log => ({
-    id: log.id,
-    lead_name: log.lead_name,
-    has_recording: !!log.recording_url,
-    recording_url: log.recording_url
-  })));
-
   if (isLoading) {
-    return <div className="text-center py-8">Loading call logs...</div>;
+    return <div>Loading...</div>;
   }
 
   if (callLogs.length === 0) {
