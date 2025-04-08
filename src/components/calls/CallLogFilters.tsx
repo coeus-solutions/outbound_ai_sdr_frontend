@@ -11,6 +11,8 @@ interface CallLogFilters {
   dateRange: 'all' | 'today' | 'week' | 'month';
   campaign_id?: string;
   lead_id?: string;
+  page?: number;
+  limit?: number;
 }
 
 interface CallLogFiltersProps {
@@ -104,7 +106,7 @@ export function CallLogFilters({ filters, onFilterChange, companyId }: CallLogFi
       <div className="flex items-center space-x-2">
         <Calendar className="h-5 w-5 text-gray-400" />
         <select
-          value={filters.dateRange}
+          value={filters.dateRange || 'all'}
           onChange={(e) => onFilterChange({ ...filters, dateRange: e.target.value as CallLogFilters['dateRange'] })}
           className="block min-w-[150px] pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
         >

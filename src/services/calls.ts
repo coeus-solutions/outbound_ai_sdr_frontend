@@ -34,7 +34,23 @@ export interface RetryResponse {
   status: string;
 }
 
-export async function getCompanyCalls(token: string, companyId: string, campaignId?: string, campaignRunId?: string, leadId?: string): Promise<CallLog[]> {
+export interface PaginatedCallResponse {
+  items: CallLog[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
+
+export async function getCompanyCalls(
+  token: string, 
+  companyId: string, 
+  campaignId?: string, 
+  campaignRunId?: string, 
+  leadId?: string,
+  page: number = 1,
+  limit: number = 20
+): Promise<PaginatedCallResponse> {
   const url = new URL(apiEndpoints.companies.calls.list(companyId));
   if (campaignId) {
     url.searchParams.append('campaign_id', campaignId);
@@ -45,6 +61,8 @@ export async function getCompanyCalls(token: string, companyId: string, campaign
   if (leadId) {
     url.searchParams.append('lead_id', leadId);
   }
+  url.searchParams.append('page_number', page.toString());
+  url.searchParams.append('limit', limit.toString());
 
   const response = await fetch(url.toString(), {
     headers: {

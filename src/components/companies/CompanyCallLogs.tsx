@@ -15,7 +15,10 @@ export function CompanyCallLogs() {
   const queryParams = new URLSearchParams(location.search);
   const campaignRunId = queryParams.get('campaign_run_id');
   const { showToast } = useToast();
-  const { callLogs, isLoading: isLoadingCalls, error: callLogsError, filters, setFilters } = useCallLogs(companyId || '', campaignRunId);
+  const { callLogs, isLoading: isLoadingCalls, error: callLogsError, filters, setFilters, totalItems, currentPage, currentPageSize, setPage, setPageSize } = useCallLogs({
+    companyId: companyId || '',
+    campaignRunId: campaignRunId || undefined,
+  });
   const [company, setCompany] = useState<Company | null>(null);
   const [isLoadingCompany, setIsLoadingCompany] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -68,7 +71,7 @@ export function CompanyCallLogs() {
   if (error || callLogsError) {
     return (
       <div className="text-center py-12">
-        <div className="text-red-600 mb-4">{error || callLogsError}</div>
+        <div className="text-red-600 mb-4">{error?.toString() || callLogsError?.toString()}</div>
         <button
           onClick={() => window.location.reload()}
           className="text-indigo-600 hover:text-indigo-500"
@@ -87,7 +90,15 @@ export function CompanyCallLogs() {
       />
 
       <CallLogFilters filters={filters} onFilterChange={setFilters} companyId={companyId || ''} />
-      <CallLogList callLogs={callLogs} isLoading={isLoading} />
+      <CallLogList 
+        callLogs={callLogs} 
+        isLoading={isLoading} 
+        page={currentPage}
+        pageSize={currentPageSize}
+        totalItems={totalItems}
+        onPageChange={setPage}
+        onPageSizeChange={setPageSize}
+      />
     </div>
   );
 }
