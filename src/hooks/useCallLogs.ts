@@ -44,7 +44,7 @@ export const useCallLogs = (
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(Number(props.page) || 1);
-  const [currentPageSize, setCurrentPageSize] = useState(Number(props.pageSize) || 3);
+  const [currentPageSize, setCurrentPageSize] = useState(Number(props.pageSize) || 20);
   const [filters, setFilters] = useState<CallLogFilters>({
     dateRange: 'all',
     campaign_id: campaignId,
