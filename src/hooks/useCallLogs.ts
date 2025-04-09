@@ -31,6 +31,7 @@ interface UseCallLogsReturn {
   filters: CallLogFilters;
   setFilters: (filters: CallLogFilters) => void;
   setPage: (page: number) => void;
+  setPageSize: (pageSize: number) => void;
 }
 
 export const useCallLogs = (
@@ -41,8 +42,9 @@ export const useCallLogs = (
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [totalItems, setTotalItems] = useState(0);
-  const [currentPage, setCurrentPage] = useState(props.page || 1);
-  const [currentPageSize, setCurrentPageSize] = useState(props.pageSize || 10);
+  const [totalPages, setTotalPages] = useState(1);
+  const [currentPage, setCurrentPage] = useState(Number(props.page) || 1);
+  const [currentPageSize, setCurrentPageSize] = useState(Number(props.pageSize) || 3);
   const [filters, setFilters] = useState<CallLogFilters>({
     dateRange: 'all',
     campaign_id: campaignId,
@@ -68,17 +70,31 @@ export const useCallLogs = (
         return;
       }
 
+      const pageNumber = Number(currentPage);
+      const pageSizeNumber = Number(currentPageSize);
+
+      if (isNaN(pageNumber) || pageNumber < 1) {
+        console.error('Invalid page number:', pageNumber);
+        setError(new Error('Invalid page number'));
+        setIsLoading(false);
+        return;
+      }
+
       const response = await getCompanyCalls(
         token,
         companyId,
         filtersRef.current.campaign_id,
         campaignRunId,
         filtersRef.current.lead_id,
-        currentPage,
-        currentPageSize
+        pageNumber,
+        pageSizeNumber
       );
       setCallLogs(response.items);
       setTotalItems(response.total);
+      
+      // Ensure totalPages is at least 1
+      const calculatedTotalPages = Math.max(1, Math.ceil(response.total / pageSizeNumber));
+      setTotalPages(calculatedTotalPages);
     } catch (error) {
       console.error('Error fetching call logs:', error);
       setError(error as Error);
@@ -87,22 +103,24 @@ export const useCallLogs = (
     }
   }, [companyId, currentPage, currentPageSize, campaignRunId]);
 
+  // Fetch call logs when dependencies change
   useEffect(() => {
     fetchCallLogs();
-  }, [fetchCallLogs]);
+  }, [fetchCallLogs, currentPage, currentPageSize]);
 
-  // Add a separate effect to trigger a fetch when filters change
+  // Consolidated effect for all data fetching
   useEffect(() => {
-    // Skip the initial render
+    // Skip the initial render for filter changes
     if (isInitialMount.current) {
       isInitialMount.current = false;
-      return;
+    } else if (filters.campaign_id !== filtersRef.current.campaign_id || filters.lead_id !== filtersRef.current.lead_id) {
+      // Reset to page 1 only when campaign or lead changes
+      setCurrentPage(1);
+      return; // Let the page change trigger the fetch
     }
     
-    // Trigger API call for campaign_id and lead_id changes
-    setCurrentPage(1);
     fetchCallLogs();
-  }, [filters.campaign_id, filters.lead_id, fetchCallLogs]);
+  }, [fetchCallLogs, currentPage, currentPageSize, filters.campaign_id, filters.lead_id]);
 
   // Filter call logs based on date range on the client side
   const filteredCallLogs = useMemo(() => {
@@ -134,27 +152,35 @@ export const useCallLogs = (
   }, [callLogs, filters.dateRange]);
 
   const handleSetPage = (page: number) => {
-    setCurrentPage(page);
-    setFilters(prev => ({ ...prev, page }));
+    if (isNaN(page) || page < 1) {
+      console.error('Invalid page number:', page);
+      return;
+    }
+    const pageNumber = Number(page);
+    setCurrentPage(pageNumber);
   };
 
   const handleSetPageSize = (pageSize: number) => {
-    setCurrentPageSize(pageSize);
-    setFilters(prev => ({ ...prev, limit: pageSize }));
+    if (isNaN(pageSize) || pageSize < 1) {
+      console.error('Invalid page size:', pageSize);
+      return;
+    }
+    const pageSizeNumber = Number(pageSize);
+    setCurrentPageSize(pageSizeNumber);
+    setFilters(prev => ({ ...prev, limit: pageSizeNumber }));
   };
-
-  const totalPages = Math.ceil(totalItems / currentPageSize);
 
   return {
     callLogs: filteredCallLogs,
     isLoading,
     error,
-    totalItems: filteredCallLogs.length,
+    totalItems,
     totalPages,
     currentPage,
     currentPageSize,
     filters,
     setFilters,
     setPage: handleSetPage,
+    setPageSize: handleSetPageSize,
   };
 };
