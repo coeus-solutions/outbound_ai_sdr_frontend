@@ -13,6 +13,7 @@ export const CallLogsScreen: React.FC = () => {
     isLoading,
     error,
     totalItems,
+    totalPages,
     currentPage,
     currentPageSize,
     filters,
@@ -40,6 +41,7 @@ export const CallLogsScreen: React.FC = () => {
           page={currentPage}
           pageSize={currentPageSize}
           totalItems={totalItems}
+          totalPages={totalPages}
           onPageChange={setPage}
           onPageSizeChange={(pageSize) => {
             setPageSize(pageSize);
