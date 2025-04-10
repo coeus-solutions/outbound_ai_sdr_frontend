@@ -166,11 +166,11 @@ export function CompanyCampaignRuns() {
                       <div className="w-full bg-gray-200 rounded-full h-2.5">
                         <div 
                           className="bg-blue-600 h-2.5 rounded-full" 
-                          style={{ width: `${run.leads_total === 0 && run.leads_processed === 0 ? 100 : Math.round((run.leads_processed / run.leads_total) * 100)}%` }}
+                          style={{ width: `${run.leads_total === 0 && run.leads_processed === 0 ? 100 : Math.min(100, Math.round((run.leads_processed / run.leads_total) * 100))}%` }}
                         />
                       </div>
                       <span className="ml-2 text-sm text-gray-500">
-                        {run.leads_total === 0 && run.leads_processed === 0 ? 100 : Math.round((run.leads_processed / run.leads_total) * 100)}%
+                        {run.leads_total === 0 && run.leads_processed === 0 ? 100 : Math.min(100, Math.round((run.leads_processed / run.leads_total) * 100))}%
                       </span>
                     </div>
                   </td>
