@@ -65,12 +65,22 @@ export function EmailQueues() {
     }
   };
 
+  // Reset page to 1 when status changes
+  useEffect(() => {
+    setPage(1);
+  }, [selectedStatus]);
+
+  // Fetch data when dependencies change
   useEffect(() => {
     fetchData();
   }, [campaignRunId, companyId, page, pageSize, selectedStatus, showToast]);
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
+  };
+
+  const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedStatus(e.target.value);
   };
 
   const handleRetryFailedItems = async () => {
@@ -205,7 +215,7 @@ export function EmailQueues() {
             <select
               id="status-filter"
               value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
+              onChange={handleStatusChange}
               className="block w-32 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
             >
               {STATUS_OPTIONS.map(option => (
