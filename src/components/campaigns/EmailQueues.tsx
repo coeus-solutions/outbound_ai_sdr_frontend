@@ -11,6 +11,8 @@ import { getCompanyById, type Company } from '../../services/companies';
 
 const STATUS_OPTIONS = [
   { value: 'all', label: 'All' },
+  { value: 'pending', label: 'Pending' },
+  { value: 'processing', label: 'Processing' },
   { value: 'sent', label: 'Sent' },
   { value: 'failed', label: 'Failed' },
   { value: 'skipped', label: 'Skipped' }
