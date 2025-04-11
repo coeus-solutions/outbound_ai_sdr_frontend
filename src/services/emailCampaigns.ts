@@ -224,11 +224,15 @@ export async function getEmailQueues(
   token: string,
   campaignRunId: string,
   page: number = 1,
-  limit: number = 20
+  limit: number = 20,
+  status?: string
 ): Promise<PaginatedEmailQueueResponse> {
   const url = new URL(`${apiEndpoints.campaigns.emailQueues.list(campaignRunId)}`);
   url.searchParams.append('page_number', page.toString());
   url.searchParams.append('limit', limit.toString());
+  if (status && status.toLowerCase() !== 'all') {
+    url.searchParams.append('status', status.toLowerCase());
+  }
 
   const response = await fetch(url.toString(), {
     headers: {

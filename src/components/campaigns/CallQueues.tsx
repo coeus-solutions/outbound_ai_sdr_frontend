@@ -9,6 +9,12 @@ import { formatDateTime } from '../../utils/formatters';
 import { getCompanyById, type Company } from '../../services/companies';
 import { CallQueueDialog } from './CallQueueDialog';
 
+const STATUS_OPTIONS = [
+  { value: 'all', label: 'All' },
+  { value: 'sent', label: 'Sent' },
+  { value: 'failed', label: 'Failed' }
+];
+
 export function CallQueues() {
   const { campaignRunId, companyId } = useParams<{ campaignRunId: string; companyId: string }>();
   const { showToast } = useToast();
@@ -20,6 +26,7 @@ export function CallQueues() {
   const [data, setData] = useState<PaginatedCallQueueResponse | null>(null);
   const [selectedCallQueue, setSelectedCallQueue] = useState<CallQueue | null>(null);
   const [company, setCompany] = useState<Company | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState('all');
 
   const fetchData = async () => {
     console.log('Fetching call queues with campaignRunId:', campaignRunId);
@@ -44,7 +51,7 @@ export function CallQueues() {
       setCompany(companyData);
 
       console.log('Making API call to fetch call queues...');
-      const response = await getCallQueues(token, campaignRunId, page, pageSize);
+      const response = await getCallQueues(token, campaignRunId, page, pageSize, selectedStatus);
       console.log('API response:', response);
       setData(response);
     } catch (err) {
@@ -59,7 +66,7 @@ export function CallQueues() {
 
   useEffect(() => {
     fetchData();
-  }, [campaignRunId, companyId, page, pageSize, showToast]);
+  }, [campaignRunId, companyId, page, pageSize, selectedStatus, showToast]);
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
@@ -191,14 +198,35 @@ export function CallQueues() {
         </button>
       </div>
 
-      {data?.items.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-lg shadow">
-          <Phone className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">No call queues</h3>
-          <p className="mt-1 text-sm text-gray-500">There are no call queues for this campaign run.</p>
+      <div className="bg-white shadow rounded-lg">
+        <div className="px-4 py-5 border-b border-gray-200 sm:px-6">
+          <div className="flex items-center space-x-4">
+            <label htmlFor="status" className="block text-sm font-medium text-gray-700">
+              Filter by status:
+            </label>
+            <select
+              id="status"
+              name="status"
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="mt-1 block w-48 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+            >
+              {STATUS_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
-      ) : (
-        <div className="bg-white shadow rounded-lg">
+
+        {data?.items.length === 0 ? (
+          <div className="text-center py-12">
+            <Phone className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-2 text-sm font-medium text-gray-900">No call queues</h3>
+            <p className="mt-1 text-sm text-gray-500">There are no call queues for this campaign run.</p>
+          </div>
+        ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -251,8 +279,10 @@ export function CallQueues() {
               </tbody>
             </table>
           </div>
+        )}
 
-          {/* Pagination */}
+        {/* Pagination */}
+        {data && data.items.length > 0 && (
           <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
             <div className="flex-1 flex justify-between sm:hidden">
               <button
@@ -298,8 +328,8 @@ export function CallQueues() {
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {selectedCallQueue && (
         <CallQueueDialog
