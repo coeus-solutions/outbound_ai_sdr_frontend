@@ -42,6 +42,7 @@ export interface CampaignRun {
   status: string;
   leads_total: number;
   leads_processed: number;
+  has_failed_items: boolean;
   campaigns: {
     id: string;
     name: string;
