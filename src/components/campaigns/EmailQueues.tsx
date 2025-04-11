@@ -65,12 +65,6 @@ export function EmailQueues() {
     }
   };
 
-  // Reset page to 1 when status changes
-  useEffect(() => {
-    setPage(1);
-  }, [selectedStatus]);
-
-  // Fetch data when dependencies change
   useEffect(() => {
     fetchData();
   }, [campaignRunId, companyId, page, pageSize, selectedStatus, showToast]);
@@ -80,7 +74,9 @@ export function EmailQueues() {
   };
 
   const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedStatus(e.target.value);
+    const newStatus = e.target.value;
+    setSelectedStatus(newStatus);
+    setPage(1);
   };
 
   const handleRetryFailedItems = async () => {
