@@ -9,6 +9,13 @@ import { formatDateTime } from '../../utils/formatters';
 import { EmailQueueDialog } from './EmailQueueDialog';
 import { getCompanyById, type Company } from '../../services/companies';
 
+const STATUS_OPTIONS = [
+  { value: 'all', label: 'All' },
+  { value: 'sent', label: 'Sent' },
+  { value: 'failed', label: 'Failed' },
+  { value: 'skipped', label: 'Skipped' }
+];
+
 export function EmailQueues() {
   const { campaignRunId, companyId } = useParams<{ campaignRunId: string; companyId: string }>();
   const { showToast } = useToast();
@@ -20,6 +27,7 @@ export function EmailQueues() {
   const [data, setData] = useState<PaginatedEmailQueueResponse | null>(null);
   const [selectedEmailQueue, setSelectedEmailQueue] = useState<EmailQueue | null>(null);
   const [company, setCompany] = useState<Company | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState('all');
 
   const fetchData = async () => {
     console.log('Fetching email queues with campaignRunId:', campaignRunId);
@@ -44,7 +52,7 @@ export function EmailQueues() {
       setCompany(companyData);
 
       console.log('Making API call to fetch email queues...');
-      const response = await getEmailQueues(token, campaignRunId, page, pageSize);
+      const response = await getEmailQueues(token, campaignRunId, page, pageSize, selectedStatus);
       console.log('API response:', response);
       setData(response);
     } catch (err) {
@@ -59,7 +67,7 @@ export function EmailQueues() {
 
   useEffect(() => {
     fetchData();
-  }, [campaignRunId, companyId, page, pageSize, showToast]);
+  }, [campaignRunId, companyId, page, pageSize, selectedStatus, showToast]);
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
@@ -188,117 +196,139 @@ export function EmailQueues() {
         </button>
       </div>
 
-      {data?.items.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-lg shadow">
-          <Mail className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">No email queues</h3>
-          <p className="mt-1 text-sm text-gray-500">There are no email queues for this campaign run.</p>
-        </div>
-      ) : (
-        <div className="bg-white shadow rounded-lg">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lead</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Retry Count</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Scheduled For</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Processed At</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Known Error</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {data?.items.map((queue) => (
-                  <tr key={queue.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <div>{queue.lead_name || 'Unknown'}</div>
-                      <div className="text-sm text-gray-500">{queue.lead_email || 'No email'}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{queue.subject}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        queue.status === 'sent' ? 'bg-green-100 text-green-800' :
-                        queue.status === 'completed' ? 'bg-green-100 text-green-800' :
-                        queue.status === 'failed' ? 'bg-red-100 text-red-800' :
-                        queue.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {queue.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{queue.retry_count}/{queue.max_retries}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {queue.scheduled_for ? formatDateTime(queue.scheduled_for) : 'Not scheduled'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {queue.processed_at ? formatDateTime(queue.processed_at) : 'Not processed'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-red-500">{queue.error_message || '-'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <button
-                        onClick={() => setSelectedEmailQueue(queue)}
-                        className="text-indigo-600 hover:text-indigo-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 rounded-md"
-                      >
-                        <Eye className="h-5 w-5" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      <div className="bg-white shadow rounded-lg">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <div className="flex items-center space-x-2">
+            <label htmlFor="status-filter" className="text-sm font-medium text-gray-700">
+              Filter by status:
+            </label>
+            <select
+              id="status-filter"
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="block w-32 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+            >
+              {STATUS_OPTIONS.map(option => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
           </div>
+        </div>
 
-          {/* Pagination */}
-          <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-            <div className="flex-1 flex justify-between sm:hidden">
-              <button
-                onClick={() => handlePageChange(Math.max(page - 1, 1))}
-                disabled={page === 1}
-                className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-              >
-                Previous
-              </button>
-              <button
-                onClick={() => handlePageChange(Math.min(page + 1, data?.total_pages || 1))}
-                disabled={page === (data?.total_pages || 1)}
-                className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-              >
-                Next
-              </button>
-            </div>
-            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm text-gray-700">
-                  Showing <span className="font-medium">{((page - 1) * pageSize) + 1}</span> to{' '}
-                  <span className="font-medium">{Math.min(page * pageSize, data?.total || 0)}</span> of{' '}
-                  <span className="font-medium">{data?.total || 0}</span> results
-                </p>
-              </div>
-              <div>
-                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                  <button
-                    onClick={() => handlePageChange(Math.max(page - 1, 1))}
-                    disabled={page === 1}
-                    className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-                  >
-                    Previous
-                  </button>
-                  <button
-                    onClick={() => handlePageChange(Math.min(page + 1, data?.total_pages || 1))}
-                    disabled={page === (data?.total_pages || 1)}
-                    className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-                  >
-                    Next
-                  </button>
-                </nav>
-              </div>
-            </div>
+        {data?.items.length === 0 ? (
+          <div className="text-center py-12">
+            <Mail className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-2 text-sm font-medium text-gray-900">No email queues</h3>
+            <p className="mt-1 text-sm text-gray-500">There are no email queues for this campaign run.</p>
           </div>
-        </div>
-      )}
+        ) : (
+          <>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lead</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Retry Count</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Scheduled For</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Processed At</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Known Error</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {data?.items.map((queue) => (
+                    <tr key={queue.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <div>{queue.lead_name || 'Unknown'}</div>
+                        <div className="text-sm text-gray-500">{queue.lead_email || 'No email'}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{queue.subject}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          queue.status === 'sent' ? 'bg-green-100 text-green-800' :
+                          queue.status === 'completed' ? 'bg-green-100 text-green-800' :
+                          queue.status === 'failed' ? 'bg-red-100 text-red-800' :
+                          queue.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {queue.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{queue.retry_count}/{queue.max_retries}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {queue.scheduled_for ? formatDateTime(queue.scheduled_for) : 'Not scheduled'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {queue.processed_at ? formatDateTime(queue.processed_at) : 'Not processed'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-red-500">{queue.error_message || '-'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <button
+                          onClick={() => setSelectedEmailQueue(queue)}
+                          className="text-indigo-600 hover:text-indigo-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 rounded-md"
+                        >
+                          <Eye className="h-5 w-5" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
+            <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+              <div className="flex-1 flex justify-between sm:hidden">
+                <button
+                  onClick={() => handlePageChange(Math.max(page - 1, 1))}
+                  disabled={page === 1}
+                  className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  Previous
+                </button>
+                <button
+                  onClick={() => handlePageChange(Math.min(page + 1, data?.total_pages || 1))}
+                  disabled={page === (data?.total_pages || 1)}
+                  className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  Next
+                </button>
+              </div>
+              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm text-gray-700">
+                    Showing <span className="font-medium">{((page - 1) * pageSize) + 1}</span> to{' '}
+                    <span className="font-medium">{Math.min(page * pageSize, data?.total || 0)}</span> of{' '}
+                    <span className="font-medium">{data?.total || 0}</span> results
+                  </p>
+                </div>
+                <div>
+                  <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    <button
+                      onClick={() => handlePageChange(Math.max(page - 1, 1))}
+                      disabled={page === 1}
+                      className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                    >
+                      Previous
+                    </button>
+                    <button
+                      onClick={() => handlePageChange(Math.min(page + 1, data?.total_pages || 1))}
+                      disabled={page === (data?.total_pages || 1)}
+                      className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                    >
+                      Next
+                    </button>
+                  </nav>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
 
       {selectedEmailQueue && (
         <EmailQueueDialog
