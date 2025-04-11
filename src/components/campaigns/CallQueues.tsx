@@ -208,7 +208,10 @@ export function CallQueues() {
               id="status"
               name="status"
               value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
+              onChange={(e) => {
+                setSelectedStatus(e.target.value);
+                setPage(1); // Reset page to 1 when status changes
+              }}
               className="mt-1 block w-48 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
             >
               {STATUS_OPTIONS.map((option) => (
