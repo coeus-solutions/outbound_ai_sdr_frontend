@@ -9,7 +9,7 @@ import { TableSkeletonLoader } from '../shared/TableSkeletonLoader';
 import { PageHeader } from '../shared/PageHeader';
 import { getCompanyById, type Company } from '../../services/companies';
 import { useToast } from '../../context/ToastContext';
-import { Mail, Phone, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Mail, Phone, ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import { LoadingButton } from '../shared/LoadingButton';
 
 export function CompanyCampaignRuns() {
@@ -157,9 +157,20 @@ export function CompanyCampaignRuns() {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(run.status)}`}>
-                      {run.status}
-                    </span>
+                    <div className="flex items-center space-x-2">
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(run.status)}`}>
+                        {run.status}
+                      </span>
+                      {run.has_failed_items && (
+                        <div className="relative group">
+                          <Info className="h-4 w-4 text-red-500 cursor-help" />
+                          <div className="absolute z-[9999] invisible group-hover:visible bg-gray-900 text-white text-xs rounded py-2 px-3 left-1/2 bottom-full mb-2 min-w-[24rem] -translate-x-1/2 whitespace-normal">
+                            <p className="text-center">This campaign run has failed items. You can retry those failed items by visiting Queued Emails/Calls screen</p>
+                            <div className="absolute left-1/2 bottom-[-6px] w-3 h-3 bg-gray-900 transform rotate-45 -translate-x-1/2"></div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
