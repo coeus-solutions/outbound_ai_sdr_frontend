@@ -273,7 +273,7 @@ export function EmailQueues() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {queue.processed_at ? formatDateTime(queue.processed_at) : 'Not processed'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-red-500">{queue.error_message || '-'}</td>
+                      <td className="px-6 py-4 text-sm text-red-500 max-w-md break-words whitespace-normal">{queue.error_message || '-'}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         <button
                           onClick={() => setSelectedEmailQueue(queue)}
