@@ -122,7 +122,6 @@ export function CallQueues() {
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lead</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Retry Count</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Scheduled For</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Processed At</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Known Error</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -133,16 +132,12 @@ export function CallQueues() {
                   <tr key={index}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
-                      <div className="h-3 w-24 bg-gray-200 rounded mt-1 animate-pulse"></div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="h-5 w-16 bg-gray-200 rounded animate-pulse"></div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="h-4 w-12 bg-gray-200 rounded animate-pulse"></div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
@@ -239,7 +234,6 @@ export function CallQueues() {
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lead</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Retry Count</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Scheduled For</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Processed At</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Known Error</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -264,9 +258,6 @@ export function CallQueues() {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{queue.retry_count}/{queue.max_retries}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {queue.scheduled_for ? formatDateTime(queue.scheduled_for) : 'Not scheduled'}
-                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {queue.processed_at ? formatDateTime(queue.processed_at) : 'Not processed'}
                     </td>
