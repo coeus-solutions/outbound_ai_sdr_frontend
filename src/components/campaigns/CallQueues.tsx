@@ -292,7 +292,7 @@ export function CallQueues() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {queue.processed_at ? formatDateTime(queue.processed_at) : 'Not processed'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 text-sm text-red-600 whitespace-normal break-words max-w-xs">
                       {queue.error_message || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
