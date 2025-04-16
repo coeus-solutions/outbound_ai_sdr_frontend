@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { getCallQueues, PaginatedCallQueueResponse, CallQueue, retryFailedCampaignCalls } from '../../services/calls';
+import { getCallQueues, PaginatedCallQueueResponse, CallQueue, retryFailedCampaignCalls, retryCallQueueItem } from '../../services/calls';
 import { PageHeader } from '../shared/PageHeader';
 import { Loader2, Phone, Eye, RefreshCw } from 'lucide-react';
 import { getToken } from '../../utils/auth';
@@ -97,6 +97,36 @@ export function CallQueues() {
     } catch (err) {
       const errorMessage = 'Failed to retry failed items';
       console.error('Error retrying failed items:', err);
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
+    } finally {
+      setRetrying(false);
+    }
+  };
+
+  const handleRetryQueueItem = async (queueId: string) => {
+    if (!queueId) {
+      console.error('No queueId provided');
+      return;
+    }
+
+    try {
+      setRetrying(true);
+      const token = getToken();
+      if (!token) {
+        console.error('No auth token found');
+        setError('Authentication token not found');
+        showToast('Authentication failed. Please try logging in again.', 'error');
+        return;
+      }
+
+      await retryCallQueueItem(token, queueId);
+      showToast('Call queue item retry initiated successfully', 'success');
+      // Refresh the data
+      fetchData();
+    } catch (err) {
+      const errorMessage = 'Failed to retry call queue item';
+      console.error('Error retrying call queue item:', err);
       setError(errorMessage);
       showToast(errorMessage, 'error');
     } finally {
@@ -248,27 +278,43 @@ export function CallQueues() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        queue.status === 'sent' ? 'bg-green-100 text-green-800' :
-                        queue.status === 'completed' ? 'bg-green-100 text-green-800' :
                         queue.status === 'failed' ? 'bg-red-100 text-red-800' :
-                        queue.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                        queue.status === 'sent' ? 'bg-green-100 text-green-800' :
+                        queue.status === 'processing' ? 'bg-yellow-100 text-yellow-800' :
                         'bg-gray-100 text-gray-800'
                       }`}>
                         {queue.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{queue.retry_count}/{queue.max_retries}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {queue.retry_count} / {queue.max_retries}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {queue.processed_at ? formatDateTime(queue.processed_at) : 'Not processed'}
                     </td>
-                    <td className="px-6 py-4 text-sm text-red-500 max-w-md break-words">{queue.error_message || '-'}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <button
-                        onClick={() => setSelectedCallQueue(queue)}
-                        className="text-indigo-600 hover:text-indigo-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 rounded-md"
-                      >
-                        <Eye className="h-5 w-5" />
-                      </button>
+                      {queue.error_message || '-'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => setSelectedCallQueue(queue)}
+                          className="text-indigo-600 hover:text-indigo-900"
+                          title="View details"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </button>
+                        {queue.status === 'failed' && (
+                          <button
+                            onClick={() => handleRetryQueueItem(queue.id)}
+                            disabled={retrying}
+                            className="text-indigo-600 hover:text-indigo-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Retry call"
+                          >
+                            <RefreshCw className={`h-4 w-4 ${retrying ? 'animate-spin' : ''}`} />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
