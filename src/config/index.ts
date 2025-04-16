@@ -67,6 +67,7 @@ export const apiEndpoints = {
   calls: {
     details: (callId: string) => `${config.apiUrl}/api/calls/${callId}`,
     webhook: `${config.apiUrl}/api/calls/webhook`,
+    retry: (queueId: string) => `${config.apiUrl}/api/call-queues/${queueId}/retry`,
   },
   campaigns: {
     run: (campaignId: string) => `${config.apiUrl}/api/campaigns/${campaignId}/run`,
