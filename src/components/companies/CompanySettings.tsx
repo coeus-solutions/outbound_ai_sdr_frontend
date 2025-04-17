@@ -187,7 +187,7 @@ interface InviteResponse {
 
 declare module '../../services/companies' {
   interface Company {
-    custom_calendar_url?: string;
+    custom_calendar_link?: string;
     voice_agent_settings?: VoiceAgentSettings;
   }
 }
@@ -252,6 +252,11 @@ export function CompanySettings() {
 
           const companyData = await getCompanyById(token, companyId);
           setCompany(companyData);
+
+          // Set custom calendar URL if it exists
+          if (companyData.custom_calendar_link) {
+            setCustomCalendarUrl(companyData.custom_calendar_link);
+          }
 
           // Set voice agent settings if they exist
           if (companyData.voice_agent_settings) {
@@ -881,7 +886,7 @@ export function CompanySettings() {
                         </h3>
                         <p className="text-sm text-gray-500">
                           {company?.cronofy_provider === 'custom' 
-                            ? `Custom URL: ${company?.custom_calendar_url}`
+                            ? `Custom URL: ${company?.custom_calendar_link}`
                             : `Connected as ${company?.cronofy_linked_email}`
                           }
                         </p>
