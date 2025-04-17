@@ -82,7 +82,7 @@ export function HeroSection() {
             Turn Cold Outreach Into Warm Conversations
           </h1>
           <p className="text-lg text-gray-100 mb-6">
-            ReachGenie is an AI-powered sales development platform that creates authentic, personalized conversations with prospects through email and voice channels. Generate more meetings with less effort while maintaining the human touch that converts.
+            ReachGenie is an AI-powered sales development platform that creates authentic, personalized conversations through email and voice channels. It automates sales development, accelerates conversions, and maximizes revenue growth.
           </p>
 
           {/* Outreach Channels */}
