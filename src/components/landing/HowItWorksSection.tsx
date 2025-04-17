@@ -6,21 +6,21 @@ const steps = [
   {
     icon: PersonalizeIcon,
     title: 'Creating Authentic Conversations',
-    description: 'ReachGenie doesn\'t just send messages - it builds meaningful two-way conversations with prospects through intelligent, contextual engagement.',
+    description: 'ReachGenie\'s AI agent for emails enables intelligent, personalized engagement that leads to impactful two-way conversations with prospects.',
     color: 'bg-gray-800',
     iconColor: 'text-blue-400'
   },
   {
     icon: EnrichIcon,
     title: 'Deep Personalization',
-    description: 'Our AI researches each company and contact to identify specific pain points, creating outreach that speaks directly to each prospect\'s unique situation.',
+    description: 'Our AI analyzes each company and contact to uncover specific pain points, crafting outreach that addresses each prospect\'s unique needs.',
     color: 'bg-gray-800',
     iconColor: 'text-green-400'
   },
   {
     icon: CampaignIcon,
     title: 'Multi-Channel Coordination',
-    description: 'Seamlessly mix email and voice outreach with unified context across channels, ensuring a cohesive prospect experience that feels natural and human.',
+    description: 'It seamlessly integrates email and voice with unified context across channels, delivering a cohesive, human-like experience for every prospect.',
     color: 'bg-gray-800',
     iconColor: 'text-purple-400'
   },

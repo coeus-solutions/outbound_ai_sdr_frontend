@@ -5,12 +5,12 @@ const features = [
   {
     icon: Mail,
     title: 'AI-Powered Email Personalization',
-    description: 'Generate highly personalized emails that speak directly to each prospect\'s situation, with AI that researches companies and identifies specific pain points.'
+    description: 'Its AI email agents analyze each lead, identify their unique pain points, and generate highly personalized emails that address each prospect\'s specific needs.'
   },
   {
     icon: MessageSquare,
-    title: 'Conversational Email AI',
-    description: 'Maintain natural conversation threads with prospects through AI that responds to replies intelligently, handles objections, and keeps conversations going.'
+    title: 'AI-Powered Conversational Emails',
+    description: 'It serves as an email automation tool that engages prospects, sends replies, and addresses objections, keeping the conversation smooth and engaging.'
   },
   {
     icon: Phone,
