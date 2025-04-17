@@ -512,17 +512,21 @@ export function CompanySettings() {
         return;
       }
 
-      // Here you would typically make an API call to save the custom calendar URL
-      // For now, we'll just simulate a successful save
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Update the company state to reflect the custom calendar connection
-      setCompany(prev => prev ? {
-        ...prev,
-        custom_calendar_url: customCalendarUrl,
-        cronofy_provider: 'custom'
-      } : null);
-      
+      const response = await fetch(apiEndpoints.companies.customCalendar(companyId), {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ custom_calendar_link: customCalendarUrl }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save custom calendar');
+      }
+
+      const updatedCompany = await response.json();
+      setCompany(updatedCompany);
       setShowCustomCalendarModal(false);
       showToast('Custom calendar added successfully', 'success');
     } catch (error) {
