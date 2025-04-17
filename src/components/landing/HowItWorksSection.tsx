@@ -85,7 +85,7 @@ export function HowItWorksSection() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="text-xl text-gray-300"
           >
-            Scale human-quality outreach without sacrificing the personal touch
+            ReachGenie is a complete AI-powered platform that autonomously manages sales development with human-like precision.
           </motion.p>
         </div>
 
