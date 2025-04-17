@@ -187,7 +187,7 @@ interface InviteResponse {
 
 declare module '../../services/companies' {
   interface Company {
-    custom_calendar_url?: string;
+    custom_calendar_link?: string;
     voice_agent_settings?: VoiceAgentSettings;
   }
 }
@@ -252,6 +252,11 @@ export function CompanySettings() {
 
           const companyData = await getCompanyById(token, companyId);
           setCompany(companyData);
+
+          // Set custom calendar URL if it exists
+          if (companyData.custom_calendar_link) {
+            setCustomCalendarUrl(companyData.custom_calendar_link);
+          }
 
           // Set voice agent settings if they exist
           if (companyData.voice_agent_settings) {
@@ -512,17 +517,21 @@ export function CompanySettings() {
         return;
       }
 
-      // Here you would typically make an API call to save the custom calendar URL
-      // For now, we'll just simulate a successful save
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Update the company state to reflect the custom calendar connection
-      setCompany(prev => prev ? {
-        ...prev,
-        custom_calendar_url: customCalendarUrl,
-        cronofy_provider: 'custom'
-      } : null);
-      
+      const response = await fetch(apiEndpoints.companies.customCalendar(companyId), {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ custom_calendar_link: customCalendarUrl }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save custom calendar');
+      }
+
+      const updatedCompany = await response.json();
+      setCompany(updatedCompany);
       setShowCustomCalendarModal(false);
       showToast('Custom calendar added successfully', 'success');
     } catch (error) {
@@ -877,7 +886,7 @@ export function CompanySettings() {
                         </h3>
                         <p className="text-sm text-gray-500">
                           {company?.cronofy_provider === 'custom' 
-                            ? `Custom URL: ${company?.custom_calendar_url}`
+                            ? `Custom URL: ${company?.custom_calendar_link}`
                             : `Connected as ${company?.cronofy_linked_email}`
                           }
                         </p>
