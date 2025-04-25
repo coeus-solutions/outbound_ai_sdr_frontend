@@ -380,11 +380,20 @@ export function CompanyCampaigns() {
                 setOpenMenuId(null);
                 setMenuPosition(null);
                 const campaign = campaigns.find(c => c.id === openMenuId);
-                if (campaign) handleRunCampaign(campaign);
+                if (campaign && !campaign.scheduled_at) handleRunCampaign(campaign);
               }}
-              className="group flex items-center px-4 py-2 text-xs text-gray-700 hover:bg-indigo-50 hover:text-indigo-900 w-full text-left"
+              disabled={!!campaigns.find(c => c.id === openMenuId)?.scheduled_at}
+              className={`group flex items-center px-4 py-2 text-xs w-full text-left ${
+                campaigns.find(c => c.id === openMenuId)?.scheduled_at
+                  ? 'text-gray-400 cursor-not-allowed'
+                  : 'text-gray-700 hover:bg-indigo-50 hover:text-indigo-900'
+              }`}
             >
-              <Play className="h-4 w-4 mr-3 text-gray-400 group-hover:text-indigo-500" />
+              <Play className={`h-4 w-4 mr-3 ${
+                campaigns.find(c => c.id === openMenuId)?.scheduled_at
+                  ? 'text-gray-300'
+                  : 'text-gray-400 group-hover:text-indigo-500'
+              }`} />
               Run Campaign
             </button>
             <button
