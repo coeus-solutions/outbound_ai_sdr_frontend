@@ -26,6 +26,7 @@ export interface CampaignCreate {
   auto_reply_enabled?: boolean;
   call_trigger?: 'after_email_sent' | 'when_opened';
   stop_on_any_reply?: boolean;
+  scheduled_at?: string;
 }
 
 export interface RunCampaignResponse {

@@ -5,8 +5,10 @@ import { useToast } from '../../context/ToastContext';
 import { getCompanyById, Company } from '../../services/companies';
 import { createCampaign, CampaignCreate } from '../../services/emailCampaigns';
 import { getCompanyProducts, ProductInDB } from '../../services/products';
-import { Mail, MessageSquare, Package, FileText, ChevronDown, Calendar, Eye, Phone } from 'lucide-react';
+import { Mail, MessageSquare, Package, FileText, ChevronDown, Calendar, Eye, Phone, Clock } from 'lucide-react';
 import { PageHeader } from '../shared/PageHeader';
+import DatePicker from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
 
 export function AddEmailCampaign() {
   const { companyId } = useParams();
@@ -33,7 +35,8 @@ export function AddEmailCampaign() {
     phone_number_of_reminders: 0,
     phone_days_between_reminders: 0,
     auto_reply_enabled: false,
-    call_trigger: 'after_email_sent' as 'after_email_sent' | 'when_opened'
+    call_trigger: 'after_email_sent' as 'after_email_sent' | 'when_opened',
+    scheduled_at: null as Date | null
   });
 
   // Add state for active tab
@@ -328,6 +331,8 @@ export function AddEmailCampaign() {
         days_between_reminders: formData.type === 'call' ? undefined : formData.email_days_between_reminders,
         // Map call_trigger to trigger_call_on for the API
         trigger_call_on: formData.type === 'both' ? (formData.call_trigger === 'when_opened' ? 'after_email_open' : 'after_email_sent') : undefined,
+        // Convert scheduled_at to ISO string if set
+        scheduled_at: formData.scheduled_at ? formData.scheduled_at.toISOString() : undefined
       };
 
       await createCampaign(token, companyId!, campaignData);
@@ -345,6 +350,14 @@ export function AddEmailCampaign() {
     setFormData(prev => ({
       ...prev,
       [e.target.name]: e.target.value
+    }));
+  };
+
+  // Add this after the handleChange function
+  const handleScheduledAtChange = (date: Date | null) => {
+    setFormData(prev => ({
+      ...prev,
+      scheduled_at: date
     }));
   };
 
@@ -457,6 +470,38 @@ export function AddEmailCampaign() {
     );
   };
 
+  // Update the renderScheduledAtField function
+  const renderScheduledAtField = () => {
+    return (
+      <div>
+        <label htmlFor="scheduled_at" className="block text-sm font-medium text-gray-700 mb-1">
+          Schedule Campaign to auto run on:
+        </label>
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+            <Calendar className="h-5 w-5 text-gray-400" />
+          </div>
+          <DatePicker
+            id="scheduled_at"
+            selected={formData.scheduled_at}
+            onChange={handleScheduledAtChange}
+            showTimeSelect
+            timeFormat="HH:mm"
+            timeIntervals={15}
+            dateFormat="MMMM d, yyyy h:mm aa"
+            placeholderText="Select date and time"
+            className="form-input !pl-10"
+            minDate={new Date()}
+            isClearable
+          />
+        </div>
+        <p className="mt-1 text-xs text-gray-500">
+          Choose when to automatically run this campaign. Leave empty to run manually.
+        </p>
+      </div>
+    );
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -527,6 +572,9 @@ export function AddEmailCampaign() {
               />
             </div>
           </div>
+
+          {/* Add the scheduled_at field here */}
+          {renderScheduledAtField()}
 
           <div>
             <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-1">
