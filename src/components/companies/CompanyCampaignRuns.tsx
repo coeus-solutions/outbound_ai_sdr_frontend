@@ -161,6 +161,15 @@ export function CompanyCampaignRuns() {
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(run.status)}`}>
                         {run.status}
                       </span>
+                      {run.status.toLowerCase() === 'failed' && run.failure_reason && (
+                        <div className="relative group">
+                          <Info className="h-4 w-4 text-red-500 cursor-help" />
+                          <div className="absolute z-[9999] invisible group-hover:visible bg-gray-900 text-white text-xs rounded py-2 px-3 left-1/2 bottom-full mb-2 min-w-[24rem] -translate-x-1/2 whitespace-normal">
+                            <p className="text-center">{run.failure_reason}</p>
+                            <div className="absolute left-1/2 bottom-[-6px] w-3 h-3 bg-gray-900 transform rotate-45 -translate-x-1/2"></div>
+                          </div>
+                        </div>
+                      )}
                       {run.has_failed_items && (
                         <div className="relative group">
                           <Info className="h-4 w-4 text-red-500 cursor-help" />
