@@ -331,8 +331,17 @@ export function AddEmailCampaign() {
         days_between_reminders: formData.type === 'call' ? undefined : formData.email_days_between_reminders,
         // Map call_trigger to trigger_call_on for the API
         trigger_call_on: formData.type === 'both' ? (formData.call_trigger === 'when_opened' ? 'after_email_open' : 'after_email_sent') : undefined,
-        // Convert scheduled_at to ISO string if set
-        scheduled_at: formData.scheduled_at ? formData.scheduled_at.toISOString() : undefined
+        // Convert scheduled_at to UTC ISO string while preserving the user's selected time
+        scheduled_at: formData.scheduled_at ? new Date(
+          Date.UTC(
+            formData.scheduled_at.getFullYear(),
+            formData.scheduled_at.getMonth(),
+            formData.scheduled_at.getDate(),
+            formData.scheduled_at.getHours(),
+            formData.scheduled_at.getMinutes(),
+            0  // seconds
+          )
+        ).toISOString() : undefined
       };
 
       await createCampaign(token, companyId!, campaignData);
