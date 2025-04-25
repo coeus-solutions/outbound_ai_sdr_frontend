@@ -9,6 +9,7 @@ export interface Campaign {
   company_id: string;
   created_at: string;
   template?: string;
+  scheduled_at?: string;
 }
 
 interface CampaignsResponse {

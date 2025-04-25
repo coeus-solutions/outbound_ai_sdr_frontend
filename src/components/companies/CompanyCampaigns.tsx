@@ -164,6 +164,35 @@ export function CompanyCampaigns() {
     }
   };
 
+  const getScheduledAtLabel = (scheduledAt: string | undefined) => {
+    if (!scheduledAt) return null;
+    const date = new Date(scheduledAt);
+    // Get current time in UTC
+    const now = new Date();
+    const nowUTC = new Date(Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate(),
+      now.getUTCHours(),
+      now.getUTCMinutes(),
+      now.getUTCSeconds()
+    ));
+    
+    // Format UTC time in the requested format
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const utcMonth = months[date.getUTCMonth()];
+    const utcDay = date.getUTCDate();
+    const utcYear = date.getUTCFullYear();
+    const utcHours = date.getUTCHours();
+    const utcMinutes = String(date.getUTCMinutes()).padStart(2, '0');
+    const period = utcHours >= 12 ? 'PM' : 'AM';
+    const hours12 = utcHours % 12 || 12;
+    
+    const utcString = `${utcMonth} ${utcDay}, ${utcYear}, ${hours12}:${utcMinutes} ${period} (UTC)`;
+    
+    return <span className={date < nowUTC ? "text-gray-500" : "text-emerald-600"}>{utcString}</span>;
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -242,6 +271,7 @@ export function CompanyCampaigns() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Campaign</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Auto Run on</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
@@ -285,6 +315,11 @@ export function CompanyCampaigns() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
                         {formatDateTime(campaign.created_at)}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm">
+                        {getScheduledAtLabel(campaign.scheduled_at)}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
