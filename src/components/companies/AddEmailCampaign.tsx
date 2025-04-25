@@ -498,15 +498,20 @@ export function AddEmailCampaign() {
             timeFormat="HH:mm"
             timeIntervals={15}
             dateFormat="MMMM d, yyyy h:mm aa"
-            placeholderText="Select date and time"
+            placeholderText="Select date and time (UTC)"
             className="form-input !pl-10"
             minDate={new Date()}
             isClearable
           />
         </div>
-        <p className="mt-1 text-xs text-gray-500">
-          Choose when to automatically run this campaign. Leave empty to run manually.
-        </p>
+        <div className="mt-1 space-y-1">
+          <p className="text-xs text-gray-500">
+            Choose when to automatically run this campaign. Leave empty to run manually.
+          </p>
+          <p className="text-xs font-medium text-amber-600">
+            Note: The time you select will be treated as UTC time. For example, selecting 2:00 PM means the campaign will run at 2:00 PM UTC.
+          </p>
+        </div>
       </div>
     );
   };
