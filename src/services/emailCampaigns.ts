@@ -9,6 +9,7 @@ export interface Campaign {
   company_id: string;
   created_at: string;
   template?: string;
+  scheduled_at?: string;
 }
 
 interface CampaignsResponse {
@@ -26,6 +27,7 @@ export interface CampaignCreate {
   auto_reply_enabled?: boolean;
   call_trigger?: 'after_email_sent' | 'when_opened';
   stop_on_any_reply?: boolean;
+  scheduled_at?: string;
 }
 
 export interface RunCampaignResponse {
@@ -43,6 +45,7 @@ export interface CampaignRun {
   leads_total: number;
   leads_processed: number;
   has_failed_items: boolean;
+  failure_reason?: string;
   campaigns: {
     id: string;
     name: string;
