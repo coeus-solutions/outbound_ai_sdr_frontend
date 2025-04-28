@@ -40,7 +40,8 @@ export async function getCompanyEmails(
   leadId?: string,
   campaignRunId?: string,
   page: number = 1,
-  pageSize: number = 10
+  pageSize: number = 10,
+  status?: 'opened' | 'replied' | 'meeting_booked'
 ): Promise<PaginatedEmailLogResponse> {
   const url = new URL(`${apiEndpoints.companies.emails.list(companyId)}`);
   
@@ -54,6 +55,10 @@ export async function getCompanyEmails(
   
   if (campaignRunId) {
     url.searchParams.append('campaign_run_id', campaignRunId);
+  }
+
+  if (status) {
+    url.searchParams.append('status', status);
   }
   
   url.searchParams.append('page_number', page.toString());

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Filter, Search } from 'lucide-react';
+import { Filter, Search, MessageSquare } from 'lucide-react';
 import { getCompanyCampaigns, Campaign } from '../../services/emailCampaigns';
 import { getToken } from '../../utils/auth';
 import type { EmailLogFilters } from '../../hooks/useEmailLogs';
@@ -110,6 +110,20 @@ export function EmailLogFilters({ filters, onFilterChange, companyId }: EmailLog
               {campaign.name}
             </option>
           ))}
+        </select>
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <MessageSquare className="h-5 w-5 text-gray-400" />
+        <select
+          value={filters.status || ''}
+          onChange={(e) => onFilterChange({ ...filters, status: (e.target.value || undefined) as any })}
+          className="block min-w-[150px] pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+        >
+          <option value="">All</option>
+          <option value="opened">Opened</option>
+          <option value="replied">Replied</option>
+          <option value="meeting_booked">Meeting Booked</option>
         </select>
       </div>
 

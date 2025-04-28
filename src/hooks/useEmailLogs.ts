@@ -6,6 +6,7 @@ import { useToast } from '../context/ToastContext';
 export interface EmailLogFilters {
   campaign_id?: string;
   lead_id?: string;
+  status?: 'opened' | 'replied' | 'meeting_booked';
 }
 
 interface UseEmailLogsProps {
@@ -70,7 +71,8 @@ export function useEmailLogs({ companyId, campaignRunId }: UseEmailLogsProps): U
         filters.lead_id,
         campaignRunId,
         page,
-        pageSize
+        pageSize,
+        filters.status
       );
 
       setEmailLogs(response.items);
@@ -126,4 +128,4 @@ export function useEmailLogs({ companyId, campaignRunId }: UseEmailLogsProps): U
     setFilters,
     refetch: fetchEmailLogs,
   };
-} 
+}
