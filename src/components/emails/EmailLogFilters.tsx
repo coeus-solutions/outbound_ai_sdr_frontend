@@ -12,9 +12,10 @@ interface EmailLogFiltersProps {
   filters: EmailLogFilters;
   onFilterChange: (filters: EmailLogFilters) => void;
   companyId: string;
+  setPage: (page: number) => void;
 }
 
-export function EmailLogFilters({ filters, onFilterChange, companyId }: EmailLogFiltersProps) {
+export function EmailLogFilters({ filters, onFilterChange, companyId, setPage }: EmailLogFiltersProps) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [isLoadingCampaigns, setIsLoadingCampaigns] = useState(true);
@@ -94,13 +95,23 @@ export function EmailLogFilters({ filters, onFilterChange, companyId }: EmailLog
     }
   };
 
+  const handleCampaignChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setPage(1); // Reset page to 1
+    onFilterChange({ ...filters, campaign_id: e.target.value || undefined });
+  };
+
+  const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setPage(1); // Reset page to 1
+    onFilterChange({ ...filters, status: (e.target.value || undefined) as any });
+  };
+
   return (
     <div className="bg-white p-4 rounded-lg shadow-sm flex items-center space-x-4">
       <div className="flex items-center space-x-2">
         <Filter className="h-5 w-5 text-gray-400" />
         <select
           value={filters.campaign_id || ''}
-          onChange={(e) => onFilterChange({ ...filters, campaign_id: e.target.value || undefined })}
+          onChange={handleCampaignChange}
           className="block min-w-[250px] pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           disabled={isLoadingCampaigns}
         >
@@ -117,7 +128,7 @@ export function EmailLogFilters({ filters, onFilterChange, companyId }: EmailLog
         <MessageSquare className="h-5 w-5 text-gray-400" />
         <select
           value={filters.status || ''}
-          onChange={(e) => onFilterChange({ ...filters, status: (e.target.value || undefined) as any })}
+          onChange={handleStatusChange}
           className="block min-w-[150px] pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
         >
           <option value="">All</option>

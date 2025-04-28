@@ -92,6 +92,7 @@ export function CompanyEmails() {
         filters={filters} 
         onFilterChange={setFilters} 
         companyId={companyId || ''} 
+        setPage={setPage}
       />
       
       <EmailLogList
