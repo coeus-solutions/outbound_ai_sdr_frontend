@@ -13,6 +13,7 @@ import { apiEndpoints } from '../../config';
 import { v4 as uuidv4 } from 'uuid';
 import { CompanyUsers } from './CompanyUsers';
 import { useUserRole } from '../../hooks/useUserRole';
+import { VoiceAgentSettings } from '../../types';
 
 function getOAuthUrl(providerName: string, companyId: string): string {
   const redirectUri = `${window.location.origin}/cronofy-auth`;
@@ -158,17 +159,6 @@ const languageOptions: LanguageOption[] = [
   { id: 'sk', label: 'Slovak' }
 ];
 
-interface VoiceAgentSettings {
-  voice: string;
-  background_track: string;
-  temperature?: number;
-  language: string;
-  prompt: string;
-  call_from_number: string;
-  transfer_phone_number: string;
-  agent_name: string;
-}
-
 interface InviteUserRow {
   id: string;
   name: string;
@@ -183,13 +173,6 @@ interface InviteResponse {
     status: string;
     message: string;
   }>;
-}
-
-declare module '../../services/companies' {
-  interface Company {
-    custom_calendar_link?: string;
-    voice_agent_settings?: VoiceAgentSettings;
-  }
 }
 
 export function CompanySettings() {
@@ -221,6 +204,7 @@ export function CompanySettings() {
   const [callFromNumber, setCallFromNumber] = useState<string>('');
   const [transferNumber, setTransferNumber] = useState<string>('');
   const [isSavingVoiceSettings, setIsSavingVoiceSettings] = useState(false);
+  const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
   const [inviteUsers, setInviteUsers] = useState<InviteUserRow[]>([
     { id: '1', name: '', email: '', role: 'SDR' }
   ]);
@@ -307,6 +291,25 @@ export function CompanySettings() {
         return;
       }
 
+      // First check if the account is a duplicate
+      const checkDuplicateResponse = await fetch(apiEndpoints.companies.checkDuplicateAccount(companyId, credentials.account_email), {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!checkDuplicateResponse.ok) {
+        throw new Error('Failed to check for duplicate account');
+      }
+
+      const { exists } = await checkDuplicateResponse.json();
+
+      if (exists) {
+        setShowDuplicateWarning(true);
+        return;
+      }
+
       await updateAccountCredentials(token, companyId, {
         ...credentials,
         type: selectedEmailProvider,
@@ -318,6 +321,32 @@ export function CompanySettings() {
       showToast('Failed to save email settings, please check your credentials and try again', 'error');
     } finally {
       setIsSavingCredentials(false);
+    }
+  };
+
+  const handleConfirmDuplicateAccount = async () => {
+    if (!companyId) return;
+
+    setIsSavingCredentials(true);
+    try {
+      const token = getToken();
+      if (!token) {
+        showToast('Authentication failed. Please try logging in again.', 'error');
+        return;
+      }
+
+      await updateAccountCredentials(token, companyId, {
+        ...credentials,
+        type: selectedEmailProvider,
+      });
+
+      showToast('Email settings saved successfully', 'success');
+    } catch (error) {
+      console.error('Error saving credentials:', error);
+      showToast('Failed to save email settings, please check your credentials and try again', 'error');
+    } finally {
+      setIsSavingCredentials(false);
+      setShowDuplicateWarning(false);
     }
   };
 
@@ -1613,6 +1642,41 @@ export function CompanySettings() {
                 </>
               ) : (
                 'Disconnect'
+              )}
+            </button>
+          </div>
+        </div>
+      </Dialog>
+
+      <Dialog
+        isOpen={showDuplicateWarning}
+        onClose={() => setShowDuplicateWarning(false)}
+        title="Warning: Duplicate Email Account"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-gray-500">
+            Account email is already used in your another company, using it here may cause the sending threshold limit to exceed resulting in suspending the account. 
+            Are you sure you want to continue?
+          </p>
+          <div className="flex justify-end space-x-3">
+            <button
+              onClick={() => setShowDuplicateWarning(false)}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleConfirmDuplicateAccount}
+              disabled={isSavingCredentials}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSavingCredentials ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Saving...
+                </>
+              ) : (
+                'Continue Anyway'
               )}
             </button>
           </div>

@@ -20,6 +20,7 @@ export interface Company {
   total_leads: number;
   products: Product[];
   voice_agent_settings?: VoiceAgentSettings;
+  custom_calendar_link?: string;
 }
 
 export interface CompanyCreate {

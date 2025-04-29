@@ -56,6 +56,7 @@ export const apiEndpoints = {
       list: (companyId: string) => `${config.apiUrl}/api/companies/${companyId}/campaign-runs`,
     },
     accountCredentials: (companyId: string) => `${config.apiUrl}/api/companies/${companyId}/account-credentials`,
+    checkDuplicateAccount: (companyId: string, accountEmail: string) => `${config.apiUrl}/api/companies/${companyId}/accounts/${accountEmail}/check-duplicate`,
     voiceAgentSettings: (companyId: string) => `${config.apiUrl}/api/companies/${companyId}/voice_agent_settings`,
     invite: (companyId: string) => `${config.apiUrl}/api/companies/${companyId}/invite`,
     users: (companyId: string) => `${config.apiUrl}/api/companies/${companyId}/users`,
