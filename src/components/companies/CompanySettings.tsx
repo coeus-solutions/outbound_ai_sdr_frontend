@@ -1655,7 +1655,8 @@ export function CompanySettings() {
       >
         <div className="space-y-4">
           <p className="text-sm text-gray-500">
-            Account email is already used in your another company, using it here may cause the sending threshold limit to exceed resulting in suspending the account. 
+            Account email is already used in one of your companies, using it here may cause the sending threshold limit to exceed resulting in suspending the account.
+            <br /><br />
             Are you sure you want to continue?
           </p>
           <div className="flex justify-end space-x-3">
