@@ -127,9 +127,8 @@ export function CompanyCampaigns() {
       showToast(`Campaign "${campaign.name}" started successfully!`, 'success');
       navigate(`/companies/${companyId}/campaign-runs`);
     } catch (err: unknown) {
-      console.log('API Error:', err);  // Temporary log to debug
       const error = err as APIError;
-      if (error?.response?.status === 400 && error?.response?.data?.detail) {
+      if (error?.response?.data?.detail) {
         showToast(error.response.data.detail, 'error');
       } else {
         showToast('Failed to run campaign', 'error');
