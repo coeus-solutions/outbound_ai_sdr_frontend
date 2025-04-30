@@ -6,7 +6,7 @@ import { useToast } from '../../context/ToastContext';
 import { getToken } from '../../utils/auth';
 import { getProducts, Product } from '../../services/products';
 import { Lead } from '../../services/companies';
-import { LeadDetail, getLeadDetails, deleteLeads } from '../../services/leads';
+import { LeadDetail, getLeadDetails, deleteLead } from '../../services/leads';
 import { startCall } from '../../services/calls';
 import { CallDialog } from './CallDialog';
 import { LeadDetailsPanel } from './LeadDetailsPanel';
@@ -157,7 +157,7 @@ export function LeadTable({
 
       for (let i = 0; i < selectedLeadsArray.length; i++) {
         try {
-          await deleteLeads(token, companyId, [selectedLeadsArray[i]]);
+          await deleteLead(token, companyId, selectedLeadsArray[i]);
           successCount++;
         } catch (error) {
           failureCount++;
