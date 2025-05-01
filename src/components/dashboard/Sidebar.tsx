@@ -163,10 +163,19 @@ export function Sidebar({ isCollapsed, onToggle, onLogout }: SidebarProps) {
               {planType && (
                 <div className="mb-3 px-4 py-2 bg-indigo-50/50 dark:bg-indigo-900/20 rounded-lg">
                   <div className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">Current Plan</div>
-                  <div className="text-sm font-medium text-indigo-600 dark:text-indigo-400 capitalize">
-                    {planType}
-                    {upgradeMessage && (
-                      <span className="text-red-500 dark:text-red-400 ml-1">(Expired)</span>
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm font-medium text-indigo-600 dark:text-indigo-400 capitalize">
+                      {planType}
+                      {upgradeMessage && (
+                        <span className="text-red-500 dark:text-red-400 ml-1">(Expired)</span>
+                      )}
+                    </div>
+                    {planType?.toLowerCase() === 'trial' && (
+                      <button
+                        className="px-3 py-1 text-xs font-semibold text-white bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full shadow-sm hover:from-indigo-600 hover:to-purple-600 transition-all duration-200 hover:shadow-md hover:scale-105 transform"
+                      >
+                        Upgrade
+                      </button>
                     )}
                   </div>
                 </div>
