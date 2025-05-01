@@ -165,6 +165,9 @@ export function Sidebar({ isCollapsed, onToggle, onLogout }: SidebarProps) {
                   <div className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">Current Plan</div>
                   <div className="text-sm font-medium text-indigo-600 dark:text-indigo-400 capitalize">
                     {planType}
+                    {upgradeMessage && (
+                      <span className="text-red-500 dark:text-red-400 ml-1">(Expired)</span>
+                    )}
                   </div>
                 </div>
               )}
