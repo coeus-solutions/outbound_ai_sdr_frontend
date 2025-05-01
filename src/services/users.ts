@@ -11,6 +11,7 @@ export interface User {
   email: string;
   name: string;
   plan_type?: string;
+  upgrade_message?: string;
 }
 
 export async function getUser(token: string): Promise<User> {
