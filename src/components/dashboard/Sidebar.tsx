@@ -19,6 +19,7 @@ export function Sidebar({ isCollapsed, onToggle, onLogout }: SidebarProps) {
   const location = useLocation();
   const [userName, setUserName] = React.useState<string>('');
   const [userEmail, setUserEmail] = React.useState<string>('');
+  const [planType, setPlanType] = React.useState<string>('');
   const { isDark, toggleTheme } = useTheme();
   
   React.useEffect(() => {
@@ -30,6 +31,7 @@ export function Sidebar({ isCollapsed, onToggle, onLogout }: SidebarProps) {
           console.log('Fetched user data:', userData);
           setUserName(userData.name || '');
           setUserEmail(userData.email || '');
+          setPlanType(userData.plan_type || '');
         }
       } catch (error) {
         console.error('Failed to fetch user data:', error);
@@ -150,6 +152,14 @@ export function Sidebar({ isCollapsed, onToggle, onLogout }: SidebarProps) {
       <div className="p-4 border-t dark:border-gray-800">
         {!isCollapsed && (
           <>
+            {planType && (
+              <div className="mb-3 px-4 py-2 bg-indigo-50/50 dark:bg-indigo-900/20 rounded-lg">
+                <div className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">Current Plan</div>
+                <div className="text-sm font-medium text-indigo-600 dark:text-indigo-400 capitalize">
+                  {planType}
+                </div>
+              </div>
+            )}
             {(userName || userEmail) && (
               <div className="px-4 py-2">
                 {userName && (
