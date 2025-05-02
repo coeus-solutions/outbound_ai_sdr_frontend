@@ -28,6 +28,7 @@ import { InviteSignup } from './components/auth/InviteSignup';
 import { CompanyCampaignRuns } from './components/companies/CompanyCampaignRuns';
 import { EmailQueues } from './components/campaigns/EmailQueues';
 import { CallQueues } from './components/campaigns/CallQueues';
+import { SubscriptionSuccess } from './components/subscription/SubscriptionSuccess';
 
 // Import competitor pages
 import { JasonAIPage } from './components/competitors/JasonAIPage';
@@ -53,22 +54,34 @@ export function App() {
   };
 
   useEffect(() => {
+    // Define public routes that don't require authentication
+    const publicRoutes = [
+      '/',
+      '/cognism',
+      '/saas-group',
+      '/partners',
+      '/subscription/success'  // Added subscription success as a public route
+    ];
+    
+    const startsWithPublicPaths = [
+      '/login',
+      '/signup',
+      '/forgot-password',
+      '/reset-password',
+      '/verify-account',
+      '/invite',
+      '/compare/',
+      '/subscription/success'
+    ];
+
+    const isPublicRoute = publicRoutes.includes(location.pathname) ||
+      startsWithPublicPaths.some(path => location.pathname.startsWith(path));
+
     // Only redirect to login if not on public routes
-    if (!isAuthenticated && 
-        location.pathname !== '/' && 
-        location.pathname !== '/cognism' && 
-        location.pathname !== '/saas-group' && 
-        location.pathname !== '/partners' && 
-        !location.pathname.startsWith('/login') && 
-        !location.pathname.startsWith('/signup') && 
-        !location.pathname.startsWith('/forgot-password') && 
-        !location.pathname.startsWith('/reset-password') && 
-        !location.pathname.startsWith('/verify-account') &&
-        !location.pathname.startsWith('/invite') &&
-        !location.pathname.startsWith('/compare/')) {
+    if (!isAuthenticated && !isPublicRoute) {
       navigate('/login');
     } 
-    // Only redirect to companies if on auth routes
+    // Only redirect to companies if on auth routes and user is authenticated
     else if (isAuthenticated && 
             (location.pathname === '/login' || 
              location.pathname === '/signup' || 
@@ -97,6 +110,9 @@ export function App() {
         <Route path="/compare/meetchase-ai-sdr" element={<MeetChaseAISDRPage />} />
         <Route path="/compare/gem-e-by-usergems" element={<GemEByUserGemsPage />} />
         <Route path="/compare/artisan-ai" element={<ArtisanAIPage />} />
+        
+        {/* Public route that should be available in both authenticated and unauthenticated states */}
+        <Route path="/subscription/success" element={<SubscriptionSuccess />} />
         
         {!isAuthenticated ? (
           <>

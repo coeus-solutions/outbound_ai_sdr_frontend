@@ -28,6 +28,9 @@ export const apiEndpoints = {
     inviteToken: (token: string) => `${config.apiUrl}/api/auth/invite-token/${token}` as const,
     invitePassword: `${config.apiUrl}/api/auth/invite-password` as const,
   },
+  subscription: {
+    fulfillCheckout: (sessionId: string) => `${config.apiUrl}/api/fulfill_checkout/${sessionId}` as const,
+  },
   users: {
     me: `${config.apiUrl}/api/users/me` as const,
   },
