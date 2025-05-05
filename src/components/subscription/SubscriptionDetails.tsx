@@ -5,7 +5,7 @@ import { apiEndpoints } from '../../config';
 import { getToken } from '../../utils/auth';
 
 interface SubscriptionInfo {
-  plan_type: 'fixed' | 'performance';
+  plan_type: 'fixed' | 'performance' | 'trial';
   lead_tier: number;
   channels_active: string[];
   subscription_status: string;
@@ -41,7 +41,7 @@ export function SubscriptionDetails() {
         // Transform user data into subscription info
         if (data.plan_type || data.subscription) {
           const subscriptionData = {
-            plan_type: (data.plan_type || data.subscription?.plan_type || 'fixed') as 'fixed' | 'performance',
+            plan_type: (data.plan_type || data.subscription?.plan_type || 'fixed') as 'fixed' | 'performance' | 'trial',
             lead_tier: data.lead_tier || data.subscription?.lead_tier || 2500,
             channels_active: data.channels_active 
               ? Object.entries(data.channels_active)
@@ -115,31 +115,35 @@ export function SubscriptionDetails() {
             <p className="mt-1 text-lg">{subscriptionInfo.plan_type.charAt(0).toUpperCase() + subscriptionInfo.plan_type.slice(1)}</p>
           </div>
           
-          <div>
-            <h2 className="text-sm font-medium text-gray-500">Status</h2>
-            <p className={`mt-1 text-lg ${getStatusColor(subscriptionInfo.subscription_status)}`}>
-              {subscriptionInfo.subscription_status.charAt(0).toUpperCase() + subscriptionInfo.subscription_status.slice(1)}
-            </p>
-          </div>
+          {subscriptionInfo.plan_type !== 'trial' && (
+            <>
+              <div>
+                <h2 className="text-sm font-medium text-gray-500">Status</h2>
+                <p className={`mt-1 text-lg ${getStatusColor(subscriptionInfo.subscription_status)}`}>
+                  {subscriptionInfo.subscription_status.charAt(0).toUpperCase() + subscriptionInfo.subscription_status.slice(1)}
+                </p>
+              </div>
 
-          <div>
-            <h2 className="text-sm font-medium text-gray-500">Lead Tier</h2>
-            <p className="mt-1 text-lg">{subscriptionInfo.lead_tier.toLocaleString()} Leads</p>
-          </div>
-        </div>
+              <div>
+                <h2 className="text-sm font-medium text-gray-500">Lead Tier</h2>
+                <p className="mt-1 text-lg">{subscriptionInfo.lead_tier.toLocaleString()} Leads</p>
+              </div>
 
-        <div>
-          <h2 className="text-sm font-medium text-gray-500 mb-2">Active Channels</h2>
-          <div className="flex flex-wrap gap-2">
-            {subscriptionInfo.channels_active.map((channel) => (
-              <span
-                key={channel}
-                className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
-              >
-                {channel}
-              </span>
-            ))}
-          </div>
+              <div>
+                <h2 className="text-sm font-medium text-gray-500">Active Channels</h2>
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {subscriptionInfo.channels_active.map((channel) => (
+                    <span
+                      key={channel}
+                      className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+                    >
+                      {channel}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
