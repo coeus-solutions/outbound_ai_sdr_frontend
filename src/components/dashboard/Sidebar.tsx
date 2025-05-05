@@ -9,6 +9,7 @@ import { getUser } from '../../services/users';
 import { motion } from 'framer-motion';
 import { useTheme } from '../../hooks/useTheme';
 import { Dialog } from '../shared/Dialog';
+import UpgradeDialog from '../subscription/UpgradeDialog';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -23,6 +24,7 @@ export function Sidebar({ isCollapsed, onToggle, onLogout }: SidebarProps) {
   const [planType, setPlanType] = React.useState<string>('');
   const [upgradeMessage, setUpgradeMessage] = React.useState<string>('');
   const [showUpgradeDialog, setShowUpgradeDialog] = React.useState(false);
+  const [showUpgradeMessageDialog, setShowUpgradeMessageDialog] = React.useState(false);
   const { isDark, toggleTheme } = useTheme();
   
   React.useEffect(() => {
@@ -37,7 +39,7 @@ export function Sidebar({ isCollapsed, onToggle, onLogout }: SidebarProps) {
           setPlanType(userData.plan_type || '');
           if (userData.upgrade_message) {
             setUpgradeMessage(userData.upgrade_message);
-            setShowUpgradeDialog(true);
+            setShowUpgradeMessageDialog(true);
           }
         }
       } catch (error) {
@@ -172,6 +174,7 @@ export function Sidebar({ isCollapsed, onToggle, onLogout }: SidebarProps) {
                     </div>
                     {planType?.toLowerCase() === 'trial' && (
                       <button
+                        onClick={() => setShowUpgradeDialog(true)}
                         className="px-3 py-1 text-xs font-semibold text-white bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full shadow-sm hover:from-indigo-600 hover:to-purple-600 transition-all duration-200 hover:shadow-md hover:scale-105 transform"
                       >
                         Upgrade
@@ -237,9 +240,16 @@ export function Sidebar({ isCollapsed, onToggle, onLogout }: SidebarProps) {
         </div>
       </nav>
 
-      <Dialog
+      {/* Upgrade Dialog */}
+      <UpgradeDialog
         isOpen={showUpgradeDialog}
         onClose={() => setShowUpgradeDialog(false)}
+      />
+
+      {/* Upgrade Message Dialog */}
+      <Dialog
+        isOpen={showUpgradeMessageDialog && !!upgradeMessage}
+        onClose={() => setShowUpgradeMessageDialog(false)}
         title="Plan Upgrade Available"
       >
         <div className="p-6">
@@ -255,7 +265,7 @@ export function Sidebar({ isCollapsed, onToggle, onLogout }: SidebarProps) {
           </div>
           <div className="mt-6 flex justify-end">
             <button
-              onClick={() => setShowUpgradeDialog(false)}
+              onClick={() => setShowUpgradeMessageDialog(false)}
               className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
             >
               Got it
