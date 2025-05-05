@@ -9,6 +9,7 @@ import { EditProduct } from './companies/EditProduct';
 import { LeadList } from './leads/LeadList';
 import { CompanyCallLogs } from './companies/CompanyCallLogs';
 import { UserProfile } from './user/UserProfile';
+import { SubscriptionDetails } from './subscription/SubscriptionDetails';
 import { logout } from '../utils/auth';
 
 export function AuthenticatedApp() {
@@ -20,8 +21,8 @@ export function AuthenticatedApp() {
   };
 
   return (
-    <DashboardLayout onLogout={handleLogout}>
-      <Routes>
+    <Routes>
+      <Route element={<DashboardLayout onLogout={handleLogout} />}>
         <Route path="/" element={<CompanyList />} />
         <Route path="/companies" element={<CompanyList />} />
         <Route path="/companies/new" element={<AddCompany />} />
@@ -31,8 +32,9 @@ export function AuthenticatedApp() {
         <Route path="/companies/:companyId/products/:productId/leads" element={<LeadList />} />
         <Route path="/companies/:companyId/calls" element={<CompanyCallLogs />} />
         <Route path="/profile" element={<UserProfile />} />
+        <Route path="/subscription" element={<SubscriptionDetails />} />
         <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </DashboardLayout>
+      </Route>
+    </Routes>
   );
 }
