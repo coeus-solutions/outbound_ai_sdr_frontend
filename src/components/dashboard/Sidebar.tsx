@@ -1,7 +1,7 @@
 /** @jsxImportSource @emotion/react */
 import { jsx } from '@emotion/react';
 import React from 'react';
-import { Building, ChevronLeft, ChevronRight, LogOut, User, HelpCircle, Moon, Sun, Mail, AlertCircle } from 'lucide-react';
+import { Building, ChevronLeft, ChevronRight, LogOut, User, HelpCircle, Moon, Sun, Mail, AlertCircle, CreditCard } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '../../utils/cn';
 import { getToken } from '../../utils/auth';
@@ -156,6 +156,21 @@ export function Sidebar({ isCollapsed, onToggle, onLogout }: SidebarProps) {
               >
                 <Building className="h-5 w-5 flex-shrink-0" />
                 {!isCollapsed && <span className="tracking-tight">Companies</span>}
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/subscription"
+                className={cn(
+                  "flex items-center space-x-3 px-4 py-2 rounded-lg transition-colors font-medium",
+                  isActive('/subscription')
+                    ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-900/50 dark:text-indigo-400"
+                    : "text-gray-700 hover:bg-indigo-50 dark:text-gray-300 dark:hover:bg-indigo-900/30",
+                  isCollapsed && "justify-center"
+                )}
+              >
+                <CreditCard className="h-5 w-5 flex-shrink-0" />
+                {!isCollapsed && <span className="tracking-tight">Subscription</span>}
               </Link>
             </li>
           </ul>
