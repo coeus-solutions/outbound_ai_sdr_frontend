@@ -9,6 +9,8 @@ interface SubscriptionInfo {
   lead_tier: number;
   channels_active: string[];
   subscription_status: string;
+  billing_period_start?: string;
+  billing_period_end?: string;
 }
 
 export function SubscriptionDetails() {
@@ -49,6 +51,8 @@ export function SubscriptionDetails() {
                   .map(([channel]) => channel)
               : data.subscription?.channels_active || [],
             subscription_status: data.subscription_status || 'inactive',
+            billing_period_start: data.billing_period_start,
+            billing_period_end: data.billing_period_end,
           };
           console.log('Transformed Subscription Data:', subscriptionData);
           setSubscriptionInfo(subscriptionData);
@@ -129,7 +133,26 @@ export function SubscriptionDetails() {
                 <p className="mt-1 text-lg">{subscriptionInfo.lead_tier.toLocaleString()} Leads</p>
               </div>
 
-              <div>
+              {subscriptionInfo.billing_period_start && subscriptionInfo.billing_period_end && (
+                <div className="col-span-2">
+                  <h2 className="text-sm font-medium text-gray-500">Billing Period</h2>
+                  <p className="mt-1 text-lg">
+                    {new Date(subscriptionInfo.billing_period_start).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })}
+                    <span className="mx-2">-</span>
+                    {new Date(subscriptionInfo.billing_period_end).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })}
+                  </p>
+                </div>
+              )}
+
+              <div className="col-span-2">
                 <h2 className="text-sm font-medium text-gray-500">Active Channels</h2>
                 <div className="flex flex-wrap gap-2 mt-1">
                   {subscriptionInfo.channels_active.map((channel) => (

@@ -44,7 +44,7 @@ export interface User {
     lead_tier: number;
     channels_active: string[];
   };
-  plan_type?: 'fixed' | 'performance';
+  plan_type?: 'fixed' | 'performance' | 'trial';
   lead_tier?: number;
   channels_active?: {
     email: boolean;
@@ -55,6 +55,8 @@ export interface User {
   };
   subscription_status?: string;
   upgrade_message?: string;
+  billing_period_start?: string;
+  billing_period_end?: string;
 }
 
 export interface VoiceAgentSettings {
