@@ -11,6 +11,7 @@ export interface User {
   email: string;
   name: string;
   plan_type?: string;
+  subscription_status?: string;
   upgrade_message?: string;
 }
 

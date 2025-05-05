@@ -22,6 +22,7 @@ export function Sidebar({ isCollapsed, onToggle, onLogout }: SidebarProps) {
   const [userName, setUserName] = React.useState<string>('');
   const [userEmail, setUserEmail] = React.useState<string>('');
   const [planType, setPlanType] = React.useState<string>('');
+  const [subscriptionStatus, setSubscriptionStatus] = React.useState<string>('');
   const [upgradeMessage, setUpgradeMessage] = React.useState<string>('');
   const [showUpgradeDialog, setShowUpgradeDialog] = React.useState(false);
   const [showUpgradeMessageDialog, setShowUpgradeMessageDialog] = React.useState(false);
@@ -37,6 +38,7 @@ export function Sidebar({ isCollapsed, onToggle, onLogout }: SidebarProps) {
           setUserName(userData.name || '');
           setUserEmail(userData.email || '');
           setPlanType(userData.plan_type || '');
+          setSubscriptionStatus(userData.subscription_status || '');
           if (userData.upgrade_message) {
             setUpgradeMessage(userData.upgrade_message);
             setShowUpgradeMessageDialog(true);
@@ -166,11 +168,24 @@ export function Sidebar({ isCollapsed, onToggle, onLogout }: SidebarProps) {
                 <div className="mb-3 px-4 py-2 bg-indigo-50/50 dark:bg-indigo-900/20 rounded-lg">
                   <div className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">Current Plan</div>
                   <div className="flex items-center justify-between">
-                    <div className="text-sm font-medium text-indigo-600 dark:text-indigo-400 capitalize">
-                      {planType}
-                      {upgradeMessage && (
-                        <span className="text-red-500 dark:text-red-400 ml-1">(Expired)</span>
-                      )}
+                    <div className="text-sm font-medium text-indigo-600 dark:text-indigo-400">
+                      <div className="flex flex-col">
+                        <span className="capitalize">{planType}</span>
+                        {subscriptionStatus && (
+                          <span className="text-xs mt-0.5 flex items-center gap-1">
+                            <span className="text-gray-500 dark:text-gray-400">Subscription:</span>
+                            <span className={cn(
+                              subscriptionStatus.toLowerCase() === 'active' && "text-green-600 dark:text-green-400",
+                              subscriptionStatus.toLowerCase() === 'pending' && "text-yellow-600 dark:text-yellow-400",
+                              subscriptionStatus.toLowerCase() === 'canceled' && "text-red-600 dark:text-red-400",
+                              subscriptionStatus.toLowerCase() === 'expired' && "text-red-600 dark:text-red-400",
+                              subscriptionStatus.toLowerCase() === 'past_due' && "text-red-600 dark:text-red-400"
+                            )}>
+                              {subscriptionStatus}
+                            </span>
+                          </span>
+                        )}
+                      </div>
                     </div>
                     {planType?.toLowerCase() === 'trial' && (
                       <button
