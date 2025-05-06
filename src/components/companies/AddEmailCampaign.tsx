@@ -349,7 +349,12 @@ export function AddEmailCampaign() {
       navigate(`/companies/${companyId}/campaigns`);
     } catch (err) {
       console.error('Error creating campaign:', err);
-      showToast('Failed to create campaign', 'error');
+      const error = err as any;
+      if (error?.response?.data?.detail) {
+        showToast(error.response.data.detail, 'error');
+      } else {
+        showToast('Failed to create campaign', 'error');
+      }
     } finally {
       setIsSaving(false);
     }
