@@ -210,6 +210,7 @@ export function CompanySettings() {
   ]);
   const [isSendingInvites, setIsSendingInvites] = useState(false);
   const [refreshUsersList, setRefreshUsersList] = useState<(() => void) | undefined>();
+  const [channelsActive, setChannelsActive] = useState<{ [key: string]: boolean }>({});
   
   // Add custom calendar state
   const [showCustomCalendarModal, setShowCustomCalendarModal] = useState(false);
@@ -217,60 +218,70 @@ export function CompanySettings() {
   const [isSavingCustomCalendar, setIsSavingCustomCalendar] = useState(false);
 
   useEffect(() => {
-    // Check if user has admin role
-    if (!isRoleLoading && !isAdmin) {
-      showToast('You do not have permission to access this page. Only admins can access company settings.', 'error');
-      navigate(`/companies/${companyId}`);
-      return;
-    }
+    const fetchUserAndCompany = async () => {
+      if (!isAdmin || isRoleLoading || !companyId) return;
 
-    // Only fetch company data if user is admin
-    if (!isRoleLoading && isAdmin && companyId) {
-      const fetchCompany = async () => {
-        try {
-          const token = getToken();
-          if (!token) {
-            setError('Authentication token not found');
-            return;
-          }
-
-          const companyData = await getCompanyById(token, companyId);
-          setCompany(companyData);
-
-          // Set custom calendar URL if it exists
-          if (companyData.custom_calendar_link) {
-            setCustomCalendarUrl(companyData.custom_calendar_link);
-          }
-
-          // Set voice agent settings if they exist
-          if (companyData.voice_agent_settings) {
-            const settings = companyData.voice_agent_settings;
-            setSelectedVoice(settings.voice || 'florian');
-            setSelectedBackground(settings.background_track || 'none');
-            setSelectedLanguage(settings.language ? [settings.language] : []);
-            setPrompt(settings.prompt || '');
-            setCallFromNumber(settings.call_from_number || '');
-            setTransferNumber(settings.transfer_phone_number || '');
-            setAgentName(settings.agent_name || '');
-          }
-
-          if (companyData.account_email) {
-            setCredentials(prev => ({
-              ...prev,
-              account_email: companyData.account_email || ''
-            }));
-          }
-        } catch (err) {
-          console.error('Error fetching company:', err);
-          setError(err instanceof Error ? err.message : 'Failed to fetch company details');
-        } finally {
-          setIsLoading(false);
+      try {
+        const token = getToken();
+        if (!token) {
+          setError('Authentication token not found');
+          return;
         }
-      };
 
-      fetchCompany();
-    }
-  }, [companyId, isAdmin, isRoleLoading, navigate, showToast]);
+        // Fetch user data to get active channels
+        const userResponse = await fetch(apiEndpoints.users.me, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!userResponse.ok) {
+          throw new Error('Failed to fetch user data');
+        }
+
+        const userData = await userResponse.json();
+        if (userData.channels_active) {
+          setChannelsActive(userData.channels_active);
+        }
+
+        // Fetch company data
+        const companyData = await getCompanyById(token, companyId);
+        setCompany(companyData);
+
+        // Set custom calendar URL if it exists
+        if (companyData.custom_calendar_link) {
+          setCustomCalendarUrl(companyData.custom_calendar_link);
+        }
+
+        // Set voice agent settings if they exist
+        if (companyData.voice_agent_settings) {
+          const settings = companyData.voice_agent_settings;
+          setSelectedVoice(settings.voice || 'florian');
+          setSelectedBackground(settings.background_track || 'none');
+          setSelectedLanguage(settings.language ? [settings.language] : []);
+          setPrompt(settings.prompt || '');
+          setCallFromNumber(settings.call_from_number || '');
+          setTransferNumber(settings.transfer_phone_number || '');
+          setAgentName(settings.agent_name || '');
+        }
+
+        if (companyData.account_email) {
+          setCredentials(prev => ({
+            ...prev,
+            account_email: companyData.account_email || ''
+          }));
+        }
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch data');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserAndCompany();
+  }, [companyId, isAdmin, isRoleLoading]);
 
   useEffect(() => {
     setCredentials(prev => ({
@@ -592,8 +603,8 @@ export function CompanySettings() {
 
   const tabs = [
     { id: 'calendar', name: 'Calendar', icon: Calendar },
-    { id: 'email', name: 'Email', icon: Mail },
-    { id: 'voice', name: 'Voice Agent', icon: Mic },
+    ...(channelsActive.email ? [{ id: 'email', name: 'Email', icon: Mail }] : []),
+    ...(channelsActive.phone ? [{ id: 'voice', name: 'Voice Agent', icon: Mic }] : []),
     { id: 'invite_users', name: 'Invite Users', icon: UserPlus },
   ];
 
@@ -951,7 +962,9 @@ export function CompanySettings() {
 
             <div className="px-6 py-6">
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                {calendarProviders.map((provider) => (
+                {calendarProviders
+                  .filter(provider => provider.id !== 'custom' || channelsActive.email)
+                  .map((provider) => (
                   <div
                     key={provider.id}
                     className="relative rounded-lg border border-gray-200 bg-white px-6 py-5 shadow-sm hover:shadow-md transition-all duration-200 group"
