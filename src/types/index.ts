@@ -30,13 +30,44 @@ export interface UserCompanyRole {
   role: string;
 }
 
-export interface UserInDB {
-  email: string;
+export interface User {
   id: string;
+  email: string;
   name: string | null;
+  first_name?: string;
+  last_name?: string;
   verified: boolean;
   created_at: string;
   company_roles: UserCompanyRole[] | null;
+  subscription?: {
+    plan_type: 'fixed' | 'performance';
+    lead_tier: number;
+    channels_active: string[];
+  };
+  plan_type?: 'fixed' | 'performance' | 'trial';
+  lead_tier?: number;
+  channels_active?: {
+    email: boolean;
+    phone: boolean;
+    linkedin: boolean;
+    whatsapp: boolean;
+    [key: string]: boolean;
+  };
+  subscription_status?: string;
+  upgrade_message?: string;
+  billing_period_start?: string;
+  billing_period_end?: string;
+  subscription_details?: {
+    has_subscription: boolean;
+    subscription_items: Array<{
+      name: string;
+      quantity: number;
+      price: string;
+      currency: string;
+      interval: string;
+      usage_type: 'licensed' | 'metered';
+    }>;
+  };
 }
 
 export interface VoiceAgentSettings {

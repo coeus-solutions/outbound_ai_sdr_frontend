@@ -139,11 +139,18 @@ export async function createCampaign(token: string, companyId: string, campaign:
     body: JSON.stringify(campaign),
   });
 
+  const data = await response.json();
+  
   if (!response.ok) {
-    throw new Error('Failed to create campaign');
+    const error = new Error('Failed to create campaign') as any;
+    error.response = {
+      status: response.status,
+      data: data
+    };
+    throw error;
   }
 
-  return response.json();
+  return data;
 }
 
 export async function runCampaign(token: string, campaignId: string): Promise<RunCampaignResponse> {

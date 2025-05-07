@@ -86,8 +86,8 @@ export function CompanyLeads() {
       // Refresh the first page after upload
       fetchData(1);
     } catch (error) {
-      showToast('Failed to upload leads. Please make sure the CSV file is properly formatted.', 'error');
       console.error('Error uploading leads:', error);
+      showToast(error instanceof Error ? error.message : 'Failed to upload leads', 'error');
     } finally {
       setIsUploading(false);
     }

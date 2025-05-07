@@ -10,6 +10,9 @@ export interface User {
   id: string;
   email: string;
   name: string;
+  plan_type?: string;
+  subscription_status?: string;
+  upgrade_message?: string;
 }
 
 export async function getUser(token: string): Promise<User> {

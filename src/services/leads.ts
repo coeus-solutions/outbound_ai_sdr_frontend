@@ -148,11 +148,13 @@ export async function createLead(token: string, companyId: string, leadData: Cre
     body: JSON.stringify(leadData),
   });
 
+  const data = await response.json();
+
   if (!response.ok) {
-    throw new Error('Failed to create lead');
+    throw new Error(data.detail || 'Failed to create lead');
   }
 
-  return response.json();
+  return data;
 }
 
 export async function getLeadDetails(token: string, companyId: string, leadId: string): Promise<LeadDetail> {
@@ -190,11 +192,13 @@ export async function uploadLeads(token: string, companyId: string, file: File):
     body: formData,
   });
 
+  const data = await response.json();
+
   if (!response.ok) {
-    throw new Error('Failed to upload leads');
+    throw new Error(data.detail || 'Failed to upload leads');
   }
 
-  return response.json();
+  return data;
 }
 
 export async function deleteLead(token: string, companyId: string, leadId: string): Promise<void> {

@@ -96,7 +96,7 @@ export function AddLeadPanel({ isOpen, onClose, companyId, onLeadAdded }: AddLea
       });
     } catch (error) {
       console.error('Error adding lead:', error);
-      showToast('Failed to add lead', 'error');
+      showToast(error instanceof Error ? error.message : 'Failed to add lead', 'error');
     } finally {
       setIsSubmitting(false);
     }
