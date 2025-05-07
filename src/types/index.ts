@@ -57,6 +57,16 @@ export interface User {
   upgrade_message?: string;
   billing_period_start?: string;
   billing_period_end?: string;
+  subscription_details?: {
+    has_subscription: boolean;
+    subscription_items: Array<{
+      name: string;
+      quantity: number;
+      price: string;
+      currency: string;
+      interval: string;
+    }>;
+  };
 }
 
 export interface VoiceAgentSettings {
