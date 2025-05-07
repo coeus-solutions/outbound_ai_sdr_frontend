@@ -10,6 +10,7 @@ interface SubscriptionItem {
   price: string;
   currency: string;
   interval: string;
+  usage_type?: string;
 }
 
 interface SubscriptionInfo {
@@ -201,7 +202,16 @@ export function SubscriptionDetails() {
                       <tbody className="bg-white divide-y divide-gray-200">
                         {subscriptionInfo.subscription_items.map((item, index) => (
                           <tr key={index}>
-                            <td className="px-4 py-3 text-sm text-gray-900">{item.name}</td>
+                            <td className="px-4 py-3 text-sm text-gray-900">
+                              <div className="flex items-center">
+                                <span>{item.name}</span>
+                                {item.usage_type === 'metered' && (
+                                  <span className="ml-2 text-xs text-gray-500">
+                                    (Varies with usage)
+                                  </span>
+                                )}
+                              </div>
+                            </td>
                             <td className="px-4 py-3 text-sm text-gray-900 text-right">{item.quantity}</td>
                             <td className="px-4 py-3 text-sm text-gray-900 text-right">
                               {new Intl.NumberFormat('en-US', {
@@ -214,7 +224,7 @@ export function SubscriptionDetails() {
                                 style: 'currency',
                                 currency: item.currency
                               }).format(parseFloat(item.price) * item.quantity)}
-                              /{item.interval}
+                              {item.usage_type === 'licensed' && `/${item.interval}`}
                             </td>
                           </tr>
                         ))}
@@ -225,7 +235,6 @@ export function SubscriptionDetails() {
                               style: 'currency',
                               currency: subscriptionInfo.subscription_items[0]?.currency || 'USD'
                             }).format(calculateTotalAmount())}
-                            /{subscriptionInfo.subscription_items[0]?.interval || 'month'}
                           </td>
                         </tr>
                       </tbody>

@@ -65,6 +65,7 @@ export interface User {
       price: string;
       currency: string;
       interval: string;
+      usage_type: 'licensed' | 'metered';
     }>;
   };
 }
