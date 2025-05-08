@@ -3,6 +3,8 @@ import { useAuth } from '../../hooks/useAuth';
 import { User } from '../../types';
 import { apiEndpoints } from '../../config';
 import { getToken } from '../../utils/auth';
+import { Dialog } from '../shared/Dialog';
+import { useToast } from '../../hooks/useToast';
 
 interface SubscriptionItem {
   name: string;
@@ -29,6 +31,9 @@ export function SubscriptionDetails() {
   const [loading, setLoading] = useState(true);
   const [subscriptionInfo, setSubscriptionInfo] = useState<SubscriptionInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [canceling, setCanceling] = useState(false);
+  const { showToast } = useToast();
 
   useEffect(() => {
     const fetchSubscriptionDetails = async () => {
@@ -82,6 +87,41 @@ export function SubscriptionDetails() {
     }
   }, [isAuthenticated]);
 
+  const handleCancelSubscription = async () => {
+    try {
+      setCanceling(true);
+      const token = getToken();
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch(apiEndpoints.subscription.cancel, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to cancel subscription');
+      }
+
+      // Update subscription status locally
+      setSubscriptionInfo(prev => prev ? {
+        ...prev,
+        subscription_status: 'canceled'
+      } : null);
+
+      showToast('Subscription canceled successfully', 'success');
+      setShowCancelDialog(false);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to cancel subscription', 'error');
+    } finally {
+      setCanceling(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -130,7 +170,17 @@ export function SubscriptionDetails() {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Subscription Details</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Subscription Details</h1>
+        {subscriptionInfo.subscription_status.toLowerCase() === 'active' && (
+          <button
+            onClick={() => setShowCancelDialog(true)}
+            className="px-4 py-2 text-sm font-medium text-red-600 hover:text-red-700 border border-red-600 hover:border-red-700 rounded-md transition-colors"
+          >
+            Cancel Subscription
+          </button>
+        )}
+      </div>
       
       <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
         <div className="grid grid-cols-2 gap-4">
@@ -246,6 +296,42 @@ export function SubscriptionDetails() {
           )}
         </div>
       </div>
+
+      {/* Cancel Subscription Confirmation Dialog */}
+      <Dialog
+        isOpen={showCancelDialog}
+        onClose={() => setShowCancelDialog(false)}
+        title="Cancel Subscription"
+      >
+        <div className="p-6">
+          <div className="mb-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              Are you sure you want to cancel your subscription?
+            </h3>
+            <p className="text-sm text-gray-500">
+              This action cannot be undone. Your subscription will be canceled immediately and you will lose access to premium features.
+            </p>
+          </div>
+          <div className="flex justify-end space-x-3">
+            <button
+              type="button"
+              onClick={() => setShowCancelDialog(false)}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none"
+              disabled={canceling}
+            >
+              Keep Subscription
+            </button>
+            <button
+              type="button"
+              onClick={handleCancelSubscription}
+              className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none disabled:opacity-50"
+              disabled={canceling}
+            >
+              {canceling ? 'Canceling...' : 'Yes, Cancel Subscription'}
+            </button>
+          </div>
+        </div>
+      </Dialog>
     </div>
   );
 } 
