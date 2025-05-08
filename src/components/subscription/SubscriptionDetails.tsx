@@ -149,15 +149,15 @@ export function SubscriptionDetails() {
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'active':
-        return 'text-green-600';
+        return 'bg-green-100 text-green-800';
       case 'pending':
-        return 'text-yellow-600';
+        return 'bg-yellow-100 text-yellow-800';
       case 'canceled':
       case 'expired':
       case 'past_due':
-        return 'text-red-600';
+        return 'bg-red-100 text-red-800';
       default:
-        return 'text-gray-600';
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -193,9 +193,11 @@ export function SubscriptionDetails() {
             <>
               <div>
                 <h2 className="text-sm font-medium text-gray-500">Status</h2>
-                <p className={`mt-1 text-lg ${getStatusColor(subscriptionInfo.subscription_status)}`}>
-                  {subscriptionInfo.subscription_status.charAt(0).toUpperCase() + subscriptionInfo.subscription_status.slice(1)}
-                </p>
+                <div className="mt-1">
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium ${getStatusColor(subscriptionInfo.subscription_status)}`}>
+                    {subscriptionInfo.subscription_status.charAt(0).toUpperCase() + subscriptionInfo.subscription_status.slice(1)}
+                  </span>
+                </div>
               </div>
 
               <div>
@@ -223,7 +225,7 @@ export function SubscriptionDetails() {
               )}
 
               <div className="col-span-2">
-                <h2 className="text-sm font-medium text-gray-500">Active Channels</h2>
+                <h2 className="text-sm font-medium text-gray-500">Channels</h2>
                 <div className="flex flex-wrap gap-2 mt-1">
                   {subscriptionInfo.channels_active.map((channel) => (
                     <span
