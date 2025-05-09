@@ -32,6 +32,7 @@ export const apiEndpoints = {
     fulfillCheckout: (sessionId: string) => `${config.apiUrl}/api/fulfill_checkout/${sessionId}` as const,
     create: `${config.apiUrl}/api/subscriptions` as const,
     cancel: `${config.apiUrl}/api/subscriptions/cancel` as const,
+    change: `${config.apiUrl}/api/subscriptions/change` as const,
   },
   users: {
     me: `${config.apiUrl}/api/users/me` as const,
