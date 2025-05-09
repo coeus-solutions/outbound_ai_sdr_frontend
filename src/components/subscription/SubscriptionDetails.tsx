@@ -5,6 +5,7 @@ import { apiEndpoints } from '../../config';
 import { getToken } from '../../utils/auth';
 import { Dialog } from '../shared/Dialog';
 import { useToast } from '../../hooks/useToast';
+import ChangeSubscriptionDialog from './ChangeSubscriptionDialog';
 
 interface SubscriptionItem {
   name: string;
@@ -32,6 +33,7 @@ export function SubscriptionDetails() {
   const [subscriptionInfo, setSubscriptionInfo] = useState<SubscriptionInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [showChangeDialog, setShowChangeDialog] = useState(false);
   const [canceling, setCanceling] = useState(false);
   const { showToast } = useToast();
 
@@ -172,14 +174,24 @@ export function SubscriptionDetails() {
     <div className="max-w-4xl mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Subscription Details</h1>
-        {subscriptionInfo.subscription_status.toLowerCase() === 'active' && (
-          <button
-            onClick={() => setShowCancelDialog(true)}
-            className="px-4 py-2 text-sm font-medium text-red-600 hover:text-red-700 border border-red-600 hover:border-red-700 rounded-md transition-colors"
-          >
-            Cancel Subscription
-          </button>
-        )}
+        <div className="flex space-x-3">
+          {subscriptionInfo?.subscription_status.toLowerCase() === 'active' && (
+            <>
+              <button
+                onClick={() => setShowChangeDialog(true)}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors focus:outline-none"
+              >
+                Change Subscription
+              </button>
+              <button
+                onClick={() => setShowCancelDialog(true)}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors focus:outline-none"
+              >
+                Cancel Subscription
+              </button>
+            </>
+          )}
+        </div>
       </div>
       
       <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
@@ -334,6 +346,17 @@ export function SubscriptionDetails() {
           </div>
         </div>
       </Dialog>
+
+      {/* Change Subscription Dialog */}
+      {subscriptionInfo && (
+        <ChangeSubscriptionDialog
+          isOpen={showChangeDialog}
+          onClose={() => setShowChangeDialog(false)}
+          currentPlanType={subscriptionInfo.plan_type}
+          currentLeadTier={subscriptionInfo.lead_tier}
+          currentChannels={subscriptionInfo.channels_active}
+        />
+      )}
     </div>
   );
 } 

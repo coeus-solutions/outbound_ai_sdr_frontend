@@ -182,32 +182,30 @@ export function Sidebar({ isCollapsed, onToggle, onLogout }: SidebarProps) {
               {planType && (
                 <div className="mb-3 px-4 py-2 bg-indigo-50/50 dark:bg-indigo-900/20 rounded-lg">
                   <div className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">Current Plan</div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col space-y-2">
                     <div className="text-sm font-medium text-indigo-600 dark:text-indigo-400">
-                      <div className="flex flex-col">
+                      <div className="flex items-center gap-2">
                         <span className="capitalize">{planType}</span>
                         {subscriptionStatus && (
-                          <span className="text-xs mt-0.5 flex items-center gap-1">
-                            <span className="text-gray-500 dark:text-gray-400">Subscription:</span>
-                            <span className={cn(
-                              subscriptionStatus.toLowerCase() === 'active' && "text-green-600 dark:text-green-400",
-                              subscriptionStatus.toLowerCase() === 'pending' && "text-yellow-600 dark:text-yellow-400",
-                              subscriptionStatus.toLowerCase() === 'canceled' && "text-red-600 dark:text-red-400",
-                              subscriptionStatus.toLowerCase() === 'expired' && "text-red-600 dark:text-red-400",
-                              subscriptionStatus.toLowerCase() === 'past_due' && "text-red-600 dark:text-red-400"
-                            )}>
-                              {subscriptionStatus}
-                            </span>
+                          <span className={cn(
+                            "px-2 py-0.5 rounded-full text-xs",
+                            subscriptionStatus.toLowerCase() === 'active' && "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400",
+                            subscriptionStatus.toLowerCase() === 'pending' && "bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400",
+                            subscriptionStatus.toLowerCase() === 'canceled' && "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400",
+                            subscriptionStatus.toLowerCase() === 'expired' && "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400",
+                            subscriptionStatus.toLowerCase() === 'past_due' && "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"
+                          )}>
+                            {subscriptionStatus.charAt(0).toUpperCase() + subscriptionStatus.slice(1).toLowerCase()}
                           </span>
                         )}
                       </div>
                     </div>
-                    {planType?.toLowerCase() === 'trial' && (
+                    {(planType?.toLowerCase() === 'trial' || subscriptionStatus?.toLowerCase() === 'canceled') && (
                       <button
                         onClick={() => setShowUpgradeDialog(true)}
-                        className="px-3 py-1 text-xs font-semibold text-white bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full shadow-sm hover:from-indigo-600 hover:to-purple-600 transition-all duration-200 hover:shadow-md hover:scale-105 transform"
+                        className="w-full px-3 py-1.5 text-xs font-semibold text-white bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg shadow-sm hover:from-indigo-600 hover:to-purple-600 transition-all duration-200 hover:shadow-md hover:scale-[1.02] transform"
                       >
-                        Upgrade
+                        Upgrade Now
                       </button>
                     )}
                   </div>
