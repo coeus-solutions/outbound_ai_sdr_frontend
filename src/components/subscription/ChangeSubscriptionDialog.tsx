@@ -97,6 +97,23 @@ export default function ChangeSubscriptionDialog({
   const [isLoading, setIsLoading] = useState(false);
   const { showToast } = useToast();
 
+  // Check if any changes have been made to the subscription options
+  const hasChanges = () => {
+    // Check if plan type has changed
+    const planTypeChanged = selectedPlanType.id !== currentPlanType;
+    
+    // Check if lead tier has changed
+    const leadTierChanged = selectedLeadTier.value !== currentLeadTier;
+    
+    // Check if channels have changed
+    const channelsChanged = Object.entries(selectedChannels).some(([channel, isSelected]) => {
+      const wasSelected = currentChannels.includes(channel);
+      return isSelected !== wasSelected;
+    });
+
+    return planTypeChanged || leadTierChanged || channelsChanged;
+  };
+
   const handleChannelToggle = (channelId: string) => {
     setSelectedChannels(prev => ({
       ...prev,
@@ -286,7 +303,7 @@ export default function ChangeSubscriptionDialog({
           <button
             type="button"
             onClick={handleSave}
-            disabled={isLoading || !Object.values(selectedChannels).some(Boolean)}
+            disabled={isLoading || !Object.values(selectedChannels).some(Boolean) || !hasChanges()}
             className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? 'Saving...' : 'Change Subscription'}
