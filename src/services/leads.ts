@@ -44,34 +44,15 @@ export interface LeadDetail extends Lead {
   company_founded_year: number | null;
   seniority: string | null;
   enriched_data?: {
-    PAIN_POINTS?: Array<{
-      pain_point: string;
-      explanation: string;
-    }> | string[];
-    BUYING_TRIGGERS?: Array<{
-      trigger: string;
-      explanation: string;
-    }> | string[];
-    BUSINESS_OVERVIEW?: {
-      description?: string;
-      company_highlights?: string[];
-      products_and_services?: string[];
-      company_name?: string;
-      business_model?: string;
-      market_position?: string;
-      key_products_services?: string[];
+    businessOverview?: {
+      companyName?: string;
+      businessModel?: string;
+      keyProductsServices?: string[];
     };
-    INDUSTRY_CHALLENGES?: {
-      challenges?: Array<{
-        impact: string;
-        challenge: string;
-      }>;
-      business_impact?: string;
-    } | string[];
-    PROSPECT_PROFESSIONAL_INTERESTS?: Array<{
-      interest: string;
-      explanation: string;
-    }> | string[];
+    prospectProfessionalInterests?: string[];
+    painPoints?: string[];
+    buyingTriggers?: string[];
+    industryChallenges?: string[];
   } | null;
 }
 
@@ -244,6 +225,27 @@ export async function enrichLeadData(token: string, companyId: string, leadId: s
   }
 
   const result = await response.json();
+  console.log('Enrich API Response:', result);
+
+  // Ensure the data is properly structured
+  if (result.data && result.data.enriched_data) {
+    const enrichedData = result.data.enriched_data;
+    
+    // Ensure arrays are properly initialized
+    if (enrichedData.painPoints && !Array.isArray(enrichedData.painPoints)) {
+      enrichedData.painPoints = [];
+    }
+    if (enrichedData.buyingTriggers && !Array.isArray(enrichedData.buyingTriggers)) {
+      enrichedData.buyingTriggers = [];
+    }
+    if (enrichedData.industryChallenges && !Array.isArray(enrichedData.industryChallenges)) {
+      enrichedData.industryChallenges = [];
+    }
+    if (enrichedData.prospectProfessionalInterests && !Array.isArray(enrichedData.prospectProfessionalInterests)) {
+      enrichedData.prospectProfessionalInterests = [];
+    }
+  }
+
   return result.data;
 }
 
