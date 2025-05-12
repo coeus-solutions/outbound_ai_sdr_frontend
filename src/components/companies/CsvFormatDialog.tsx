@@ -8,9 +8,9 @@ interface CsvFormatDialogProps {
 }
 
 export function CsvFormatDialog({ isOpen, onClose }: CsvFormatDialogProps) {
-  const sampleData = `name,email,company,phone_number,company_size,job_title,company_facebook,company_twitter,company_revenue
-John Doe,john@example.com,Acme Inc,+1234567890,100-500,Sales Manager,https://facebook.com/acme,https://twitter.com/acme,$1M-$5M
-Jane Smith,jane@example.com,Tech Corp,+0987654321,500-1000,VP Sales,https://facebook.com/techcorp,https://twitter.com/techcorp,$5M-$10M`;
+  const sampleData = `name,email,company,phone_number,website,company_size,job_title,company_facebook,company_twitter,company_revenue
+John Doe,john@example.com,Acme Inc,+1234567890,https://acme.com,100-500,Sales Manager,https://facebook.com/acme,https://twitter.com/acme,$1M-$5M
+Jane Smith,jane@example.com,Tech Corp,+0987654321,https://techcorp.com,500-1000,VP Sales,https://facebook.com/techcorp,https://twitter.com/techcorp,$5M-$10M`;
 
   const handleDownloadSample = () => {
     const blob = new Blob([sampleData], { type: 'text/csv' });
@@ -41,16 +41,17 @@ Jane Smith,jane@example.com,Tech Corp,+0987654321,500-1000,VP Sales,https://face
         <div className="space-y-2">
           <p className="text-sm font-medium text-gray-700">Required Information:</p>
           <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
-            <li>Name of the lead (missing this will result in skipping this lead)</li>
+            <li className="text-red-600">Lead name</li>
+            <li className="text-red-600">Email address (used for sending campaign emails)</li>
+            <li className="text-red-600">Phone number (used for making calls)</li>
+            <li className="text-red-600">Company name (used in lead enrichment)</li>
+            <li className="text-red-600">Company website (used in lead enrichment)</li>
           </ul>
         </div>
 
         <div className="space-y-2">
           <p className="text-sm font-medium text-gray-700">Optional Information:</p>
           <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
-            <li>Email address of the Lead (used in sending campaign emails)</li>
-            <li>Contact number of the Lead (used in calls)</li>
-            <li>Company name</li>
             <li>Size of the company (e.g., "100-500", "1000+")</li>
             <li>Lead's job title</li>
             <li>Facebook URL</li>
