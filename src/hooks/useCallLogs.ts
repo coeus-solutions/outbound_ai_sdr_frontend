@@ -9,6 +9,8 @@ interface CallLogFilters {
   lead_id?: string;
   page?: number;
   limit?: number;
+  sentiment?: 'positive' | 'negative';
+  has_meeting_booked?: boolean;
 }
 
 interface UseCallLogsProps {
@@ -80,15 +82,32 @@ export const useCallLogs = (
         return;
       }
 
+      // Add query parameters for sentiment and meeting booked status
+      const queryParams = new URLSearchParams();
+      if (filtersRef.current.sentiment) {
+        queryParams.append('sentiment', filtersRef.current.sentiment);
+      }
+      if (filtersRef.current.has_meeting_booked !== undefined) {
+        queryParams.append('has_meeting_booked', filtersRef.current.has_meeting_booked.toString());
+      }
+      if (filtersRef.current.campaign_id) {
+        queryParams.append('campaign_id', filtersRef.current.campaign_id);
+      }
+      if (filtersRef.current.lead_id) {
+        queryParams.append('lead_id', filtersRef.current.lead_id);
+      }
+      if (campaignRunId) {
+        queryParams.append('campaign_run_id', campaignRunId);
+      }
+      queryParams.append('page', pageNumber.toString());
+      queryParams.append('limit', pageSizeNumber.toString());
+
       const response = await getCompanyCalls(
         token,
         companyId,
-        filtersRef.current.campaign_id,
-        campaignRunId,
-        filtersRef.current.lead_id,
-        pageNumber,
-        pageSizeNumber
+        queryParams
       );
+
       setCallLogs(response.items);
       setTotalItems(response.total);
       
@@ -113,14 +132,27 @@ export const useCallLogs = (
     // Skip the initial render for filter changes
     if (isInitialMount.current) {
       isInitialMount.current = false;
-    } else if (filters.campaign_id !== filtersRef.current.campaign_id || filters.lead_id !== filtersRef.current.lead_id) {
-      // Reset to page 1 only when campaign or lead changes
+    } else if (
+      filters.campaign_id !== filtersRef.current.campaign_id || 
+      filters.lead_id !== filtersRef.current.lead_id ||
+      filters.sentiment !== filtersRef.current.sentiment ||
+      filters.has_meeting_booked !== filtersRef.current.has_meeting_booked
+    ) {
+      // Reset to page 1 when any filter changes
       setCurrentPage(1);
       return; // Let the page change trigger the fetch
     }
     
     fetchCallLogs();
-  }, [fetchCallLogs, currentPage, currentPageSize, filters.campaign_id, filters.lead_id]);
+  }, [
+    fetchCallLogs, 
+    currentPage, 
+    currentPageSize, 
+    filters.campaign_id, 
+    filters.lead_id,
+    filters.sentiment,
+    filters.has_meeting_booked
+  ]);
 
   // Filter call logs based on date range on the client side
   const filteredCallLogs = useMemo(() => {

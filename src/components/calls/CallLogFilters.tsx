@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Filter, Search } from 'lucide-react';
+import { Calendar, Filter, Search, ThumbsUp, CalendarCheck } from 'lucide-react';
 import { getCompanyCampaigns, Campaign } from '../../services/emailCampaigns';
 import { getToken } from '../../utils/auth';
 import { Lead } from '../../services/leads';
@@ -13,6 +13,8 @@ interface CallLogFilters {
   lead_id?: string;
   page?: number;
   limit?: number;
+  sentiment?: 'positive' | 'negative';
+  has_meeting_booked?: boolean;
 }
 
 interface CallLogFiltersProps {
@@ -101,19 +103,59 @@ export function CallLogFilters({ filters, onFilterChange, companyId }: CallLogFi
     }
   };
 
+  const handleSentimentChange = (value: 'positive' | 'negative' | undefined) => {
+    onFilterChange({
+      ...filters,
+      sentiment: value === filters.sentiment ? undefined : value
+    });
+  };
+
+  const handleMeetingBookedChange = (value: boolean | undefined) => {
+    onFilterChange({
+      ...filters,
+      has_meeting_booked: value === filters.has_meeting_booked ? undefined : value
+    });
+  };
+
   return (
-    <div className="bg-white p-4 rounded-lg shadow-sm flex items-center space-x-4">
+    <div className="flex flex-wrap items-center gap-4 p-4 bg-white rounded-lg shadow-sm">
       <div className="flex items-center space-x-2">
         <Calendar className="h-5 w-5 text-gray-400" />
         <select
-          value={filters.dateRange || 'all'}
+          value={filters.dateRange}
           onChange={(e) => onFilterChange({ ...filters, dateRange: e.target.value as CallLogFilters['dateRange'] })}
-          className="block min-w-[150px] pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+          className="block w-32 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
         >
           <option value="all">All time</option>
           <option value="today">Today</option>
           <option value="week">This week</option>
           <option value="month">This month</option>
+        </select>
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <ThumbsUp className="h-5 w-5 text-gray-400" />
+        <select
+          value={filters.sentiment || ''}
+          onChange={(e) => handleSentimentChange(e.target.value as 'positive' | 'negative' | undefined)}
+          className="block w-40 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+        >
+          <option value="">All Sentiments</option>
+          <option value="positive">Positive</option>
+          <option value="negative">Negative</option>
+        </select>
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <CalendarCheck className="h-5 w-5 text-gray-400" />
+        <select
+          value={filters.has_meeting_booked === undefined ? '' : filters.has_meeting_booked.toString()}
+          onChange={(e) => handleMeetingBookedChange(e.target.value === '' ? undefined : e.target.value === 'true')}
+          className="block w-40 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+        >
+          <option value="">All Meetings</option>
+          <option value="true">Meeting Booked</option>
+          <option value="false">No Meeting Booked</option>
         </select>
       </div>
 
