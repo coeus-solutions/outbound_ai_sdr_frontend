@@ -60,7 +60,19 @@ export function CompanyCampaignRuns() {
   };
 
   if (loading) {
-    return <SkeletonLoader />;
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title={company?.name || 'Loading...'}
+          subtitle="Campaign runs for"
+        />
+        <TableSkeletonLoader
+          rowCount={5}
+          columnCount={7}
+          hasHeader={true}
+        />
+      </div>
+    );
   }
 
   if (error) {
