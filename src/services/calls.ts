@@ -51,24 +51,14 @@ export interface CallQueueRetryResponse {
 export async function getCompanyCalls(
   token: string, 
   companyId: string, 
-  campaignId?: string, 
-  campaignRunId?: string, 
-  leadId?: string,
-  page: number = 1,
-  limit: number = 20
+  queryParams: URLSearchParams
 ): Promise<PaginatedCallResponse> {
   const url = new URL(apiEndpoints.companies.calls.list(companyId));
-  if (campaignId) {
-    url.searchParams.append('campaign_id', campaignId);
-  }
-  if (campaignRunId) {
-    url.searchParams.append('campaign_run_id', campaignRunId);
-  }
-  if (leadId) {
-    url.searchParams.append('lead_id', leadId);
-  }
-  url.searchParams.append('page_number', page.toString());
-  url.searchParams.append('limit', limit.toString());
+  
+  // Merge the provided query parameters with the URL
+  queryParams.forEach((value, key) => {
+    url.searchParams.append(key, value);
+  });
 
   const response = await fetch(url.toString(), {
     headers: {

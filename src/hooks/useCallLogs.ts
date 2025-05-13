@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { CallLog } from '../types';
 import { getCompanyCalls } from '../services/calls';
 import { getToken } from '../utils/auth';
@@ -9,6 +9,8 @@ interface CallLogFilters {
   lead_id?: string;
   page?: number;
   limit?: number;
+  sentiment?: 'positive' | 'negative';
+  has_meeting_booked?: boolean;
 }
 
 interface UseCallLogsProps {
@@ -33,6 +35,56 @@ interface UseCallLogsReturn {
   setPage: (page: number) => void;
   setPageSize: (pageSize: number) => void;
 }
+
+const getDateRangeParams = (dateRange: string): { from_date?: string; to_date?: string } => {
+  const now = new Date();
+  
+  switch (dateRange) {
+    case 'today': {
+      // Set to start of day in UTC (00:00:00)
+      const fromDate = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0));
+      // Set to end of day in UTC (23:59:59)
+      const toDate = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59));
+      return {
+        from_date: fromDate.toISOString(),
+        to_date: toDate.toISOString()
+      };
+    }
+    case 'week': {
+      // Get current week's Sunday (start of week)
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() - now.getDay());
+      // Set to start of day in UTC
+      const fromDate = new Date(Date.UTC(startOfWeek.getFullYear(), startOfWeek.getMonth(), startOfWeek.getDate(), 0, 0, 0));
+      
+      // Get Saturday (end of week)
+      const endOfWeek = new Date(now);
+      endOfWeek.setDate(now.getDate() + (6 - now.getDay()));
+      // Set to end of day in UTC
+      const toDate = new Date(Date.UTC(endOfWeek.getFullYear(), endOfWeek.getMonth(), endOfWeek.getDate(), 23, 59, 59));
+      
+      return {
+        from_date: fromDate.toISOString(),
+        to_date: toDate.toISOString()
+      };
+    }
+    case 'month': {
+      // Set to start of current month in UTC
+      const fromDate = new Date(Date.UTC(now.getFullYear(), now.getMonth(), 1, 0, 0, 0));
+      
+      // Set to end of current month in UTC
+      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate(); // Get last day of current month
+      const toDate = new Date(Date.UTC(now.getFullYear(), now.getMonth(), lastDay, 23, 59, 59));
+      
+      return {
+        from_date: fromDate.toISOString(),
+        to_date: toDate.toISOString()
+      };
+    }
+    default:
+      return {};
+  }
+};
 
 export const useCallLogs = (
   props: UseCallLogsProps
@@ -80,15 +132,43 @@ export const useCallLogs = (
         return;
       }
 
+      // Add query parameters
+      const queryParams = new URLSearchParams();
+
+      // Add date range parameters
+      const dateParams = getDateRangeParams(filtersRef.current.dateRange);
+      if (dateParams.from_date) {
+        queryParams.append('from_date', dateParams.from_date);
+      }
+      if (dateParams.to_date) {
+        queryParams.append('to_date', dateParams.to_date);
+      }
+
+      // Add other filters
+      if (filtersRef.current.sentiment) {
+        queryParams.append('sentiment', filtersRef.current.sentiment);
+      }
+      if (filtersRef.current.has_meeting_booked !== undefined) {
+        queryParams.append('has_meeting_booked', filtersRef.current.has_meeting_booked.toString());
+      }
+      if (filtersRef.current.campaign_id) {
+        queryParams.append('campaign_id', filtersRef.current.campaign_id);
+      }
+      if (filtersRef.current.lead_id) {
+        queryParams.append('lead_id', filtersRef.current.lead_id);
+      }
+      if (campaignRunId) {
+        queryParams.append('campaign_run_id', campaignRunId);
+      }
+      queryParams.append('page', pageNumber.toString());
+      queryParams.append('limit', pageSizeNumber.toString());
+
       const response = await getCompanyCalls(
         token,
         companyId,
-        filtersRef.current.campaign_id,
-        campaignRunId,
-        filtersRef.current.lead_id,
-        pageNumber,
-        pageSizeNumber
+        queryParams
       );
+
       setCallLogs(response.items);
       setTotalItems(response.total);
       
@@ -103,53 +183,34 @@ export const useCallLogs = (
     }
   }, [companyId, currentPage, currentPageSize, campaignRunId]);
 
-  // Fetch call logs when dependencies change
-  useEffect(() => {
-    fetchCallLogs();
-  }, [fetchCallLogs, currentPage, currentPageSize]);
-
   // Consolidated effect for all data fetching
   useEffect(() => {
     // Skip the initial render for filter changes
     if (isInitialMount.current) {
       isInitialMount.current = false;
-    } else if (filters.campaign_id !== filtersRef.current.campaign_id || filters.lead_id !== filtersRef.current.lead_id) {
-      // Reset to page 1 only when campaign or lead changes
+    } else if (
+      filters.campaign_id !== filtersRef.current.campaign_id || 
+      filters.lead_id !== filtersRef.current.lead_id ||
+      filters.sentiment !== filtersRef.current.sentiment ||
+      filters.has_meeting_booked !== filtersRef.current.has_meeting_booked ||
+      filters.dateRange !== filtersRef.current.dateRange
+    ) {
+      // Reset to page 1 when any filter changes
       setCurrentPage(1);
       return; // Let the page change trigger the fetch
     }
     
     fetchCallLogs();
-  }, [fetchCallLogs, currentPage, currentPageSize, filters.campaign_id, filters.lead_id]);
-
-  // Filter call logs based on date range on the client side
-  const filteredCallLogs = useMemo(() => {
-    if (filters.dateRange === 'all') {
-      return callLogs;
-    }
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const startOfWeek = new Date(today);
-    startOfWeek.setDate(today.getDate() - today.getDay()); // Start of current week (Sunday)
-
-    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-
-    return callLogs.filter(log => {
-      const callDate = new Date(log.last_called_at);
-      switch (filters.dateRange) {
-        case 'today':
-          return callDate >= today;
-        case 'week':
-          return callDate >= startOfWeek;
-        case 'month':
-          return callDate >= startOfMonth;
-        default:
-          return true;
-      }
-    });
-  }, [callLogs, filters.dateRange]);
+  }, [
+    fetchCallLogs, 
+    currentPage, 
+    currentPageSize, 
+    filters.campaign_id, 
+    filters.lead_id,
+    filters.sentiment,
+    filters.has_meeting_booked,
+    filters.dateRange
+  ]);
 
   const handleSetPage = (page: number) => {
     if (isNaN(page) || page < 1) {
@@ -171,7 +232,7 @@ export const useCallLogs = (
   };
 
   return {
-    callLogs: filteredCallLogs,
+    callLogs,
     isLoading,
     error,
     totalItems,
