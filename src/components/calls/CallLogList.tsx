@@ -1,16 +1,9 @@
 import React, { useState } from 'react';
-import { Phone, Clock, ThumbsUp, ThumbsDown, Minus, CalendarCheck, ChevronRight, Filter, PlayCircle, X, PhoneOff } from 'lucide-react';
+import { Phone, Clock, ThumbsUp, ThumbsDown, Minus, CalendarCheck, ChevronRight, PlayCircle, X, PhoneOff } from 'lucide-react';
 import { CallLog } from '../../types';
 import { formatDuration, formatDateTime } from '../../utils/formatters';
 import { CallTranscriptsDialog } from './CallTranscriptsDialog';
 import { CallSummaryPanel } from './CallSummaryPanel';
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
-
-interface CallLogFilters {
-  sentiment?: 'positive' | 'negative' | 'not_connected';
-  hasMeeting?: boolean;
-  dateRange?: 'today' | 'week' | 'month' | 'all';
-}
 
 interface CallLogListProps {
   callLogs: CallLog[];
@@ -35,7 +28,6 @@ export function CallLogList({
 }: CallLogListProps) {
   const [selectedLog, setSelectedLog] = useState<CallLog | null>(null);
   const [dialogType, setDialogType] = useState<'summary' | 'transcripts' | null>(null);
-  const [filters, setFilters] = useState<CallLogFilters>({});
   const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
   
   // Ensure page is always a number
@@ -94,16 +86,6 @@ export function CallLogList({
     }
   };
 
-  const filteredCallLogs = callLogs.filter(log => {
-    if (filters.sentiment && log.sentiment !== filters.sentiment) {
-      return false;
-    }
-    if (filters.hasMeeting !== undefined && log.has_meeting_booked !== filters.hasMeeting) {
-      return false;
-    }
-    return true;
-  });
-
   const startItem = (currentPage - 1) * currentPageSize + 1;
   const endItem = Math.min(currentPage * currentPageSize, currentTotalItems);
 
@@ -130,82 +112,7 @@ export function CallLogList({
                   Actions
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <div className="flex items-center space-x-2">
-                    <span>Outcome</span>
-                    <DropdownMenu.Root>
-                      <DropdownMenu.Trigger asChild>
-                        <button 
-                          className={`p-1 rounded-md hover:bg-gray-200 focus:outline-none ${
-                            Object.keys(filters).length > 0 ? 'bg-indigo-100 text-indigo-600' : 'text-gray-400'
-                          }`}
-                          title="Filter outcomes"
-                        >
-                          <Filter className="h-4 w-4" />
-                        </button>
-                      </DropdownMenu.Trigger>
-                      <DropdownMenu.Portal>
-                        <DropdownMenu.Content
-                          className="bg-white rounded-md shadow-lg p-2 min-w-[200px] z-50"
-                          sideOffset={5}
-                        >
-                          <div className="px-2 py-1 text-xs font-medium text-gray-500 uppercase">
-                            Sentiment
-                          </div>
-                          <DropdownMenu.Item
-                            className={`text-sm px-2 py-1 my-1 rounded cursor-pointer flex items-center ${
-                              filters.sentiment === 'positive' ? 'bg-indigo-50 text-indigo-600' : 'hover:bg-gray-100'
-                            }`}
-                            onClick={() => setFilters(f => ({
-                              ...f,
-                              sentiment: f.sentiment === 'positive' ? undefined : 'positive'
-                            }))}
-                          >
-                            <ThumbsUp className="h-4 w-4 mr-2" />
-                            Positive
-                          </DropdownMenu.Item>
-                          <DropdownMenu.Item
-                            className={`text-sm px-2 py-1 my-1 rounded cursor-pointer flex items-center ${
-                              filters.sentiment === 'negative' ? 'bg-indigo-50 text-indigo-600' : 'hover:bg-gray-100'
-                            }`}
-                            onClick={() => setFilters(f => ({
-                              ...f,
-                              sentiment: f.sentiment === 'negative' ? undefined : 'negative'
-                            }))}
-                          >
-                            <ThumbsDown className="h-4 w-4 mr-2" />
-                            Negative
-                          </DropdownMenu.Item>
-                          <DropdownMenu.Separator className="my-2 h-px bg-gray-200" />
-                          <div className="px-2 py-1 text-xs font-medium text-gray-500 uppercase">
-                            Meeting Status
-                          </div>
-                          <DropdownMenu.Item
-                            className={`text-sm px-2 py-1 my-1 rounded cursor-pointer flex items-center ${
-                              filters.hasMeeting === true ? 'bg-indigo-50 text-indigo-600' : 'hover:bg-gray-100'
-                            }`}
-                            onClick={() => setFilters(f => ({
-                              ...f,
-                              hasMeeting: f.hasMeeting === true ? undefined : true
-                            }))}
-                          >
-                            <CalendarCheck className="h-4 w-4 mr-2" />
-                            Meeting Booked
-                          </DropdownMenu.Item>
-                          {Object.keys(filters).length > 0 && (
-                            <>
-                              <DropdownMenu.Separator className="my-2 h-px bg-gray-200" />
-                              <DropdownMenu.Item
-                                className="text-sm px-2 py-1 my-1 rounded cursor-pointer text-red-600 hover:bg-red-50 flex items-center justify-center"
-                                onClick={() => setFilters({})}
-                              >
-                                Clear Filters
-                              </DropdownMenu.Item>
-                            </>
-                          )}
-                        </DropdownMenu.Content>
-                      </DropdownMenu.Portal>
-                    </DropdownMenu.Root>
-                  </div>
+                  Outcome
                 </th>
                 <th scope="col" className="relative px-6 py-3">
                   <span className="sr-only">View Details</span>
@@ -213,7 +120,7 @@ export function CallLogList({
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredCallLogs.map((log) => (
+              {callLogs.map((log) => (
                 <tr key={log.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">{log.lead_name}</div>
@@ -293,8 +200,8 @@ export function CallLogList({
           <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
             <div>
               <p className="text-sm text-gray-700">
-                Showing <span className="font-medium">{(currentPage - 1) * currentPageSize + 1}</span> to{' '}
-                <span className="font-medium">{Math.min(currentPage * currentPageSize, currentTotalItems)}</span> of{' '}
+                Showing <span className="font-medium">{startItem}</span> to{' '}
+                <span className="font-medium">{endItem}</span> of{' '}
                 <span className="font-medium">{currentTotalItems}</span> results
               </p>
             </div>
