@@ -43,7 +43,10 @@ Jane Smith,jane@example.com,Tech Corp,+0987654321,https://techcorp.com,500-1000,
           <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
             <li className="text-red-600">Lead name</li>
             <li className="text-red-600">Email address (used for sending campaign emails)</li>
-            <li className="text-red-600">Phone number (used for making calls) Must be in E.164 format</li>
+            <li className="text-red-600" style={{ display: 'list-item' }}>
+              Phone number (used for making calls)
+              <div style={{ marginLeft: 0 }}>&nbsp;&nbsp;&nbsp;&nbsp;Must be in E.164 format</div>
+            </li>
             <li className="text-red-600">Company name (used in lead enrichment)</li>
             <li className="text-red-600">Company website (used in lead enrichment)</li>
           </ul>
