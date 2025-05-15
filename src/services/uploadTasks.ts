@@ -42,7 +42,7 @@ export async function getUploadTasks(
   params.append('limit', pageSize.toString());
 
   const response = await fetch(
-    `${apiEndpoints.companies.uploadTasks.list(companyId)}?${params.toString()}`,
+    apiEndpoints.companies.uploadTasks.list(companyId) + '?' + params.toString(),
     {
       headers: {
         Authorization: `Bearer ${token}`,

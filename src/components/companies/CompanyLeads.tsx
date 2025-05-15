@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Upload, UserPlus, HelpCircle, History } from 'lucide-react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { EmptyState } from './EmptyState';
 import { LeadTable } from '../leads/LeadTable';
 import { FileUpload } from '../shared/FileUpload';
@@ -16,6 +16,7 @@ import { AddLeadPanel } from '../leads/AddLeadPanel';
 
 export function CompanyLeads() {
   const { companyId } = useParams();
+  const navigate = useNavigate();
   const { showToast } = useToast();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [company, setCompany] = useState<Company | null>(null);
@@ -82,9 +83,8 @@ export function CompanyLeads() {
       }
 
       await uploadLeads(token, companyId, file);
-      showToast('Data Queued. Please check back in a few minutes.', 'success');
-      // Refresh the first page after upload
-      fetchData(1);
+      showToast('Data Queued. Redirecting to upload history...', 'success');
+      navigate(`/companies/${companyId}/upload-history`);
     } catch (error) {
       console.error('Error uploading leads:', error);
       showToast(error instanceof Error ? error.message : 'Failed to upload leads', 'error');

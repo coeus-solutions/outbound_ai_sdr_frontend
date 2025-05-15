@@ -194,7 +194,7 @@ export function CompanyUploadTasks() {
                     <td className="px-6 py-4 text-sm text-gray-500 max-w-xs">
                       {typeof task.result === 'string' ? (
                         <div className="break-words">{task.result}</div>
-                      ) : (
+                      ) : task.result ? (
                         <div className="space-y-1">
                           {'leads_saved' in task.result && (
                             <>
@@ -214,7 +214,7 @@ export function CompanyUploadTasks() {
                             </div>
                           )}
                         </div>
-                      )}
+                      ) : null}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {formatDate(task.created_at)}
@@ -230,7 +230,7 @@ export function CompanyUploadTasks() {
                       </button>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {typeof task.result === 'object' && (
+                      {task.result && typeof task.result === 'object' && (
                         ('leads_skipped' in task.result && task.result.leads_skipped > 0 ||
                          'emails_skipped' in task.result && task.result.emails_skipped > 0) && (
                           <button
