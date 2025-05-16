@@ -17,7 +17,7 @@ export function SkippedRecordsDialog({ isOpen, onClose, uploadTaskId, type }: Sk
   const [loading, setLoading] = useState(true);
   const [skippedRows, setSkippedRows] = useState<SkippedRow[]>([]);
   const [page, setPage] = useState(1);
-  const [pageSize] = useState(20);
+  const [pageSize] = useState(5);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
