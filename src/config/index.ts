@@ -96,5 +96,6 @@ export const apiEndpoints = {
   },
   uploadHistory: {
     download: (uploadTaskId: string) => `${config.apiUrl}/api/upload-tasks/${uploadTaskId}/download`,
+    skippedRows: (uploadTaskId: string) => `${config.apiUrl}/api/upload-tasks/${uploadTaskId}/skipped-rows`,
   },
 } as const; 

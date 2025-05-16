@@ -31,6 +31,22 @@ export interface PaginatedUploadTaskResponse {
   total_pages: number;
 }
 
+export interface SkippedRow {
+  id: string;
+  upload_task_id: string;
+  category: string;
+  row_data: Record<string, any>;
+  created_at: string;
+}
+
+export interface PaginatedSkippedRowResponse {
+  items: SkippedRow[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
+
 export async function getUploadTasks(
   token: string,
   companyId: string,
@@ -75,4 +91,30 @@ export async function downloadUploadFile(
   }
 
   return response.blob();
+}
+
+export async function getSkippedRows(
+  token: string,
+  uploadTaskId: string,
+  page: number = 1,
+  pageSize: number = 20
+): Promise<PaginatedSkippedRowResponse> {
+  const params = new URLSearchParams();
+  params.append('page_number', page.toString());
+  params.append('limit', pageSize.toString());
+
+  const response = await fetch(
+    `${apiEndpoints.uploadHistory.skippedRows(uploadTaskId)}?${params.toString()}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch skipped rows');
+  }
+
+  return response.json();
 } 

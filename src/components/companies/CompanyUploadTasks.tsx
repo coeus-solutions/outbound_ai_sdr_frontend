@@ -8,6 +8,7 @@ import { formatDate } from '../../utils/date';
 import { getToken } from '../../utils/auth';
 import { useToast } from '../../context/ToastContext';
 import { TableSkeletonLoader } from '../shared/TableSkeletonLoader';
+import { SkippedRecordsDialog } from './SkippedRecordsDialog';
 
 export function CompanyUploadTasks() {
   const { companyId } = useParams();
@@ -20,6 +21,8 @@ export function CompanyUploadTasks() {
   const [pageSize] = useState(20);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [isSkippedRecordsDialogOpen, setIsSkippedRecordsDialogOpen] = useState(false);
+  const [selectedUploadTaskId, setSelectedUploadTaskId] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -235,7 +238,10 @@ export function CompanyUploadTasks() {
                          'emails_skipped' in task.result && task.result.emails_skipped > 0) && (
                           <button
                             className="text-indigo-600 hover:text-indigo-900 focus:outline-none focus:underline"
-                            onClick={() => {/* TODO: Implement skipped records view */}}
+                            onClick={() => {
+                              setSelectedUploadTaskId(task.id);
+                              setIsSkippedRecordsDialogOpen(true);
+                            }}
                           >
                             View
                           </button>
@@ -297,6 +303,16 @@ export function CompanyUploadTasks() {
           </div>
         )}
       </div>
+      {selectedUploadTaskId && (
+        <SkippedRecordsDialog
+          isOpen={isSkippedRecordsDialogOpen}
+          onClose={() => {
+            setIsSkippedRecordsDialogOpen(false);
+            setSelectedUploadTaskId(null);
+          }}
+          uploadTaskId={selectedUploadTaskId}
+        />
+      )}
     </div>
   );
 } 
