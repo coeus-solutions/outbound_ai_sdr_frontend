@@ -311,6 +311,7 @@ export function CompanyUploadTasks() {
             setSelectedUploadTaskId(null);
           }}
           uploadTaskId={selectedUploadTaskId}
+          type={uploadTasks.find(task => task.id === selectedUploadTaskId)?.type || 'leads'}
         />
       )}
     </div>

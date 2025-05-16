@@ -9,9 +9,10 @@ interface SkippedRecordsDialogProps {
   isOpen: boolean;
   onClose: () => void;
   uploadTaskId: string;
+  type: string;
 }
 
-export function SkippedRecordsDialog({ isOpen, onClose, uploadTaskId }: SkippedRecordsDialogProps) {
+export function SkippedRecordsDialog({ isOpen, onClose, uploadTaskId, type }: SkippedRecordsDialogProps) {
   const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [skippedRows, setSkippedRows] = useState<SkippedRow[]>([]);
@@ -19,6 +20,17 @@ export function SkippedRecordsDialog({ isOpen, onClose, uploadTaskId }: SkippedR
   const [pageSize] = useState(20);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+
+  const getDialogTitle = () => {
+    switch (type) {
+      case 'leads':
+        return 'Skipped Leads';
+      case 'do_not_email':
+        return 'Skipped Emails';
+      default:
+        return 'Skipped Records';
+    }
+  };
 
   useEffect(() => {
     async function fetchSkippedRows() {
@@ -53,105 +65,153 @@ export function SkippedRecordsDialog({ isOpen, onClose, uploadTaskId }: SkippedR
     setPage(newPage);
   };
 
+  const startItem = (page - 1) * pageSize + 1;
+  const endItem = Math.min(page * pageSize, totalItems);
+
+  // Get all unique fields from all rows
+  const getAllFields = () => {
+    const fields = new Set<string>();
+    skippedRows.forEach(row => {
+      Object.keys(row.row_data).forEach(key => fields.add(key));
+    });
+    return Array.from(fields);
+  };
+
+  const fields = getAllFields();
+
+  const getCategoryBadgeColor = (category: string) => {
+    switch (category.toLowerCase()) {
+      case 'missing_name':
+        return 'bg-amber-100 text-amber-800';
+      case 'invalid_email':
+        return 'bg-red-100 text-red-800';
+      case 'invalid_phone':
+        return 'bg-purple-100 text-purple-800';
+      case 'missing_company_name_or_website':
+        return 'bg-blue-100 text-blue-800';
+      case 'lead_creation_error':
+        return 'bg-rose-100 text-rose-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const formatCategoryLabel = (category: string) => {
+    return category
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
   return (
     <Dialog
       isOpen={isOpen}
       onClose={onClose}
-      title="Skipped Records"
-      size="xl"
+      title={getDialogTitle()}
+      size="4xl"
     >
       <div className="space-y-4">
         {loading ? (
-          <TableSkeletonLoader rowCount={5} columnCount={3} hasHeader={true} />
+          <TableSkeletonLoader rowCount={5} columnCount={fields.length + 2} hasHeader={true} />
         ) : (
           <>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Category
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Row Data
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Created At
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {skippedRows.map((row) => (
-                    <tr key={row.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {row.category}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
-                        <pre className="whitespace-pre-wrap">
-                          {JSON.stringify(row.row_data, null, 2)}
-                        </pre>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(row.created_at).toLocaleString()}
-                      </td>
+            {skippedRows.length === 0 ? (
+              <div className="text-center py-12">
+                <svg
+                  className="mx-auto h-12 w-12 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                  />
+                </svg>
+                <h3 className="mt-2 text-sm font-medium text-gray-900">No {type === 'leads' ? 'leads' : 'emails'} skipped</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  All {type === 'leads' ? 'leads' : 'emails'} in this upload were processed successfully.
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Reason
+                      </th>
+                      {fields.map(field => (
+                        <th key={field} scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {field}
+                        </th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {skippedRows.map((row) => (
+                      <tr key={row.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryBadgeColor(row.category)}`}>
+                            {formatCategoryLabel(row.category)}
+                          </span>
+                        </td>
+                        {fields.map(field => (
+                          <td key={field} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {typeof row.row_data[field] === 'object' && row.row_data[field] !== null
+                              ? JSON.stringify(row.row_data[field])
+                              : String(row.row_data[field] ?? '')}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
-            {totalPages > 1 && (
-              <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
-                <div className="flex flex-1 justify-between sm:hidden">
+            {skippedRows.length > 0 && (
+              <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                <div className="flex-1 flex justify-between sm:hidden">
                   <button
-                    onClick={() => handlePageChange(page - 1)}
+                    onClick={() => handlePageChange(Math.max(page - 1, 1))}
                     disabled={page === 1}
-                    className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                    className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                   >
                     Previous
                   </button>
                   <button
-                    onClick={() => handlePageChange(page + 1)}
+                    onClick={() => handlePageChange(Math.min(page + 1, totalPages))}
                     disabled={page === totalPages}
-                    className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                   >
                     Next
                   </button>
                 </div>
-                <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                   <div>
                     <p className="text-sm text-gray-700">
-                      Showing <span className="font-medium">{((page - 1) * pageSize) + 1}</span> to{' '}
-                      <span className="font-medium">{Math.min(page * pageSize, totalItems)}</span> of{' '}
+                      Showing <span className="font-medium">{startItem}</span> to{' '}
+                      <span className="font-medium">{endItem}</span> of{' '}
                       <span className="font-medium">{totalItems}</span> results
                     </p>
                   </div>
                   <div>
-                    <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                    <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
                       <button
-                        onClick={() => handlePageChange(page - 1)}
+                        onClick={() => handlePageChange(Math.max(page - 1, 1))}
                         disabled={page === 1}
-                        className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                        className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
                       >
                         Previous
                       </button>
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
-                        <button
-                          key={pageNum}
-                          onClick={() => handlePageChange(pageNum)}
-                          className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
-                            page === pageNum
-                              ? 'z-10 bg-indigo-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
-                              : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-offset-0'
-                          }`}
-                        >
-                          {pageNum}
-                        </button>
-                      ))}
                       <button
-                        onClick={() => handlePageChange(page + 1)}
+                        onClick={() => handlePageChange(Math.min(page + 1, totalPages))}
                         disabled={page === totalPages}
-                        className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                        className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
                       >
                         Next
                       </button>
