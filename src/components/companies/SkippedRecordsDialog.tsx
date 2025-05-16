@@ -3,27 +3,12 @@ import { Dialog } from '../shared/Dialog';
 import { getToken } from '../../utils/auth';
 import { useToast } from '../../context/ToastContext';
 import { TableSkeletonLoader } from '../shared/TableSkeletonLoader';
+import { getSkippedRows, type SkippedRow, type PaginatedSkippedRowResponse } from '../../services/uploadTasks';
 
 interface SkippedRecordsDialogProps {
   isOpen: boolean;
   onClose: () => void;
   uploadTaskId: string;
-}
-
-interface SkippedRow {
-  id: string;
-  upload_task_id: string;
-  category: string;
-  row_data: Record<string, any>;
-  created_at: string;
-}
-
-interface PaginatedResponse {
-  items: SkippedRow[];
-  total: number;
-  page: number;
-  page_size: number;
-  total_pages: number;
 }
 
 export function SkippedRecordsDialog({ isOpen, onClose, uploadTaskId }: SkippedRecordsDialogProps) {
@@ -47,20 +32,7 @@ export function SkippedRecordsDialog({ isOpen, onClose, uploadTaskId }: SkippedR
           return;
         }
 
-        const response = await fetch(
-          `/api/upload-tasks/${uploadTaskId}/skipped-rows?page_number=${page}&limit=${pageSize}`,
-          {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch skipped rows');
-        }
-
-        const data: PaginatedResponse = await response.json();
+        const data = await getSkippedRows(token, uploadTaskId, page, pageSize);
         setSkippedRows(data.items);
         setTotalItems(data.total);
         setTotalPages(data.total_pages);

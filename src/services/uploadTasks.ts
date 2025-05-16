@@ -1,4 +1,4 @@
-import { apiEndpoints } from '../config';
+import { apiEndpoints, config } from '../config';
 
 interface UploadTaskResultLeads {
   leads_saved: number;
@@ -104,10 +104,11 @@ export async function getSkippedRows(
   params.append('limit', pageSize.toString());
 
   const response = await fetch(
-    `${apiEndpoints.uploadHistory.skippedRows(uploadTaskId)}?${params.toString()}`,
+    `${config.apiUrl}/api/upload-tasks/${uploadTaskId}/skipped-rows?${params.toString()}`,
     {
       headers: {
-        Authorization: `Bearer ${token}`,
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
       },
     }
   );
