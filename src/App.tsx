@@ -30,6 +30,7 @@ import { EmailQueues } from './components/campaigns/EmailQueues';
 import { CallQueues } from './components/campaigns/CallQueues';
 import { SubscriptionSuccess } from './components/subscription/SubscriptionSuccess';
 import { SubscriptionDetails } from './components/subscription/SubscriptionDetails';
+import { CompanyUploadTasks } from './components/companies/CompanyUploadTasks';
 
 // Import competitor pages
 import { JasonAIPage } from './components/competitors/JasonAIPage';
@@ -138,6 +139,7 @@ export function App() {
             <Route path="/companies/:companyId/products/:productId/edit" element={<EditProduct />} />
             <Route path="/companies/:companyId/products/:productId/leads" element={<LeadList />} />
             <Route path="/companies/:companyId/leads" element={<CompanyLeads />} />
+            <Route path="/companies/:companyId/upload-history" element={<CompanyUploadTasks />} />
             <Route path="/companies/:companyId/calls" element={<CompanyCallLogs />} />
             <Route path="/companies/:companyId/emails" element={<CompanyEmails />} />
             <Route path="/companies/:companyId/campaigns" element={<CompanyCampaigns />} />

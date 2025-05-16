@@ -71,6 +71,9 @@ export const apiEndpoints = {
       upload: (companyId: string) => `${config.apiUrl}/api/companies/${companyId}/do-not-email/upload`,
       list: (companyId: string) => `${config.apiUrl}/api/companies/${companyId}/do-not-email`,
     },
+    uploadTasks: {
+      list: (companyId: string) => `${config.apiUrl}/api/companies/${companyId}/upload-tasks`,
+    },
   },
   calls: {
     details: (callId: string) => `${config.apiUrl}/api/calls/${callId}`,
@@ -90,5 +93,9 @@ export const apiEndpoints = {
   },
   generate: {
     campaign: `${config.apiUrl}/api/generate-campaign`,
+  },
+  uploadHistory: {
+    download: (uploadTaskId: string) => `${config.apiUrl}/api/upload-tasks/${uploadTaskId}/download`,
+    skippedRows: (uploadTaskId: string) => `${config.apiUrl}/api/upload-tasks/${uploadTaskId}/skipped-rows`,
   },
 } as const; 
