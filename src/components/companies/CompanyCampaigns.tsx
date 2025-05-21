@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Mail, Plus, Eye, Play, Phone, TestTube2, MoreVertical, ChevronDown } from 'lucide-react';
+import { Mail, Plus, Eye, Play, Phone, MoreVertical, ChevronDown } from 'lucide-react';
 import { PageHeader } from '../shared/PageHeader';
 import { getCompanyById, Company } from '../../services/companies';
-import { getCompanyCampaigns, Campaign, runCampaign, testRunCampaign } from '../../services/emailCampaigns';
+import { getCompanyCampaigns, Campaign, runCampaign } from '../../services/emailCampaigns';
 import { getToken } from '../../utils/auth';
 import { useToast } from '../../context/ToastContext';
 import { formatDateTime } from '../../utils/formatters';
-import { TestRunDialog } from './TestRunDialog';
 
 interface APIError {
   response?: {
@@ -65,22 +64,6 @@ export function CompanyCampaigns() {
     isOpen: false,
     template: '',
   });
-  const [testRunDialog, setTestRunDialog] = useState<{ isOpen: boolean; campaign: Campaign | null }>({
-    isOpen: false,
-    campaign: null,
-  });
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (openMenuId && !(event.target as Element).closest('.dropdown-menu')) {
-        setOpenMenuId(null);
-      }
-    };
-
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
-  }, [openMenuId]);
 
   useEffect(() => {
     async function fetchData() {
@@ -135,31 +118,6 @@ export function CompanyCampaigns() {
       }
     } finally {
       setIsRunning(null);
-    }
-  };
-
-  const handleTestRun = async (value: string) => {
-    if (!testRunDialog.campaign) return;
-    
-    try {
-      const token = getToken();
-      if (!token) {
-        showToast('Authentication failed. Please try logging in again.', 'error');
-        return;
-      }
-
-      // Add + symbol for phone numbers if not already present
-      const formattedValue = testRunDialog.campaign.type === 'call' && !value.startsWith('+') ? `+${value}` : value;
-      await testRunCampaign(token, testRunDialog.campaign.id, formattedValue);
-      showToast(`Test run initiated for ${testRunDialog.campaign.name}`, 'success');
-    } catch (err) {
-      console.error('API Error:', err);
-      const error = err as APIError;
-      if (error?.response?.status === 400 && error?.response?.data?.detail) {
-        showToast(error.response.data.detail, 'error');
-      } else {
-        showToast('Failed to run test campaign', 'error');
-      }
     }
   };
 
@@ -218,14 +176,6 @@ export function CompanyCampaigns() {
 
   return (
     <div className="space-y-6">
-      <TestRunDialog
-        isOpen={testRunDialog.isOpen}
-        onClose={() => setTestRunDialog({ isOpen: false, campaign: null })}
-        campaignType={testRunDialog.campaign?.type === 'email_and_call' ? 'email' : testRunDialog.campaign?.type || 'email'}
-        campaignName={testRunDialog.campaign?.name || ''}
-        onSubmit={handleTestRun}
-      />
-      
       <TemplateDialog
         isOpen={templateDialog.isOpen}
         onClose={() => setTemplateDialog({ isOpen: false, template: '' })}
@@ -394,18 +344,6 @@ export function CompanyCampaigns() {
                   : 'text-gray-400 group-hover:text-indigo-500'
               }`} />
               Run Campaign
-            </button>
-            <button
-              onClick={() => {
-                setOpenMenuId(null);
-                setMenuPosition(null);
-                const campaign = campaigns.find(c => c.id === openMenuId);
-                if (campaign) setTestRunDialog({ isOpen: true, campaign });
-              }}
-              className="group flex items-center px-4 py-2 text-xs text-gray-700 hover:bg-indigo-50 hover:text-indigo-900 w-full text-left"
-            >
-              <TestTube2 className="h-4 w-4 mr-3 text-gray-400 group-hover:text-indigo-500" />
-              Test Run
             </button>
           </div>
         </div>
