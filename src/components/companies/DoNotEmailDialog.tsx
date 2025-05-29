@@ -6,6 +6,7 @@ import { DoNotEmailEntry, getDoNotEmailList } from '../../services/companies';
 import { useToast } from '../../context/ToastContext';
 import { FileUpload } from '../shared/FileUpload';
 import { apiEndpoints } from '../../config';
+import { useNavigate } from 'react-router-dom';
 
 interface DoNotEmailDialogProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ type TabType = 'view' | 'upload';
 
 export function DoNotEmailDialog({ isOpen, onClose, companyId }: DoNotEmailDialogProps) {
   const { showToast } = useToast();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabType>('view');
   const [entries, setEntries] = useState<DoNotEmailEntry[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -78,11 +80,9 @@ export function DoNotEmailDialog({ isOpen, onClose, companyId }: DoNotEmailDialo
         throw new Error('Failed to upload do-not-email list');
       }
 
-      showToast('Do-not-email list uploaded successfully', 'success');
-      // Refresh the list if we're viewing it
-      if (activeTab === 'view') {
-        fetchDoNotEmailList(1);
-      }
+      showToast('Data Queued. Redirecting to upload history...', 'success');
+      onClose();
+      navigate(`/companies/${companyId}/upload-history`);
     } catch (error) {
       console.error('Error uploading do-not-email list:', error);
       showToast('Failed to upload do-not-email list. Please try again.', 'error');
