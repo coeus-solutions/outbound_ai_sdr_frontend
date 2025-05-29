@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Download, FileSpreadsheet } from 'lucide-react';
+import { Download, FileSpreadsheet, Info } from 'lucide-react';
 import { PageHeader } from '../shared/PageHeader';
 import { getCompanyById, type Company } from '../../services/companies';
 import { getUploadTasks, downloadUploadFile, type UploadTask } from '../../services/uploadTasks';
@@ -140,6 +140,13 @@ export function CompanyUploadTasks() {
         title={company?.name || 'Company'}
         subtitle="CSV Upload History for"
       />
+
+      <div className="bg-blue-50 border border-blue-200 rounded-md p-4 flex items-center space-x-2">
+        <Info className="h-5 w-5 text-blue-400" />
+        <p className="text-sm text-blue-700">
+          CSV processing progress is updated periodically. Refresh the page to see the latest results.
+        </p>
+      </div>
 
       <div className="bg-white shadow rounded-lg">
         <div className="overflow-x-auto">
