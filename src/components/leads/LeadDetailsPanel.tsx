@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Building2, Mail, Phone, MapPin, Globe, Briefcase, Users, DollarSign, Calendar, Award, BookOpen, Linkedin, LucideIcon, Zap, Loader2, FileText, PhoneCall } from 'lucide-react';
+import { X, Building2, Mail, Phone, MapPin, Globe, Briefcase, Users, DollarSign, Calendar, Award, BookOpen, Linkedin, LucideIcon, Zap, Loader2, FileText, PhoneCall, PlayCircle } from 'lucide-react';
 import { formatCurrency } from '../../utils/formatters';
 import { LeadDetail, enrichLeadData } from '../../services/leads';
 import { getToken } from '../../utils/auth';
@@ -8,6 +8,7 @@ import { useParams } from 'react-router-dom';
 import { Product, getProducts } from '../../services/products';
 import { EmailScriptDialog } from './EmailScriptDialog';
 import { CallScriptDialog } from './CallScriptDialog';
+import { SimulateEmailCampaignDialog } from './SimulateEmailCampaignDialog';
 
 interface LeadDetailsPanelProps {
   isOpen: boolean;
@@ -24,6 +25,7 @@ export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick, on
   const [isEnriching, setIsEnriching] = useState(false);
   const [isEmailScriptDialogOpen, setIsEmailScriptDialogOpen] = useState(false);
   const [isCallScriptDialogOpen, setIsCallScriptDialogOpen] = useState(false);
+  const [isSimulateCampaignDialogOpen, setIsSimulateCampaignDialogOpen] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const { showToast } = useToast();
@@ -90,6 +92,10 @@ export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick, on
 
   const handleCallScriptClick = () => {
     setIsCallScriptDialogOpen(true);
+  };
+
+  const handleSimulateCampaignClick = () => {
+    setIsSimulateCampaignDialogOpen(true);
   };
 
   const DetailSection = ({ title, children }: { title: string; children: React.ReactNode }) => (
@@ -190,6 +196,9 @@ export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick, on
       companyName?: string;
       businessModel?: string;
       keyProductsServices?: string[];
+      description?: string;
+      company_highlights?: string[];
+      products_and_services?: string[];
     } 
   }) => {
     if (!data) return null;
@@ -198,10 +207,10 @@ export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick, on
       <div className="mb-6">
         <h3 className="text-sm font-semibold text-gray-900 mb-3">Business Overview</h3>
         <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-          {data.companyName && (
+          {(data.companyName || data.description) && (
             <div className="mb-4">
-              <p className="text-sm font-medium text-gray-900 mb-1">Company Name</p>
-              <p className="text-sm text-gray-600">{data.companyName}</p>
+              <p className="text-sm font-medium text-gray-900 mb-1">{data.companyName ? 'Company Name' : 'Description'}</p>
+              <p className="text-sm text-gray-600">{data.companyName || data.description}</p>
             </div>
           )}
           
@@ -212,11 +221,23 @@ export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick, on
             </div>
           )}
           
-          {data.keyProductsServices && data.keyProductsServices.length > 0 && (
-            <div>
-              <p className="text-sm font-medium text-gray-900 mb-2">Key Products & Services</p>
+          {data.company_highlights && data.company_highlights.length > 0 && (
+            <div className="mb-4">
+              <p className="text-sm font-medium text-gray-900 mb-2">Company Highlights</p>
               <ul className="list-disc list-inside space-y-1">
-                {data.keyProductsServices.map((item: string, index: number) => (
+                {data.company_highlights.map((item: string, index: number) => (
+                  <li key={index} className="text-sm text-gray-600">{item}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          
+          {((data.keyProductsServices && data.keyProductsServices.length > 0) || 
+            (data.products_and_services && data.products_and_services.length > 0)) && (
+            <div>
+              <p className="text-sm font-medium text-gray-900 mb-2">Products & Services</p>
+              <ul className="list-disc list-inside space-y-1">
+                {(data.keyProductsServices || data.products_and_services || []).map((item: string, index: number) => (
                   <li key={index} className="text-sm text-gray-600">{item}</li>
                 ))}
               </ul>
@@ -245,7 +266,21 @@ export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick, on
   };
 
   const renderEnrichedData = () => {
-    if (!leadDetails.enriched_data) {
+    // Debug logging
+    console.log('Lead enriched data:', leadDetails.enriched_data);
+    
+    // Check if enriched_data is empty or doesn't have meaningful content
+    // Check for both camelCase and UPPERCASE keys
+    const hasEnrichedData = leadDetails.enriched_data && 
+      typeof leadDetails.enriched_data === 'object' &&
+      Object.keys(leadDetails.enriched_data).length > 0 &&
+      (leadDetails.enriched_data.businessOverview || leadDetails.enriched_data.BUSINESS_OVERVIEW ||
+       leadDetails.enriched_data.prospectProfessionalInterests || leadDetails.enriched_data.PROSPECT_PROFESSIONAL_INTERESTS ||
+       leadDetails.enriched_data.painPoints || leadDetails.enriched_data.PAIN_POINTS ||
+       leadDetails.enriched_data.buyingTriggers || leadDetails.enriched_data.BUYING_TRIGGERS ||
+       leadDetails.enriched_data.industryChallenges || leadDetails.enriched_data.INDUSTRY_CHALLENGES);
+
+    if (!hasEnrichedData) {
       return (
         <div className="p-8 flex flex-col items-center justify-center h-64">
           <p className="text-gray-500 text-center mb-6">No enriched data available for this lead.</p>
@@ -262,7 +297,7 @@ export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick, on
             ) : (
               <>
                 <Zap className="h-4 w-4 mr-2" />
-                Enrich Data
+                Enrich Now
               </>
             )}
           </button>
@@ -272,52 +307,79 @@ export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick, on
 
     const { 
       businessOverview,
+      BUSINESS_OVERVIEW,
       prospectProfessionalInterests,
+      PROSPECT_PROFESSIONAL_INTERESTS,
       painPoints,
+      PAIN_POINTS,
       buyingTriggers,
-      industryChallenges
+      BUYING_TRIGGERS,
+      industryChallenges,
+      INDUSTRY_CHALLENGES
     } = leadDetails.enriched_data;
+
+    // Use uppercase versions if camelCase ones don't exist
+    const businessData = businessOverview || BUSINESS_OVERVIEW;
+    const professionalInterests = prospectProfessionalInterests || PROSPECT_PROFESSIONAL_INTERESTS;
+    const painPointsData = painPoints || PAIN_POINTS;
+    const buyingTriggersData = buyingTriggers || BUYING_TRIGGERS;
+    const industryChallengesData = industryChallenges || INDUSTRY_CHALLENGES;
 
     // Add debug logging
     console.log('Enriched Data:', {
-      businessOverview,
-      prospectProfessionalInterests,
-      painPoints,
-      buyingTriggers,
-      industryChallenges
+      businessData,
+      professionalInterests,
+      painPointsData,
+      buyingTriggersData,
+      industryChallengesData
     });
 
     return (
       <>
-        {businessOverview && (
-          <BusinessOverviewSection data={businessOverview} />
+        {businessData && (
+          <BusinessOverviewSection data={businessData} />
         )}
         
-        {Array.isArray(painPoints) && painPoints.length > 0 && (
+        {painPointsData && (
           <EnrichedDataList 
             title="Pain Points" 
-            items={painPoints} 
+            items={Array.isArray(painPointsData) 
+              ? painPointsData.map(item => typeof item === 'string' ? item : `${item.pain_point}: ${item.explanation}`)
+              : []
+            } 
           />
         )}
         
-        {Array.isArray(buyingTriggers) && buyingTriggers.length > 0 && (
+        {buyingTriggersData && (
           <EnrichedDataList 
             title="Buying Triggers" 
-            items={buyingTriggers} 
+            items={Array.isArray(buyingTriggersData) 
+              ? buyingTriggersData.map(item => typeof item === 'string' ? item : `${item.trigger}: ${item.explanation}`)
+              : []
+            } 
           />
         )}
         
-        {Array.isArray(industryChallenges) && industryChallenges.length > 0 && (
+        {industryChallengesData && (
           <EnrichedDataList 
             title="Industry Challenges" 
-            items={industryChallenges} 
+            items={
+              Array.isArray(industryChallengesData) 
+                ? industryChallengesData 
+                : (industryChallengesData?.challenges 
+                  ? industryChallengesData.challenges.map(item => `${item.challenge}: ${item.impact}`)
+                  : [])
+            } 
           />
         )}
         
-        {Array.isArray(prospectProfessionalInterests) && prospectProfessionalInterests.length > 0 && (
+        {professionalInterests && (
           <EnrichedDataList 
             title="Professional Interests" 
-            items={prospectProfessionalInterests} 
+            items={Array.isArray(professionalInterests) 
+              ? professionalInterests.map(item => typeof item === 'string' ? item : `${item.interest}: ${item.explanation}`)
+              : []
+            } 
           />
         )}
       </>
@@ -331,6 +393,13 @@ export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick, on
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
           <h2 className="text-lg font-medium text-gray-900">Lead Details</h2>
           <div className="flex items-center space-x-4">
+            <button
+              onClick={handleSimulateCampaignClick}
+              className="text-indigo-600 hover:text-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              title="Simulate Email Campaign"
+            >
+              <PlayCircle className="h-5 w-5" />
+            </button>
             <button
               onClick={handleCallScriptClick}
               className="text-indigo-600 hover:text-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -413,6 +482,17 @@ export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick, on
         <CallScriptDialog
           isOpen={isCallScriptDialogOpen}
           onClose={() => setIsCallScriptDialogOpen(false)}
+          companyId={companyId}
+          leadId={leadDetails.id}
+          products={isLoadingProducts ? [] : products}
+        />
+      )}
+
+      {/* Simulate Email Campaign Dialog */}
+      {leadDetails && companyId && (
+        <SimulateEmailCampaignDialog
+          isOpen={isSimulateCampaignDialogOpen}
+          onClose={() => setIsSimulateCampaignDialogOpen(false)}
           companyId={companyId}
           leadId={leadDetails.id}
           products={isLoadingProducts ? [] : products}
