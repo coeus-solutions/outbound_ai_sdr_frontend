@@ -438,13 +438,15 @@ export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick }: 
             >
               <PlayCircle className="h-5 w-5" />
             </button>
-            <button
-              onClick={handleCallScriptClick}
-              className="text-indigo-600 hover:text-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              title="Generate Call Script"
-            >
-              <PhoneCall className="h-5 w-5" />
-            </button>
+            {leadDetails?.phone_number && (
+              <button
+                onClick={handleCallScriptClick}
+                className="text-indigo-600 hover:text-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                title="Generate Call Script"
+              >
+                <PhoneCall className="h-5 w-5" />
+              </button>
+            )}
             <button
               onClick={handleEmailScriptClick}
               className="text-indigo-600 hover:text-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
