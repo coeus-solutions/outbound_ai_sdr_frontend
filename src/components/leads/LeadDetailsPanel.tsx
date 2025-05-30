@@ -431,6 +431,7 @@ export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick }: 
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
           <h2 className="text-lg font-medium text-gray-900">Lead Details</h2>
           <div className="flex items-center space-x-4">
+
             <button
               onClick={handleSimulateCampaignClick}
               className="text-indigo-600 hover:text-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -438,6 +439,8 @@ export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick }: 
             >
               <PlayCircle className="h-5 w-5" />
             </button>
+
+
             {leadDetails?.phone_number && (
               <button
                 onClick={handleCallScriptClick}

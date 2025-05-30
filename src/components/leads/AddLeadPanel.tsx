@@ -49,11 +49,6 @@ export function AddLeadPanel({ isOpen, onClose, companyId, onLeadAdded }: AddLea
       return;
     }
 
-    if (!formData.phone_number) {
-      showToast('Phone number is required', 'error');
-      return;
-    }
-
     if (!formData.company) {
       showToast('Company is required', 'error');
       return;
@@ -164,7 +159,7 @@ export function AddLeadPanel({ isOpen, onClose, companyId, onLeadAdded }: AddLea
 
             <div>
               <label htmlFor="phone_number" className="block text-sm font-medium text-gray-700">
-                Phone Number*
+                Phone Number
               </label>
               <input
                 type="tel"
@@ -172,7 +167,6 @@ export function AddLeadPanel({ isOpen, onClose, companyId, onLeadAdded }: AddLea
                 name="phone_number"
                 value={formData.phone_number}
                 onChange={handleChange}
-                required
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
               />
             </div>

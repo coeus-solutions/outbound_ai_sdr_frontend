@@ -124,7 +124,7 @@ export function CallLogList({
                 <tr key={log.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">{log.lead_name}</div>
-                    <div className="text-sm text-gray-500">{log.lead_phone_number}</div>
+                    <div className="text-sm text-gray-500">{log.lead_phone_number || 'No phone number'}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{log.campaign_name}</div>

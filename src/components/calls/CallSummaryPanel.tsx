@@ -63,7 +63,7 @@ export function CallSummaryPanel({ isOpen, onClose, callLog }: CallSummaryPanelP
               <div>
                 <div className="text-sm text-gray-500">Lead</div>
                 <div className="font-medium">{callLog.lead_name}</div>
-                <div className="text-sm text-gray-500">{callLog.lead_phone_number}</div>
+                <div className="text-sm text-gray-500">{callLog.lead_phone_number || 'No phone number'}</div>
               </div>
               <div>
                 <div className="text-sm text-gray-500">Campaign</div>
