@@ -11,7 +11,7 @@ export interface CallLog {
   company_id: string;
   lead_id: string;
   lead_name: string;
-  lead_phone_number: string;
+  lead_phone_number: string | null;
   product_id: string;
   campaign_name: string;
   created_at: string;

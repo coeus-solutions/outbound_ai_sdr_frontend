@@ -5,7 +5,7 @@ export interface Lead {
   name: string;
   email: string | null;
   company: string | null;
-  phone_number: string;
+  phone_number: string | null;
   company_size: string | null;
   job_title: string | null;
   company_facebook: string | null;
