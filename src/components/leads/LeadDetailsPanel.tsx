@@ -10,17 +10,56 @@ import { EmailScriptDialog } from './EmailScriptDialog';
 import { CallScriptDialog } from './CallScriptDialog';
 import { SimulateEmailCampaignDialog } from './SimulateEmailCampaignDialog';
 
+interface EnrichedDataItem {
+  pain_point?: string;
+  explanation?: string;
+  trigger?: string;
+  interest?: string;
+  challenge?: string;
+  impact?: string;
+}
+
+interface IndustryChallenges {
+  challenges: EnrichedDataItem[];
+}
+
+interface EnrichedData {
+  businessOverview?: {
+    companyName?: string;
+    businessModel?: string;
+    keyProductsServices?: string[];
+    description?: string;
+    company_highlights?: string[];
+    products_and_services?: string[];
+  };
+  BUSINESS_OVERVIEW?: {
+    companyName?: string;
+    businessModel?: string;
+    keyProductsServices?: string[];
+    description?: string;
+    company_highlights?: string[];
+    products_and_services?: string[];
+  };
+  prospectProfessionalInterests?: string[];
+  PROSPECT_PROFESSIONAL_INTERESTS?: string[];
+  painPoints?: string[];
+  PAIN_POINTS?: string[];
+  buyingTriggers?: string[];
+  BUYING_TRIGGERS?: string[];
+  industryChallenges?: string[] | IndustryChallenges;
+  INDUSTRY_CHALLENGES?: string[] | IndustryChallenges;
+}
+
 interface LeadDetailsPanelProps {
   isOpen: boolean;
   onClose: () => void;
-  leadDetails: LeadDetail | null;
+  leadDetails: LeadDetail;
   onCallClick?: () => void;
-  onLeadUpdated?: (updatedLead: LeadDetail) => void;
 }
 
 type TabType = 'basic' | 'enriched';
 
-export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick, onLeadUpdated }: LeadDetailsPanelProps) {
+export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick }: LeadDetailsPanelProps) {
   const [activeTab, setActiveTab] = useState<TabType>('basic');
   const [isEnriching, setIsEnriching] = useState(false);
   const [isEmailScriptDialogOpen, setIsEmailScriptDialogOpen] = useState(false);
@@ -60,7 +99,7 @@ export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick, on
 
   if (!isOpen || !leadDetails) return null;
 
-  const handleEnrichData = async () => {
+  const handleEnrichClick = async () => {
     if (!companyId || !leadDetails.id) return;
     
     try {
@@ -71,16 +110,11 @@ export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick, on
         return;
       }
 
-      const enrichedLeadData = await enrichLeadData(token, companyId, leadDetails.id);
-      
-      if (onLeadUpdated) {
-        onLeadUpdated(enrichedLeadData);
-      }
-      
+      await enrichLeadData(token, companyId, leadDetails.id);
       showToast('Lead data enriched successfully', 'success');
     } catch (error) {
       console.error('Error enriching lead data:', error);
-      showToast('Failed to enrich lead data', 'error');
+      showToast(error instanceof Error ? error.message : 'Failed to enrich lead data', 'error');
     } finally {
       setIsEnriching(false);
     }
@@ -270,29 +304,29 @@ export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick, on
     console.log('Lead enriched data:', leadDetails.enriched_data);
     
     // Check if enriched_data is empty or doesn't have meaningful content
-    // Check for both camelCase and UPPERCASE keys
-    const hasEnrichedData = leadDetails.enriched_data && 
-      typeof leadDetails.enriched_data === 'object' &&
-      Object.keys(leadDetails.enriched_data).length > 0 &&
-      (leadDetails.enriched_data.businessOverview || leadDetails.enriched_data.BUSINESS_OVERVIEW ||
-       leadDetails.enriched_data.prospectProfessionalInterests || leadDetails.enriched_data.PROSPECT_PROFESSIONAL_INTERESTS ||
-       leadDetails.enriched_data.painPoints || leadDetails.enriched_data.PAIN_POINTS ||
-       leadDetails.enriched_data.buyingTriggers || leadDetails.enriched_data.BUYING_TRIGGERS ||
-       leadDetails.enriched_data.industryChallenges || leadDetails.enriched_data.INDUSTRY_CHALLENGES);
+    const enrichedData = leadDetails.enriched_data as EnrichedData; // Type assertion for UPPERCASE fields
+    const hasEnrichedData = enrichedData && 
+      typeof enrichedData === 'object' &&
+      Object.keys(enrichedData).length > 0 &&
+      (enrichedData.businessOverview || enrichedData.BUSINESS_OVERVIEW ||
+       enrichedData.prospectProfessionalInterests || enrichedData.PROSPECT_PROFESSIONAL_INTERESTS ||
+       enrichedData.painPoints || enrichedData.PAIN_POINTS ||
+       enrichedData.buyingTriggers || enrichedData.BUYING_TRIGGERS ||
+       enrichedData.industryChallenges || enrichedData.INDUSTRY_CHALLENGES);
 
     if (!hasEnrichedData) {
       return (
         <div className="p-8 flex flex-col items-center justify-center h-64">
           <p className="text-gray-500 text-center mb-6">No enriched data available for this lead.</p>
           <button
-            onClick={handleEnrichData}
+            onClick={handleEnrichClick}
             disabled={isEnriching}
-            className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isEnriching ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Enriching Data...
+                Enriching...
               </>
             ) : (
               <>
@@ -316,7 +350,7 @@ export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick, on
       BUYING_TRIGGERS,
       industryChallenges,
       INDUSTRY_CHALLENGES
-    } = leadDetails.enriched_data;
+    } = enrichedData;
 
     // Use uppercase versions if camelCase ones don't exist
     const businessData = businessOverview || BUSINESS_OVERVIEW;
@@ -344,7 +378,8 @@ export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick, on
           <EnrichedDataList 
             title="Pain Points" 
             items={Array.isArray(painPointsData) 
-              ? painPointsData.map(item => typeof item === 'string' ? item : `${item.pain_point}: ${item.explanation}`)
+              ? painPointsData.map((item: string | EnrichedDataItem) => 
+                  typeof item === 'string' ? item : `${item.pain_point}: ${item.explanation}`)
               : []
             } 
           />
@@ -354,7 +389,8 @@ export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick, on
           <EnrichedDataList 
             title="Buying Triggers" 
             items={Array.isArray(buyingTriggersData) 
-              ? buyingTriggersData.map(item => typeof item === 'string' ? item : `${item.trigger}: ${item.explanation}`)
+              ? buyingTriggersData.map((item: string | EnrichedDataItem) => 
+                  typeof item === 'string' ? item : `${item.trigger}: ${item.explanation}`)
               : []
             } 
           />
@@ -366,8 +402,9 @@ export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick, on
             items={
               Array.isArray(industryChallengesData) 
                 ? industryChallengesData 
-                : (industryChallengesData?.challenges 
-                  ? industryChallengesData.challenges.map(item => `${item.challenge}: ${item.impact}`)
+                : (typeof industryChallengesData === 'object' && 'challenges' in industryChallengesData
+                  ? (industryChallengesData as IndustryChallenges).challenges.map((item: EnrichedDataItem) => 
+                      `${item.challenge}: ${item.impact}`)
                   : [])
             } 
           />
@@ -377,7 +414,8 @@ export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick, on
           <EnrichedDataList 
             title="Professional Interests" 
             items={Array.isArray(professionalInterests) 
-              ? professionalInterests.map(item => typeof item === 'string' ? item : `${item.interest}: ${item.explanation}`)
+              ? professionalInterests.map((item: string | EnrichedDataItem) => 
+                  typeof item === 'string' ? item : `${item.interest}: ${item.explanation}`)
               : []
             } 
           />
@@ -414,7 +452,7 @@ export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick, on
             >
               <FileText className="h-5 w-5" />
             </button>
-            {onCallClick && (
+            {onCallClick && leadDetails?.phone_number && (
               <button
                 onClick={onCallClick}
                 className="text-indigo-600 hover:text-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
