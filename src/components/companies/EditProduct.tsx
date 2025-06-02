@@ -137,18 +137,12 @@ export function EditProduct() {
           {product?.file_name && product?.original_filename && (
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Documentation
+                Documentation File
               </label>
               <div className="mt-1">
-                <a 
-                  href={`/api/files/${product.file_name}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-indigo-600 hover:text-indigo-800 flex items-center"
-                >
-                  <ExternalLink className="h-4 w-4 mr-1" />
+                <p className="text-sm text-gray-600">
                   {product.original_filename}
-                </a>
+                </p>
               </div>
               <p className="mt-1 text-sm text-gray-500">
                 The documentation file cannot be changed after creation.
