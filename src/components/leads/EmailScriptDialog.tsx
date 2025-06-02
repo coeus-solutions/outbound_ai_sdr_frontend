@@ -97,9 +97,6 @@ export function EmailScriptDialog({ isOpen, onClose, companyId, leadId, products
                   />
                   <div className="ml-4">
                     <h3 className="text-sm font-medium text-gray-900">{product.product_name}</h3>
-                    {product.description && (
-                      <p className="text-sm text-gray-500 mt-1">{product.description}</p>
-                    )}
                   </div>
                 </label>
               ))}
