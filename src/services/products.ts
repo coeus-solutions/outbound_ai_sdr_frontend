@@ -4,7 +4,6 @@ export interface Product {
   id: string;
   name: string;
   product_name: string;
-  description?: string;
   company_id: string;
   product_url?: string;
   file_name?: string;
@@ -30,9 +29,13 @@ export interface Product {
 
 export interface ProductCreate {
   product_name: string;
-  description?: string;
   product_url?: string;
   file?: File;
+}
+
+export interface ProductUpdate {
+  product_name: string;
+  product_url?: string;
 }
 
 export interface ProductInDB {
@@ -109,9 +112,6 @@ export async function getProducts(token: string, companyId: string): Promise<Pro
 export async function createProduct(token: string, companyId: string, product: ProductCreate): Promise<Product> {
   const formData = new FormData();
   formData.append('product_name', product.product_name);
-  if (product.description) {
-    formData.append('description', product.description);
-  }
   if (product.product_url) {
     formData.append('product_url', product.product_url);
   }
@@ -135,15 +135,7 @@ export async function createProduct(token: string, companyId: string, product: P
   return response.json();
 }
 
-export async function updateProduct(
-  token: string,
-  companyId: string,
-  productId: string,
-  data: {
-    product_name: string;
-    description: string;
-  }
-): Promise<Product> {
+export async function updateProduct(token: string, companyId: string, productId: string, product: ProductUpdate): Promise<Product> {
   const response = await fetch(
     `${apiEndpoints.companies.products(companyId)}/${productId}`,
     {
@@ -152,7 +144,7 @@ export async function updateProduct(
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(product),
     }
   );
 
@@ -195,7 +187,6 @@ export async function getProduct(token: string, companyId: string, productId: st
     id: product.id,
     name: product.name || product.product_name,
     product_name: product.product_name,
-    description: product.description,
     company_id: product.company_id,
     product_url: product.product_url,
     file_name: product.file_name,
