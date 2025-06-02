@@ -17,7 +17,6 @@ export function AddProduct() {
   const [companyName, setCompanyName] = useState('');
   const [formData, setFormData] = useState({
     product_name: '',
-    description: '',
     product_url: '',
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -42,7 +41,6 @@ export function AddProduct() {
           const product = await getProduct(token, companyId, productId);
           setFormData({
             product_name: product.product_name,
-            description: product.description || '',
             product_url: product.product_url || '',  // Use product_url instead of url
           });
         }
@@ -59,6 +57,11 @@ export function AddProduct() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!companyId) return;
+
+    if (!productId && !selectedFile) {
+      showToast('Please upload a documentation file', 'error');
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
@@ -81,14 +84,13 @@ export function AddProduct() {
         // Update existing product
         await updateProduct(token, companyId, productId, {
           product_name: formData.product_name,
-          description: formData.description,
+          product_url: normalizedUrl,
         });
         showToast('Product updated successfully!', 'success');
       } else {
         // Create new product
         await createProduct(token, companyId, {
           product_name: formData.product_name,
-          description: formData.description,
           product_url: normalizedUrl,
           file: selectedFile || undefined,
         });
@@ -158,7 +160,7 @@ export function AddProduct() {
   return (
     <div className="max-w-2xl mx-auto">
       <PageHeader
-        title={productId ? "Edit Product" : "Add New Product/Value Prop"}
+        title={productId ? "Edit Product" : "Add New Product"}
         subtitle={`for ${companyName}`}
       />
       <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6 space-y-6">
@@ -171,7 +173,8 @@ export function AddProduct() {
         <div className="space-y-4">
           <div>
             <label htmlFor="product_name" className="block text-sm font-medium text-gray-700 mb-1">
-              Product/Value Proposition Name
+              Product Name
+              <span className="text-red-500"> *</span>
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -190,27 +193,50 @@ export function AddProduct() {
             </div>
           </div>
 
-          <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-              Description
-              <span className="text-gray-500 font-normal"> (Optional)</span>
-            </label>
-            <textarea
-              id="description"
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              rows={4}
-              className="form-input !pt-2 !pb-2 min-h-[100px]"
-              placeholder="Describe your product or value proposition in detail"
-            />
-            <p className="mt-1 text-sm text-gray-500">
-              Explain what makes your product/service unique and what value it brings to potential customers.
-            </p>
-          </div>
-
           {!productId && (
             <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Documentation
+                  <span className="text-red-500"> *</span>
+                </label>
+                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg">
+                  <div className="space-y-1 text-center">
+                    <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                    <div className="flex text-sm text-gray-600">
+                      <label
+                        htmlFor="file-upload"
+                        className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500"
+                      >
+                        <span>Upload documentation</span>
+                        <input
+                          id="file-upload"
+                          name="file-upload"
+                          type="file"
+                          ref={fileInputRef}
+                          className="sr-only"
+                          onChange={handleFileChange}
+                          accept=".docx,.pdf,.txt"
+                          required
+                        />
+                      </label>
+                      <p className="pl-1">or drag and drop</p>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      Upload product documentation, sales materials, or value proposition details (.docx, .pdf, .txt)
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Maximum file size: 10MB
+                    </p>
+                    {selectedFile && (
+                      <p className="text-sm text-gray-600">
+                        Selected file: {selectedFile.name}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               <div>
                 <label htmlFor="product_url" className="block text-sm font-medium text-gray-700 mb-1">
                   Product URL
@@ -233,47 +259,6 @@ export function AddProduct() {
                 <p className="mt-1 text-sm text-gray-500">
                   Link to your product page. Adding a URL will automatically enrich your product with additional information using AI.
                 </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Documentation
-                  <span className="text-gray-500 font-normal"> (Optional)</span>
-                </label>
-                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg">
-                  <div className="space-y-1 text-center">
-                    <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                    <div className="flex text-sm text-gray-600">
-                      <label
-                        htmlFor="file-upload"
-                        className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500"
-                      >
-                        <span>Upload documentation</span>
-                        <input
-                          id="file-upload"
-                          name="file-upload"
-                          type="file"
-                          ref={fileInputRef}
-                          className="sr-only"
-                          onChange={handleFileChange}
-                          accept=".docx,.pdf,.txt"
-                        />
-                      </label>
-                      <p className="pl-1">or drag and drop</p>
-                    </div>
-                    <p className="text-xs text-gray-500">
-                      Upload product documentation, sales materials, or value proposition details (.docx, .pdf, .txt)
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      Maximum file size: 10MB
-                    </p>
-                    {selectedFile && (
-                      <p className="text-sm text-gray-600">
-                        Selected file: {selectedFile.name}
-                      </p>
-                    )}
-                  </div>
-                </div>
               </div>
             </>
           )}
@@ -302,7 +287,7 @@ export function AddProduct() {
                 {productId ? 'Saving...' : 'Creating...'}
               </div>
             ) : (
-              productId ? 'Save Changes' : 'Add Product/Value Prop'
+              productId ? 'Save Changes' : 'Add Product'
             )}
           </button>
         </div>

@@ -1,4 +1,6 @@
-import { Company, Product, Lead } from '../types';
+import { Product } from '../services/products';
+import { Company } from '../services/companies';
+import { Lead } from '../services/leads';
 
 export const mockCompanies: Company[] = [
   {
@@ -18,17 +20,33 @@ export const mockCompanies: Company[] = [
 export const mockProducts: Product[] = [
   {
     id: '1',
-    companyId: '1',
     name: 'Enterprise CRM',
-    description: 'Complete customer relationship management solution',
-    createdAt: new Date().toISOString(),
+    product_name: 'Enterprise CRM',
+    company_id: '1',
+    total_campaigns: 0,
+    total_calls: 0,
+    total_positive_calls: 0,
+    total_sent_emails: 0,
+    total_opened_emails: 0,
+    total_replied_emails: 0,
+    unique_leads_contacted: 0,
+    total_meetings_booked_in_calls: 0,
+    total_meetings_booked_in_emails: 0,
   },
   {
     id: '2',
-    companyId: '1',
     name: 'Analytics Suite',
-    description: 'Advanced business analytics and reporting',
-    createdAt: new Date().toISOString(),
+    product_name: 'Analytics Suite',
+    company_id: '1',
+    total_campaigns: 0,
+    total_calls: 0,
+    total_positive_calls: 0,
+    total_sent_emails: 0,
+    total_opened_emails: 0,
+    total_replied_emails: 0,
+    unique_leads_contacted: 0,
+    total_meetings_booked_in_calls: 0,
+    total_meetings_booked_in_emails: 0,
   },
 ];
 

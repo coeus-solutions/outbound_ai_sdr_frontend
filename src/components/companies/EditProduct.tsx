@@ -17,7 +17,6 @@ export function EditProduct() {
   const [isSaving, setIsSaving] = useState(false);
   const [form, setForm] = useState({
     product_name: '',
-    description: ''
   });
 
   useEffect(() => {
@@ -35,7 +34,6 @@ export function EditProduct() {
         setProduct(productData);
         setForm({
           product_name: productData.product_name,
-          description: productData.description || ''
         });
       } catch (error) {
         console.error('Error fetching product:', error);
@@ -62,7 +60,6 @@ export function EditProduct() {
 
       await updateProduct(token, companyId, productId, {
         product_name: form.product_name,
-        description: form.description
       });
 
       showToast('Product updated successfully', 'success');
@@ -112,21 +109,6 @@ export function EditProduct() {
               onChange={handleInputChange}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
               required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-              Description
-            </label>
-            <textarea
-              id="description"
-              name="description"
-              rows={4}
-              value={form.description}
-              onChange={handleInputChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-              placeholder="Enter product description..."
             />
           </div>
 
