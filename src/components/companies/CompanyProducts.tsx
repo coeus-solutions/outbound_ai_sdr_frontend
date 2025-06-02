@@ -70,8 +70,7 @@ export function CompanyProducts() {
     } else {
       const query = searchQuery.toLowerCase();
       const filtered = products.filter(product => 
-        product.product_name.toLowerCase().includes(query) || 
-        (product.description && product.description.toLowerCase().includes(query))
+        product.product_name.toLowerCase().includes(query)
       );
       setFilteredProducts(filtered);
     }
@@ -203,9 +202,6 @@ export function CompanyProducts() {
                           </div>
                           <div className="ml-4">
                             <div className="text-sm font-medium text-gray-900">{product.product_name}</div>
-                            {product.description && (
-                              <div className="text-sm text-gray-500 line-clamp-1">{product.description}</div>
-                            )}
                             {product.product_url && (
                               <a 
                                 href={product.product_url}
