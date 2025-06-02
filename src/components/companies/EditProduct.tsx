@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Package } from 'lucide-react';
 import { getToken } from '../../utils/auth';
 import { Product, getProduct, updateProduct } from '../../services/products';
 import { PageHeader } from '../shared/PageHeader';
@@ -98,18 +98,24 @@ export function EditProduct() {
       <div className="bg-white shadow-sm rounded-lg p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="product_name" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="product_name" className="block text-sm font-medium text-gray-700 mb-1">
               Product Name
+              <span className="text-red-500"> *</span>
             </label>
-            <input
-              type="text"
-              id="product_name"
-              name="product_name"
-              value={form.product_name}
-              onChange={handleInputChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-              required
-            />
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Package className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                type="text"
+                id="product_name"
+                name="product_name"
+                value={form.product_name}
+                onChange={handleInputChange}
+                className="form-input pl-10"
+                required
+              />
+            </div>
           </div>
 
           {product?.product_url && (
