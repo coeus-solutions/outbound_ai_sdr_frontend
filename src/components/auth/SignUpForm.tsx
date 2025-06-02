@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { apiEndpoints } from '../../config';
-import { setToken } from '../../utils/auth';
 import { AuthLayout } from './AuthLayout';
 
 interface SignUpFormProps {
@@ -15,11 +14,13 @@ export function SignUpForm({ onSignup }: SignUpFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccessMessage('');
 
     // Password validation
     if (password.length < 8) {
@@ -47,28 +48,11 @@ export function SignUpForm({ onSignup }: SignUpFormProps) {
         throw new Error(data.detail || 'Signup failed');
       }
 
-      // After successful signup, login automatically
-      const formData = new URLSearchParams();
-      formData.append('username', email);
-      formData.append('password', password);
-
-      const loginResponse = await fetch(apiEndpoints.auth.login, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: formData,
-      });
-
-      const loginData = await loginResponse.json();
-
-      if (!loginResponse.ok) {
-        throw new Error(loginData.detail || 'Login after signup failed');
-      }
-
-      setToken(loginData.access_token);
-      onSignup(loginData.access_token);
-      navigate('/');
+      // Show success message and clear form
+      setSuccessMessage('Account created successfully! Please check your email for a verification link.');
+      setEmail('');
+      setPassword('');
+      
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred during signup');
     } finally {
@@ -84,6 +68,12 @@ export function SignUpForm({ onSignup }: SignUpFormProps) {
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4" role="alert">
                 {error}
+              </div>
+            )}
+
+            {successMessage && (
+              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4" role="alert">
+                {successMessage}
               </div>
             )}
 
