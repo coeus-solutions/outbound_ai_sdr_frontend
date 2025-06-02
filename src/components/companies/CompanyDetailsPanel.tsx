@@ -219,10 +219,10 @@ export function CompanyDetailsPanel({ isOpen, onClose, company, onCompanyUpdate 
                 Products & Services
               </h3>
               <Link
-                to={`/companies/${company.id}/products/new`}
+                to={`/companies/${company.id}/products`}
                 className="text-sm text-indigo-600 hover:text-indigo-500 flex items-center"
               >
-                Add Product
+                View Products
               </Link>
             </div>
             <div className="space-y-3">
@@ -267,10 +267,10 @@ export function CompanyDetailsPanel({ isOpen, onClose, company, onCompanyUpdate 
                   <Package className="mx-auto h-8 w-8 text-gray-400" />
                   <p className="mt-2 text-sm text-gray-500">No products added yet</p>
                   <Link
-                    to={`/companies/${company.id}/products/new`}
+                    to={`/companies/${company.id}/products`}
                     className="mt-2 inline-flex items-center text-sm text-indigo-600 hover:text-indigo-500"
                   >
-                    Add your first product
+                    View Products
                   </Link>
                 </div>
               )}

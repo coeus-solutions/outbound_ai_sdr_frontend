@@ -435,7 +435,7 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
               <Tooltip.Root>
                 <Tooltip.Trigger asChild>
                   <Link
-                    to={`/companies/${company.id}/products/new`}
+                    to={`/companies/${company.id}/products`}
                     className="p-2 text-gray-400 hover:text-indigo-600"
                   >
                     <Package className="w-5 h-5" />
@@ -446,7 +446,7 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
                     className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
                     sideOffset={5}
                   >
-                    Add product
+                    Products
                     <Tooltip.Arrow className="fill-gray-900" />
                   </Tooltip.Content>
                 </Tooltip.Portal>
@@ -633,11 +633,11 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
                 </div>
                 <div className="mt-6">
                   <Link
-                    to={`/companies/${company.id}/products/new`}
+                    to={`/companies/${company.id}/products`}
                     className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                   >
                     <Package className="h-5 w-5 mr-2" />
-                    Add Your First Product
+                    View Products
                   </Link>
                 </div>
               </div>
