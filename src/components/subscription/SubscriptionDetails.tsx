@@ -202,111 +202,109 @@ export function SubscriptionDetails() {
           </div>
           
           {subscriptionInfo.plan_type !== 'trial' && (
-            <>
-              <div>
-                <h2 className="text-sm font-medium text-gray-500">Status</h2>
-                <div className="mt-1">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium ${getStatusColor(subscriptionInfo.subscription_status)}`}>
-                    {subscriptionInfo.subscription_status.charAt(0).toUpperCase() + subscriptionInfo.subscription_status.slice(1)}
-                  </span>
-                </div>
+            <div>
+              <h2 className="text-sm font-medium text-gray-500">Status</h2>
+              <div className="mt-1">
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium ${getStatusColor(subscriptionInfo.subscription_status)}`}>
+                  {subscriptionInfo.subscription_status.charAt(0).toUpperCase() + subscriptionInfo.subscription_status.slice(1)}
+                </span>
               </div>
+            </div>
+          )}
 
-              <div>
-                <h2 className="text-sm font-medium text-gray-500">Lead Tier</h2>
-                <p className="mt-1 text-lg">{subscriptionInfo.lead_tier.toLocaleString()} Leads</p>
+          <div>
+            <h2 className="text-sm font-medium text-gray-500">Lead Tier</h2>
+            <p className="mt-1 text-lg">{subscriptionInfo.lead_tier.toLocaleString()} Leads</p>
+          </div>
+
+          {subscriptionInfo.billing_period_start && subscriptionInfo.billing_period_end && (
+            <div className="col-span-2">
+              <h2 className="text-sm font-medium text-gray-500">Billing Period</h2>
+              <p className="mt-1 text-lg">
+                {new Date(subscriptionInfo.billing_period_start).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric'
+                } as Intl.DateTimeFormatOptions)}
+                <span className="mx-2">-</span>
+                {new Date(subscriptionInfo.billing_period_end).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric'
+                } as Intl.DateTimeFormatOptions)}
+              </p>
+            </div>
+          )}
+
+          <div className="col-span-2">
+            <h2 className="text-sm font-medium text-gray-500">Channels</h2>
+            <div className="flex flex-wrap gap-2 mt-1">
+              {subscriptionInfo.channels_active.map((channel) => (
+                <span
+                  key={channel}
+                  className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+                >
+                  {channel}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {subscriptionInfo.has_subscription && subscriptionInfo.subscription_items && subscriptionInfo.subscription_items.length > 0 && (
+            <div className="col-span-2 mt-6">
+              <h2 className="text-sm font-medium text-gray-500 mb-4">Subscription Items</h2>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead>
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item</th>
+                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
+                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Price</th>
+                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {subscriptionInfo.subscription_items.map((item, index) => (
+                      <tr key={index}>
+                        <td className="px-4 py-3 text-sm text-gray-900">
+                          <div className="flex items-center">
+                            <span>{item.name}</span>
+                            {item.usage_type === 'metered' && (
+                              <span className="ml-2 text-xs text-gray-500">
+                                (Varies with usage)
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-900 text-right">{item.quantity}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900 text-right">
+                          {new Intl.NumberFormat('en-US', {
+                            style: 'currency',
+                            currency: item.currency
+                          }).format(parseFloat(item.price))}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-900 text-right">
+                          {new Intl.NumberFormat('en-US', {
+                            style: 'currency',
+                            currency: item.currency
+                          }).format(parseFloat(item.price) * item.quantity)}
+                          {item.usage_type === 'licensed' && `/${item.interval}`}
+                        </td>
+                      </tr>
+                    ))}
+                    <tr className="bg-gray-50">
+                      <td colSpan={3} className="px-4 py-3 text-sm font-medium text-gray-900 text-right">Total</td>
+                      <td className="px-4 py-3 text-sm font-medium text-gray-900 text-right">
+                        {new Intl.NumberFormat('en-US', {
+                          style: 'currency',
+                          currency: subscriptionInfo.subscription_items[0]?.currency || 'USD'
+                        }).format(calculateTotalAmount())}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
-
-              {subscriptionInfo.billing_period_start && subscriptionInfo.billing_period_end && (
-                <div className="col-span-2">
-                  <h2 className="text-sm font-medium text-gray-500">Billing Period</h2>
-                  <p className="mt-1 text-lg">
-                    {new Date(subscriptionInfo.billing_period_start).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric',
-                    })}
-                    <span className="mx-2">-</span>
-                    {new Date(subscriptionInfo.billing_period_end).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric',
-                    })}
-                  </p>
-                </div>
-              )}
-
-              <div className="col-span-2">
-                <h2 className="text-sm font-medium text-gray-500">Channels</h2>
-                <div className="flex flex-wrap gap-2 mt-1">
-                  {subscriptionInfo.channels_active.map((channel) => (
-                    <span
-                      key={channel}
-                      className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
-                    >
-                      {channel}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {subscriptionInfo.has_subscription && subscriptionInfo.subscription_items && subscriptionInfo.subscription_items.length > 0 && (
-                <div className="col-span-2 mt-6">
-                  <h2 className="text-sm font-medium text-gray-500 mb-4">Subscription Items</h2>
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead>
-                        <tr>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item</th>
-                          <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
-                          <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Price</th>
-                          <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {subscriptionInfo.subscription_items.map((item, index) => (
-                          <tr key={index}>
-                            <td className="px-4 py-3 text-sm text-gray-900">
-                              <div className="flex items-center">
-                                <span>{item.name}</span>
-                                {item.usage_type === 'metered' && (
-                                  <span className="ml-2 text-xs text-gray-500">
-                                    (Varies with usage)
-                                  </span>
-                                )}
-                              </div>
-                            </td>
-                            <td className="px-4 py-3 text-sm text-gray-900 text-right">{item.quantity}</td>
-                            <td className="px-4 py-3 text-sm text-gray-900 text-right">
-                              {new Intl.NumberFormat('en-US', {
-                                style: 'currency',
-                                currency: item.currency
-                              }).format(parseFloat(item.price))}
-                            </td>
-                            <td className="px-4 py-3 text-sm text-gray-900 text-right">
-                              {new Intl.NumberFormat('en-US', {
-                                style: 'currency',
-                                currency: item.currency
-                              }).format(parseFloat(item.price) * item.quantity)}
-                              {item.usage_type === 'licensed' && `/${item.interval}`}
-                            </td>
-                          </tr>
-                        ))}
-                        <tr className="bg-gray-50">
-                          <td colSpan={3} className="px-4 py-3 text-sm font-medium text-gray-900 text-right">Total</td>
-                          <td className="px-4 py-3 text-sm font-medium text-gray-900 text-right">
-                            {new Intl.NumberFormat('en-US', {
-                              style: 'currency',
-                              currency: subscriptionInfo.subscription_items[0]?.currency || 'USD'
-                            }).format(calculateTotalAmount())}
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-            </>
+            </div>
           )}
         </div>
       </div>
