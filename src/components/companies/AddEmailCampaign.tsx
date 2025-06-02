@@ -51,7 +51,8 @@ export function AddEmailCampaign() {
 
   // Handler for number of reminders changes
   const handleRemindersChange = (value: number) => {
-    const isValid = !isNaN(value) && value >= 0 && value <= 10;
+    const maxReminders = (formData.type === 'email' || formData.type === 'both') ? 7 : 10;
+    const isValid = !isNaN(value) && value >= 0 && value <= maxReminders;
     const newValue = isValid ? value : 0;
 
     setFormData(prev => ({
@@ -109,8 +110,9 @@ export function AddEmailCampaign() {
     if (formData.email_days_between_reminders > 30) {
       errors.email_days_between_reminders = 'Days between reminders cannot exceed 30';
     }
-    if (formData.email_number_of_reminders > 10) {
-      errors.email_number_of_reminders = 'Number of reminders cannot exceed 10';
+    // Set max reminders to 7 for email type
+    if (formData.email_number_of_reminders > ((formData.type === 'email' || formData.type === 'both') ? 7 : 10)) {
+      errors.email_number_of_reminders = `Number of reminders cannot exceed ${(formData.type === 'email' || formData.type === 'both') ? 7 : 10}`;
     }
     if (formData.phone_number_of_reminders > 0 && formData.phone_days_between_reminders === 0) {
       errors.phone_days_between_reminders = 'Days between reminders must be set when reminders are enabled';
@@ -400,11 +402,12 @@ export function AddEmailCampaign() {
               name={`${prefix}number_of_reminders`}
               id={`${prefix}number_of_reminders`}
               min="0"
-              max="10"
+              max={isEmail && (formData.type === 'email' || formData.type === 'both') ? "7" : "10"}
               value={value}
               onChange={(e) => {
                 const newValue = parseInt(e.target.value);
-                const isValid = !isNaN(newValue) && newValue >= 0 && newValue <= 10;
+                const maxReminders = isEmail && (formData.type === 'email' || formData.type === 'both') ? 7 : 10;
+                const isValid = !isNaN(newValue) && newValue >= 0 && newValue <= maxReminders;
                 const finalValue = isValid ? newValue : 0;
 
                 setFormData(prev => ({
@@ -430,7 +433,7 @@ export function AddEmailCampaign() {
             </p>
           )}
           <p className="mt-1 text-xs text-gray-500">
-            How many {isEmail ? 'follow-up emails' : 'retries'} to {isEmail ? 'send' : 'perform'} if no response (0-10)
+            How many {isEmail ? 'follow-up emails' : 'retries'} to {isEmail ? 'send' : 'perform'} if no response {isEmail && (formData.type === 'email' || formData.type === 'both') ? '(0-7)' : '(0-10)'}
           </p>
         </div>
 
