@@ -171,18 +171,6 @@ export function CompanyProducts() {
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Product
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Campaigns
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Calls
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Emails
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Meetings
-                  </th>
                   <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
                   </th>
@@ -217,18 +205,6 @@ export function CompanyProducts() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {product.total_campaigns}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {product.total_calls}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {product.total_sent_emails}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {product.total_meetings_booked_in_calls + product.total_meetings_booked_in_emails}
-                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end space-x-2" onClick={(e) => e.stopPropagation()}>
                           <button
@@ -258,7 +234,7 @@ export function CompanyProducts() {
                     </tr>
                     {expandedProductId === product.id && product.enriched_information && (
                       <tr>
-                        <td colSpan={6} className="px-6 py-4 bg-gray-50">
+                        <td colSpan={2} className="px-6 py-4 bg-gray-50">
                           <div className="border-t border-gray-200 pt-4">
                             <h4 className="text-sm font-medium text-gray-700 mb-2">AI-Enriched Information</h4>
                             <EnrichedProductInfo enrichedInfo={product.enriched_information} />
