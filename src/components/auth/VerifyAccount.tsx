@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { apiEndpoints } from '../../config';
 import { useToast } from '../../context/ToastContext';
@@ -8,11 +8,18 @@ export function VerifyAccount() {
   const navigate = useNavigate();
   const { showToast } = useToast();
   const token = searchParams.get('token');
+  const hasShownToast = useRef(false);
 
   useEffect(() => {
     const verifyAccount = async () => {
-      if (!token) {
+      if (!token && !hasShownToast.current) {
+        hasShownToast.current = true;
         showToast('Verification token is missing', 'error');
+        navigate('/login');
+        return;
+      }
+
+      if (!token) {
         navigate('/login');
         return;
       }
@@ -26,16 +33,23 @@ export function VerifyAccount() {
           body: JSON.stringify({ token }),
         });
 
+        const data = await response.json();
+
         if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.detail || 'Verification failed');
+          throw new Error(data.detail || 'Invalid or expired verification token');
         }
 
-        showToast('Account verified successfully! Please login to continue.', 'success');
+        if (!hasShownToast.current) {
+          hasShownToast.current = true;
+          showToast('Account verified successfully! Please login to continue.', 'success');
+        }
         navigate('/login');
       } catch (error) {
         console.error('Verification error:', error);
-        showToast(error instanceof Error ? error.message : 'Account verification failed', 'error');
+        if (!hasShownToast.current) {
+          hasShownToast.current = true;
+          showToast(error instanceof Error ? error.message : 'Invalid or expired verification token', 'error');
+        }
         navigate('/login');
       }
     };
