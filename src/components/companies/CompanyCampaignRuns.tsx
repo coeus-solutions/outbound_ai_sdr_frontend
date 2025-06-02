@@ -9,7 +9,7 @@ import { TableSkeletonLoader } from '../shared/TableSkeletonLoader';
 import { PageHeader } from '../shared/PageHeader';
 import { getCompanyById, type Company } from '../../services/companies';
 import { useToast } from '../../context/ToastContext';
-import { Mail, Phone, ChevronLeft, ChevronRight, Info } from 'lucide-react';
+import { Mail, Phone, ChevronLeft, ChevronRight, Info, List } from 'lucide-react';
 import { LoadingButton } from '../shared/LoadingButton';
 
 export function CompanyCampaignRuns() {
@@ -208,39 +208,40 @@ export function CompanyCampaignRuns() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     {(run.campaigns.type === 'email' || run.campaigns.type === 'email_and_call') && (
-                      <>
+                      <div className="flex items-center space-x-2">
                         <Link
                           to={`/companies/${companyId}/emails?campaign_run_id=${run.id}`}
-                          className="text-indigo-600 hover:text-indigo-900"
+                          className="inline-flex items-center px-2.5 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                         >
+                          <Mail className="h-3.5 w-3.5 mr-1" />
                           View Emails
                         </Link>
-                        <span className="mx-2 text-gray-300">|</span>
                         <Link
                           to={`/companies/${companyId}/campaign-runs/${run.id}/email-queues`}
-                          className="text-indigo-600 hover:text-indigo-900"
+                          className="inline-flex items-center px-2.5 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                         >
+                          <List className="h-3.5 w-3.5 mr-1" />
                           Email Queue
                         </Link>
-                      </>
+                      </div>
                     )}
                     {(run.campaigns.type === 'call' || run.campaigns.type === 'email_and_call') && (
-                      <>
-                        {run.campaigns.type === 'email_and_call' && <span className="mx-2 text-gray-300">|</span>}
+                      <div className="flex items-center space-x-2 mt-2">
                         <Link
                           to={`/companies/${companyId}/calls?campaign_run_id=${run.id}`}
-                          className="text-indigo-600 hover:text-indigo-900"
+                          className="inline-flex items-center px-2.5 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                         >
+                          <Phone className="h-3.5 w-3.5 mr-1" />
                           View Calls
                         </Link>
-                        <span className="mx-2 text-gray-300">|</span>
                         <Link
                           to={`/companies/${companyId}/campaign-runs/${run.id}/call-queues`}
-                          className="text-indigo-600 hover:text-indigo-900"
+                          className="inline-flex items-center px-2.5 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                         >
+                          <List className="h-3.5 w-3.5 mr-1" />
                           Call Queue
                         </Link>
-                      </>
+                      </div>
                     )}
                   </td>
                 </tr>
