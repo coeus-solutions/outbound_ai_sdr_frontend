@@ -9,8 +9,9 @@ import { TableSkeletonLoader } from '../shared/TableSkeletonLoader';
 import { PageHeader } from '../shared/PageHeader';
 import { getCompanyById, type Company } from '../../services/companies';
 import { useToast } from '../../context/ToastContext';
-import { Mail, Phone, ChevronLeft, ChevronRight, Info, List } from 'lucide-react';
+import { Mail, Phone, ChevronLeft, ChevronRight, Info, List, ChevronDown } from 'lucide-react';
 import { LoadingButton } from '../shared/LoadingButton';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 
 export function CompanyCampaignRuns() {
   const { companyId, campaignId } = useParams();
@@ -207,42 +208,54 @@ export function CompanyCampaignRuns() {
                     {run.leads_total}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    {(run.campaigns.type === 'email' || run.campaigns.type === 'email_and_call') && (
-                      <div className="flex items-center space-x-2">
-                        <Link
-                          to={`/companies/${companyId}/emails?campaign_run_id=${run.id}`}
-                          className="inline-flex items-center px-2.5 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    <DropdownMenu.Root>
+                      <DropdownMenu.Trigger asChild>
+                        <button className="inline-flex items-center justify-between min-w-[120px] px-2.5 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                          Actions
+                          <ChevronDown className="h-3.5 w-3.5 ml-1" />
+                        </button>
+                      </DropdownMenu.Trigger>
+
+                      <DropdownMenu.Portal>
+                        <DropdownMenu.Content 
+                          className="min-w-[180px] bg-white rounded-md shadow-lg border border-gray-200 py-1"
+                          sideOffset={5}
                         >
-                          <Mail className="h-3.5 w-3.5 mr-1" />
-                          View Emails
-                        </Link>
-                        <Link
-                          to={`/companies/${companyId}/campaign-runs/${run.id}/email-queues`}
-                          className="inline-flex items-center px-2.5 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                        >
-                          <List className="h-3.5 w-3.5 mr-1" />
-                          Email Queue
-                        </Link>
-                      </div>
-                    )}
-                    {(run.campaigns.type === 'call' || run.campaigns.type === 'email_and_call') && (
-                      <div className="flex items-center space-x-2 mt-2">
-                        <Link
-                          to={`/companies/${companyId}/calls?campaign_run_id=${run.id}`}
-                          className="inline-flex items-center px-2.5 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                        >
-                          <Phone className="h-3.5 w-3.5 mr-1" />
-                          View Calls
-                        </Link>
-                        <Link
-                          to={`/companies/${companyId}/campaign-runs/${run.id}/call-queues`}
-                          className="inline-flex items-center px-2.5 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                        >
-                          <List className="h-3.5 w-3.5 mr-1" />
-                          Call Queue
-                        </Link>
-                      </div>
-                    )}
+                          {(run.campaigns.type === 'email' || run.campaigns.type === 'email_and_call') && (
+                            <>
+                              <DropdownMenu.Item className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer" asChild>
+                                <Link to={`/companies/${companyId}/emails?campaign_run_id=${run.id}`}>
+                                  <Mail className="h-3.5 w-3.5 mr-2" />
+                                  View Emails
+                                </Link>
+                              </DropdownMenu.Item>
+                              <DropdownMenu.Item className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer" asChild>
+                                <Link to={`/companies/${companyId}/campaign-runs/${run.id}/email-queues`}>
+                                  <List className="h-3.5 w-3.5 mr-2" />
+                                  Email Queue
+                                </Link>
+                              </DropdownMenu.Item>
+                            </>
+                          )}
+                          {(run.campaigns.type === 'call' || run.campaigns.type === 'email_and_call') && (
+                            <>
+                              <DropdownMenu.Item className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer" asChild>
+                                <Link to={`/companies/${companyId}/calls?campaign_run_id=${run.id}`}>
+                                  <Phone className="h-3.5 w-3.5 mr-2" />
+                                  View Calls
+                                </Link>
+                              </DropdownMenu.Item>
+                              <DropdownMenu.Item className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer" asChild>
+                                <Link to={`/companies/${companyId}/campaign-runs/${run.id}/call-queues`}>
+                                  <List className="h-3.5 w-3.5 mr-2" />
+                                  Call Queue
+                                </Link>
+                              </DropdownMenu.Item>
+                            </>
+                          )}
+                        </DropdownMenu.Content>
+                      </DropdownMenu.Portal>
+                    </DropdownMenu.Root>
                   </td>
                 </tr>
               ))}
