@@ -213,14 +213,14 @@ export function CompanyCampaignRuns() {
                           to={`/companies/${companyId}/emails?campaign_run_id=${run.id}`}
                           className="text-indigo-600 hover:text-indigo-900"
                         >
-                          Email Log
+                          View Emails
                         </Link>
                         <span className="mx-2 text-gray-300">|</span>
                         <Link
                           to={`/companies/${companyId}/campaign-runs/${run.id}/email-queues`}
                           className="text-indigo-600 hover:text-indigo-900"
                         >
-                          Queued Emails
+                          Email Queue
                         </Link>
                       </>
                     )}
@@ -231,14 +231,14 @@ export function CompanyCampaignRuns() {
                           to={`/companies/${companyId}/calls?campaign_run_id=${run.id}`}
                           className="text-indigo-600 hover:text-indigo-900"
                         >
-                          Call Log
+                          View Calls
                         </Link>
                         <span className="mx-2 text-gray-300">|</span>
                         <Link
                           to={`/companies/${companyId}/campaign-runs/${run.id}/call-queues`}
                           className="text-indigo-600 hover:text-indigo-900"
                         >
-                          Queued Calls
+                          Call Queue
                         </Link>
                       </>
                     )}
