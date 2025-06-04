@@ -78,15 +78,19 @@ export function CompanyDetailsPanel({ isOpen, onClose, company, onCompanyUpdate 
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify(editedCompany),
+        body: JSON.stringify({
+          website: editedCompany.website,
+          overview: editedCompany.overview
+        }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error('Failed to update company');
+        throw new Error(data.message || 'Failed to update company');
       }
 
-      const updatedCompany: Company = await response.json();
-      onCompanyUpdate(updatedCompany);
+      onCompanyUpdate(data);
       setIsEditing(false);
       showToast('Company details updated successfully', 'success');
     } catch (error) {
