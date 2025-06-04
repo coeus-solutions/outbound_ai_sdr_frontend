@@ -765,7 +765,7 @@ function ProductCard({ product, companyId }: ProductCardProps) {
               <h5 className="text-sm font-medium text-gray-900">Active Campaigns</h5>
               <div className="flex items-center space-x-2">
                 <Link
-                  to={`/companies/${companyId}/campaigns/new`}
+                  to={`/companies/${companyId}/campaigns/new?product_id=${product.id}`}
                   className="text-sm text-indigo-600 hover:text-indigo-700 flex items-center"
                 >
                   New Campaign
@@ -862,7 +862,7 @@ function ProductCard({ product, companyId }: ProductCardProps) {
               <div className="text-center py-6">
                 <p className="text-sm text-gray-500">No active campaigns</p>
                 <Link
-                  to={`/companies/${companyId}/campaigns/new`}
+                  to={`/companies/${companyId}/campaigns/new?product_id=${product.id}`}
                   className="mt-2 inline-flex items-center text-sm text-indigo-600 hover:text-indigo-700"
                 >
                   <Plus className="w-4 h-4 mr-1" />
