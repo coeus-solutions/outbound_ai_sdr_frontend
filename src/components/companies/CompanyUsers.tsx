@@ -131,6 +131,11 @@ export function CompanyUsers({ onRefreshNeeded }: CompanyUsersProps) {
                       <Users className="h-5 w-5 text-gray-400 mr-2" />
                       <div className="text-sm font-medium text-gray-900">
                         {user.name || 'N/A'}
+                        {user.is_owner && (
+                          <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800">
+                            Owner
+                          </span>
+                        )}
                       </div>
                     </div>
                   </td>
