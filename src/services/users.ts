@@ -13,10 +13,24 @@ export interface User {
   plan_type?: string;
   subscription_status?: string;
   upgrade_message?: string;
+  company_roles?: Array<{ company_id: string; role: string }>;
+  channels_active?: { [key: string]: boolean };
+  subscription?: {
+    status: string;
+    details: {
+      lead_tier: string;
+      billing_period_start: string;
+      billing_period_end: string;
+    };
+  };
 }
 
-export async function getUser(token: string): Promise<User> {
-  const response = await fetch(apiEndpoints.users.me, {
+export interface GetUserOptions {
+  showSubscriptionDetails?: boolean;
+}
+
+export async function getUser(token: string, options: GetUserOptions = {}): Promise<User> {
+  const response = await fetch(apiEndpoints.users.me(options), {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -33,7 +47,7 @@ export async function getUser(token: string): Promise<User> {
 }
 
 export async function updateUser(token: string, data: UpdateUserRequest): Promise<User> {
-  const response = await fetch(apiEndpoints.users.me, {
+  const response = await fetch(apiEndpoints.users.me(), {
     method: 'PATCH',
     headers: {
       'Authorization': `Bearer ${token}`,

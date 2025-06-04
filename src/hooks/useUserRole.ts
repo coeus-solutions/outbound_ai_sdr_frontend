@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getToken } from '../utils/auth';
-import { UserInDB } from '../types';
-import { getCurrentUser } from '../services/user';
+import { getUser } from '../services/users';
 
 export function useUserRole(companyId: string | undefined) {
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
@@ -23,7 +22,7 @@ export function useUserRole(companyId: string | undefined) {
           return;
         }
 
-        const userData = await getCurrentUser(token);
+        const userData = await getUser(token);
         
         // Check if user has admin role for the specified company
         const hasAdminRole = userData.company_roles?.some(
