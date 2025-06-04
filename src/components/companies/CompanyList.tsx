@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 import { getToken } from '../../utils/auth';
 import { Company, getCompanies, getCompanyById, deleteCompany } from '../../services/companies';
 import { Dialog } from '../shared/Dialog';
-import { Product } from '../../services/products';
 import { Campaign, getCompanyCampaigns } from '../../services/emailCampaigns';
 import { useToast } from '../../context/ToastContext';
 import { SkeletonLoader } from '../shared/SkeletonLoader';
@@ -22,6 +21,7 @@ interface ProductStats {
   description?: string;
   url?: string;
   file_name?: string;
+  company_id: string;
   total_campaigns: number;
   total_calls: number;
   total_positive_calls: number;
@@ -134,7 +134,7 @@ export function CompanyList() {
   const handleDeleteCompany = async (company: CompanyWithStats) => {
     setCompanyToDelete({
       ...company,
-      products: company.products as unknown as Product[]
+      products: company.products as any[]
     });
   };
 
@@ -765,7 +765,7 @@ function ProductCard({ product, companyId }: ProductCardProps) {
               <h5 className="text-sm font-medium text-gray-900">Active Campaigns</h5>
               <div className="flex items-center space-x-2">
                 <Link
-                  to={`/companies/${companyId}/campaigns/new`}
+                  to={`/companies/${companyId}/campaigns/new?product_id=${product.id}`}
                   className="text-sm text-indigo-600 hover:text-indigo-700 flex items-center"
                 >
                   New Campaign
@@ -782,50 +782,78 @@ function ProductCard({ product, companyId }: ProductCardProps) {
                 {campaigns.map((campaign) => (
                   <div key={campaign.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
                     <div className="flex-1">
-                      <Link 
-                        to={campaign.type === 'email' 
-                          ? `/companies/${companyId}/emails`
-                          : `/companies/${companyId}/calls`}
-                        className="text-sm font-medium text-gray-900 hover:text-indigo-600 transition-colors"
-                      >
-                        {campaign.name}
-                      </Link>
-                      {campaign.description && (
-                        <div className="text-xs text-gray-500">{campaign.description}</div>
-                      )}
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Link
-                        to={campaign.type === 'email' 
-                          ? `/companies/${companyId}/emails`
-                          : `/companies/${companyId}/calls`}
-                        className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                          campaign.type === 'email' 
-                            ? 'bg-blue-100 text-blue-800 hover:bg-blue-200'
-                            : campaign.type === 'call'
-                            ? 'bg-purple-100 text-purple-800 hover:bg-purple-200'
-                            : campaign.type === 'email_and_call'
-                            ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                            : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                        }`}
-                      >
-                        {campaign.type === 'email' ? (
-                          <Mail className="h-3 w-3 mr-1" />
-                        ) : campaign.type === 'call' ? (
-                          <Phone className="h-3 w-3 mr-1" />
-                        ) : campaign.type === 'email_and_call' ? (
-                          <div className="flex items-center">
-                            <Mail className="h-3 w-3" />
-                            <Phone className="h-3 w-3 ml-1 mr-1" />
+                      <div className="flex flex-col">
+                        <div className="flex items-center gap-2">
+                          <div
+                            className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                              campaign.type === 'email' 
+                                ? 'bg-blue-100 text-blue-800'
+                                : campaign.type === 'call'
+                                ? 'bg-purple-100 text-purple-800'
+                                : campaign.type === 'email_and_call'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-gray-100 text-gray-800'
+                            }`}
+                          >
+                            {campaign.type === 'email' ? (
+                              <Mail className="h-3 w-3" />
+                            ) : campaign.type === 'call' ? (
+                              <Phone className="h-3 w-3" />
+                            ) : campaign.type === 'email_and_call' ? (
+                              <div className="flex items-center">
+                                <Mail className="h-3 w-3" />
+                                <Phone className="h-3 w-3 ml-1" />
+                              </div>
+                            ) : (
+                              <Mail className="h-3 w-3" />
+                            )}
                           </div>
-                        ) : (
-                          <Mail className="h-3 w-3 mr-1" />
+                          <span className="text-sm font-medium text-gray-900">
+                            {campaign.name}
+                          </span>
+                        </div>
+                        {campaign.description && (
+                          <div className="text-xs text-gray-500 mt-0.5 ml-8">{campaign.description}</div>
                         )}
-                        {campaign.type === 'email' ? 'Email' : 
-                         campaign.type === 'call' ? 'Call' : 
-                         campaign.type === 'email_and_call' ? 'Email + Call' : 
-                         campaign.type}
-                      </Link>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {campaign.type === 'email' && (
+                        <Link
+                          to={`/companies/${companyId}/emails?campaign_id=${campaign.id}`}
+                          className="text-sm text-gray-600 hover:text-indigo-600 flex items-center gap-1"
+                        >
+                          <Mail className="h-3 w-3" />
+                          View Emails
+                        </Link>
+                      )}
+                      {campaign.type === 'call' && (
+                        <Link
+                          to={`/companies/${companyId}/calls?campaign_id=${campaign.id}`}
+                          className="text-sm text-gray-600 hover:text-indigo-600 flex items-center gap-1"
+                        >
+                          <Phone className="h-3 w-3" />
+                          View Calls
+                        </Link>
+                      )}
+                      {campaign.type === 'email_and_call' && (
+                        <>
+                          <Link
+                            to={`/companies/${companyId}/emails?campaign_id=${campaign.id}`}
+                            className="text-sm text-gray-600 hover:text-indigo-600 flex items-center gap-1"
+                          >
+                            <Mail className="h-3 w-3" />
+                            View Emails
+                          </Link>
+                          <Link
+                            to={`/companies/${companyId}/calls?campaign_id=${campaign.id}`}
+                            className="text-sm text-gray-600 hover:text-indigo-600 flex items-center gap-1"
+                          >
+                            <Phone className="h-3 w-3" />
+                            View Calls
+                          </Link>
+                        </>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -834,7 +862,7 @@ function ProductCard({ product, companyId }: ProductCardProps) {
               <div className="text-center py-6">
                 <p className="text-sm text-gray-500">No active campaigns</p>
                 <Link
-                  to={`/companies/${companyId}/campaigns/new`}
+                  to={`/companies/${companyId}/campaigns/new?product_id=${product.id}`}
                   className="mt-2 inline-flex items-center text-sm text-indigo-600 hover:text-indigo-700"
                 >
                   <Plus className="w-4 h-4 mr-1" />

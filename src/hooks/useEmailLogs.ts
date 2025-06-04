@@ -12,6 +12,7 @@ export interface EmailLogFilters {
 interface UseEmailLogsProps {
   companyId: string;
   campaignRunId?: string;
+  initialFilters?: EmailLogFilters;
 }
 
 interface UseEmailLogsReturn {
@@ -34,11 +35,12 @@ interface UseEmailLogsReturn {
  * 
  * @param companyId - The ID of the company to fetch emails for
  * @param campaignRunId - Optional campaign run ID to filter by
+ * @param initialFilters - Optional initial filters to apply
  * @returns Object containing email logs, loading state, error state, and pagination controls
  * 
  * The API uses page_number and limit parameters for pagination
  */
-export function useEmailLogs({ companyId, campaignRunId }: UseEmailLogsProps): UseEmailLogsReturn {
+export function useEmailLogs({ companyId, campaignRunId, initialFilters }: UseEmailLogsProps): UseEmailLogsReturn {
   const { showToast } = useToast();
   const [emailLogs, setEmailLogs] = useState<EmailLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,7 +49,7 @@ export function useEmailLogs({ companyId, campaignRunId }: UseEmailLogsProps): U
   const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
-  const [filters, setFilters] = useState<EmailLogFilters>({});
+  const [filters, setFilters] = useState<EmailLogFilters>(initialFilters || {});
   
   // Use refs to track previous values for comparison
   const prevFiltersRef = useRef<EmailLogFilters>({});

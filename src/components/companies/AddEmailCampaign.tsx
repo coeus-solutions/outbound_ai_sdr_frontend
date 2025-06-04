@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { getToken } from '../../utils/auth';
 import { useToast } from '../../context/ToastContext';
 import { getCompanyById, Company } from '../../services/companies';
@@ -13,6 +13,9 @@ import "react-datepicker/dist/react-datepicker.css";
 export function AddEmailCampaign() {
   const { companyId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const productId = queryParams.get('product_id');
   const { showToast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -26,7 +29,7 @@ export function AddEmailCampaign() {
     name: '',
     description: '',
     type: 'email' as 'email' | 'call' | 'both' | 'email_and_call',
-    product_id: '',
+    product_id: productId || '',
     template: '',
     // Email-specific fields
     email_number_of_reminders: 0,
@@ -280,12 +283,15 @@ export function AddEmailCampaign() {
 
         setCompany(companyData);
         setProducts(productsData);
-        if (productsData.length > 0) {
+        
+        // Only set the default product if no product_id was provided in the URL
+        if (!productId && productsData.length > 0) {
           setFormData(prev => ({
             ...prev,
             product_id: productsData[0].id
           }));
         }
+        
         setError(null);
       } catch (err) {
         const errorMessage = 'Failed to fetch data';
@@ -297,7 +303,7 @@ export function AddEmailCampaign() {
     }
 
     fetchData();
-  }, [companyId, showToast]);
+  }, [companyId, showToast, productId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

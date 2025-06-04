@@ -4,6 +4,7 @@ export interface Product {
   id: string;
   name: string;
   product_name: string;
+  description?: string;
   company_id: string;
   product_url?: string;
   file_name?: string;
