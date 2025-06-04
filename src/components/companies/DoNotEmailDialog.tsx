@@ -102,7 +102,7 @@ export function DoNotEmailDialog({ isOpen, onClose, companyId }: DoNotEmailDialo
       isOpen={isOpen}
       onClose={onClose}
       title="Do Not Email List"
-      size="lg"
+      size="4xl"
     >
       <div className="border-b border-gray-200">
         <nav className="-mb-px flex space-x-8" aria-label="Tabs">
