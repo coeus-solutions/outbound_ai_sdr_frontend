@@ -39,6 +39,7 @@ export interface CompanyUserResponse {
   email: string;
   role: string;
   user_company_profile_id: string;
+  is_owner: boolean;
 }
 
 export interface Lead {
