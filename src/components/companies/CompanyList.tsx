@@ -162,6 +162,7 @@ export function CompanyList() {
   };
 
   const handleCompanyUpdate = (updatedCompany: Company) => {
+    // Update the companies list
     setCompanies(companies.map(company => {
       if (company.id === updatedCompany.id) {
         // If products array is provided, it's a product-related update

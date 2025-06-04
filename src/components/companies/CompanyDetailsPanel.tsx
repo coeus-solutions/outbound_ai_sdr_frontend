@@ -90,9 +90,15 @@ export function CompanyDetailsPanel({ isOpen, onClose, company, onCompanyUpdate 
         throw new Error(data.message || 'Failed to update company');
       }
 
-      // Update both parent component and local state
+      // Update parent component state
       onCompanyUpdate(data);
+      // Update local state
       setEditedCompany(data);
+      // Update the company prop directly
+      if (company) {
+        company.website = data.website;
+        company.overview = data.overview;
+      }
       setIsEditing(false);
       showToast('Company details updated successfully', 'success');
     } catch (error) {
