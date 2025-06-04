@@ -785,7 +785,7 @@ function ProductCard({ product, companyId }: ProductCardProps) {
                       <div className="flex flex-col">
                         <div className="flex items-center gap-2">
                           <Link
-                            to={campaign.type === 'email' 
+                            to={campaign.type === 'email' || campaign.type === 'email_and_call'
                               ? `/companies/${companyId}/emails?campaign_id=${campaign.id}`
                               : `/companies/${companyId}/calls?campaign_id=${campaign.id}`}
                             className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
@@ -812,7 +812,7 @@ function ProductCard({ product, companyId }: ProductCardProps) {
                             )}
                           </Link>
                           <Link 
-                            to={campaign.type === 'email' 
+                            to={campaign.type === 'email' || campaign.type === 'email_and_call'
                               ? `/companies/${companyId}/emails?campaign_id=${campaign.id}`
                               : `/companies/${companyId}/calls?campaign_id=${campaign.id}`}
                             className="text-sm font-medium text-gray-900 hover:text-indigo-600 transition-colors"
