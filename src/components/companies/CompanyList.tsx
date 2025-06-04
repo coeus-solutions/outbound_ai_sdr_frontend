@@ -505,7 +505,7 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
                     className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
                     sideOffset={5}
                   >
-                    View details
+                    Company Details
                     <Tooltip.Arrow className="fill-gray-900" />
                   </Tooltip.Content>
                 </Tooltip.Portal>
