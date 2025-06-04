@@ -64,6 +64,11 @@ export function CompanyDetailsPanel({ isOpen, onClose, company, onCompanyUpdate 
   const handleSave = async () => {
     if (!editedCompany) return;
 
+    if (!editedCompany.name) {
+      showToast('Company name is required', 'error');
+      return;
+    }
+
     if (!editedCompany.website) {
       showToast('Website is required', 'error');
       return;
@@ -84,6 +89,7 @@ export function CompanyDetailsPanel({ isOpen, onClose, company, onCompanyUpdate 
           'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
+          name: editedCompany.name,
           website: editedCompany.website,
           overview: editedCompany.overview
         }),
@@ -101,6 +107,7 @@ export function CompanyDetailsPanel({ isOpen, onClose, company, onCompanyUpdate 
       setEditedCompany(data);
       // Update the company prop directly
       if (company) {
+        company.name = data.name;
         company.website = data.website;
         company.overview = data.overview;
       }
@@ -157,13 +164,55 @@ export function CompanyDetailsPanel({ isOpen, onClose, company, onCompanyUpdate 
       {/* Content */}
       <div className="overflow-y-auto h-full pb-32">
         <div className="px-6 py-4 space-y-6">
+          {/* Company Name Section */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-medium text-gray-900 flex items-center">
+                <Building2 className="h-4 w-4 mr-2" />
+                Company Name
+                {isEditing && <span className="text-red-500 ml-1">*</span>}
+              </h3>
+              {!isEditing && (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="text-sm text-indigo-600 hover:text-indigo-500 flex items-center"
+                >
+                  <Pencil className="h-3 w-3 mr-1" />
+                  Edit
+                </button>
+              )}
+            </div>
+            {isEditing ? (
+              <div>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Building2 className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    value={editedCompany?.name || ''}
+                    onChange={(e) => setEditedCompany(prev => prev ? { ...prev, name: e.target.value } : null)}
+                    className={`form-input pl-10 ${!editedCompany?.name && 'border-red-300 focus:ring-red-500 focus:border-red-500'}`}
+                    placeholder="Enter company name"
+                    required
+                  />
+                </div>
+                {!editedCompany?.name && (
+                  <p className="mt-1 text-sm text-red-600">Company name is required</p>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-900">{company.name}</p>
+            )}
+          </div>
+
           {/* URL Section */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-medium text-gray-900 flex items-center">
                 <Globe className="h-4 w-4 mr-2" />
                 Website
-                <span className="text-red-500 ml-1">*</span>
+                {isEditing && <span className="text-red-500 ml-1">*</span>}
               </h3>
               {!isEditing && (
                 <button
