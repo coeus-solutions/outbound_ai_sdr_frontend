@@ -784,18 +784,15 @@ function ProductCard({ product, companyId }: ProductCardProps) {
                     <div className="flex-1">
                       <div className="flex flex-col">
                         <div className="flex items-center gap-2">
-                          <Link
-                            to={campaign.type === 'email' || campaign.type === 'email_and_call'
-                              ? `/companies/${companyId}/emails?campaign_id=${campaign.id}`
-                              : `/companies/${companyId}/calls?campaign_id=${campaign.id}`}
+                          <div
                             className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
                               campaign.type === 'email' 
-                                ? 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+                                ? 'bg-blue-100 text-blue-800'
                                 : campaign.type === 'call'
-                                ? 'bg-purple-100 text-purple-800 hover:bg-purple-200'
+                                ? 'bg-purple-100 text-purple-800'
                                 : campaign.type === 'email_and_call'
-                                ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                                : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-gray-100 text-gray-800'
                             }`}
                           >
                             {campaign.type === 'email' ? (
@@ -810,20 +807,53 @@ function ProductCard({ product, companyId }: ProductCardProps) {
                             ) : (
                               <Mail className="h-3 w-3" />
                             )}
-                          </Link>
-                          <Link 
-                            to={campaign.type === 'email' || campaign.type === 'email_and_call'
-                              ? `/companies/${companyId}/emails?campaign_id=${campaign.id}`
-                              : `/companies/${companyId}/calls?campaign_id=${campaign.id}`}
-                            className="text-sm font-medium text-gray-900 hover:text-indigo-600 transition-colors"
-                          >
+                          </div>
+                          <span className="text-sm font-medium text-gray-900">
                             {campaign.name}
-                          </Link>
+                          </span>
                         </div>
                         {campaign.description && (
                           <div className="text-xs text-gray-500 mt-0.5 ml-8">{campaign.description}</div>
                         )}
                       </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {campaign.type === 'email' && (
+                        <Link
+                          to={`/companies/${companyId}/emails?campaign_id=${campaign.id}`}
+                          className="text-sm text-gray-600 hover:text-indigo-600 flex items-center gap-1"
+                        >
+                          <Mail className="h-3 w-3" />
+                          View Emails
+                        </Link>
+                      )}
+                      {campaign.type === 'call' && (
+                        <Link
+                          to={`/companies/${companyId}/calls?campaign_id=${campaign.id}`}
+                          className="text-sm text-gray-600 hover:text-indigo-600 flex items-center gap-1"
+                        >
+                          <Phone className="h-3 w-3" />
+                          View Calls
+                        </Link>
+                      )}
+                      {campaign.type === 'email_and_call' && (
+                        <>
+                          <Link
+                            to={`/companies/${companyId}/emails?campaign_id=${campaign.id}`}
+                            className="text-sm text-gray-600 hover:text-indigo-600 flex items-center gap-1"
+                          >
+                            <Mail className="h-3 w-3" />
+                            View Emails
+                          </Link>
+                          <Link
+                            to={`/companies/${companyId}/calls?campaign_id=${campaign.id}`}
+                            className="text-sm text-gray-600 hover:text-indigo-600 flex items-center gap-1"
+                          >
+                            <Phone className="h-3 w-3" />
+                            View Calls
+                          </Link>
+                        </>
+                      )}
                     </div>
                   </div>
                 ))}
