@@ -35,7 +35,10 @@ export const apiEndpoints = {
     change: `${config.apiUrl}/api/subscriptions/change` as const,
   },
   users: {
-    me: `${config.apiUrl}/api/users/me` as const,
+    me: (options?: { showSubscriptionDetails?: boolean }): string => {
+      const baseUrl = `${config.apiUrl}/api/users/me`;
+      return options?.showSubscriptionDetails ? `${baseUrl}?show_subscription_details=true` : baseUrl;
+    },
   },
   companies: {
     list: (showStats?: boolean) => {

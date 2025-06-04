@@ -14,6 +14,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { CompanyUsers } from './CompanyUsers';
 import { useUserRole } from '../../hooks/useUserRole';
 import { VoiceAgentSettings } from '../../types';
+import { getUser } from '../../services/users';
 
 function getOAuthUrl(providerName: string, companyId: string): string {
   const redirectUri = `${window.location.origin}/cronofy-auth`;
@@ -229,18 +230,7 @@ export function CompanySettings() {
         }
 
         // Fetch user data to get active channels
-        const userResponse = await fetch(apiEndpoints.users.me, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!userResponse.ok) {
-          throw new Error('Failed to fetch user data');
-        }
-
-        const userData = await userResponse.json();
+        const userData = await getUser(token);
         if (userData.channels_active) {
           setChannelsActive(userData.channels_active);
         }

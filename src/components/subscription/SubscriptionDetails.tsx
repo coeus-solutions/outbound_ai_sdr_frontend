@@ -4,8 +4,9 @@ import { User } from '../../types';
 import { apiEndpoints } from '../../config';
 import { getToken } from '../../utils/auth';
 import { Dialog } from '../shared/Dialog';
-import { useToast } from '../../hooks/useToast';
+import { useToast } from '../../context/ToastContext';
 import ChangeSubscriptionDialog from './ChangeSubscriptionDialog';
+import { getUser } from '../../services/users';
 
 interface SubscriptionItem {
   name: string;
@@ -45,18 +46,7 @@ export function SubscriptionDetails() {
           throw new Error('No authentication token found');
         }
 
-        const response = await fetch(apiEndpoints.users.me, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch subscription details');
-        }
-
-        const data: User = await response.json();
+        const data = await getUser(token, { showSubscriptionDetails: true });
         console.log('API Response:', data);
         // Transform user data into subscription info
         if (data.plan_type || data.subscription || data.subscription_details) {
