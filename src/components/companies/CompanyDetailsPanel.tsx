@@ -176,18 +176,20 @@ export function CompanyDetailsPanel({ isOpen, onClose, company, onCompanyUpdate 
               )}
             </div>
             {isEditing ? (
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Globe className="h-5 w-5 text-gray-400" />
+              <div>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Globe className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    type="url"
+                    value={editedCompany?.website || ''}
+                    onChange={(e) => setEditedCompany(prev => prev ? { ...prev, website: e.target.value } : null)}
+                    className={`form-input pl-10 ${!editedCompany?.website && 'border-red-300 focus:ring-red-500 focus:border-red-500'}`}
+                    placeholder="https://example.com"
+                    required
+                  />
                 </div>
-                <input
-                  type="url"
-                  value={editedCompany?.website || ''}
-                  onChange={(e) => setEditedCompany(prev => prev ? { ...prev, website: e.target.value } : null)}
-                  className={`form-input pl-10 ${!editedCompany?.website && 'border-red-300 focus:ring-red-500 focus:border-red-500'}`}
-                  placeholder="https://example.com"
-                  required
-                />
                 {!editedCompany?.website && (
                   <p className="mt-1 text-sm text-red-600">Website is required</p>
                 )}
