@@ -237,29 +237,15 @@ export function CompanyDetailsPanel({ isOpen, onClose, company, onCompanyUpdate 
                     key={product.id}
                     className="bg-gray-50 rounded-lg p-3 hover:bg-gray-100 transition-colors"
                   >
-                    <div className="flex justify-between items-start">
-                      <Link
-                        to={`/companies/${company.id}/products/${product.id}/edit`}
-                        className="group flex-grow"
-                      >
-                        <h4 className="text-sm font-medium text-gray-900 group-hover:text-indigo-600 flex items-center">
-                          {product.product_name || product.name}
-                          <Pencil className="h-3 w-3 ml-2 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </h4>
-                        {product.description && (
-                          <p className="text-sm text-gray-600 mt-1 whitespace-pre-wrap break-words">
-                            {product.description}
-                          </p>
-                        )}
-                      </Link>
-                      <button 
-                        onClick={() => setProductToDelete(product)}
-                        className="text-red-500 hover:text-red-700 p-1 rounded ml-2"
-                        aria-label="Delete product"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
+                    <Link
+                      to={`/companies/${company.id}/products/${product.id}/edit`}
+                      className="group flex-grow"
+                    >
+                      <h4 className="text-sm font-medium text-gray-900 group-hover:text-indigo-600 flex items-center">
+                        {product.product_name || product.name}
+                        <Pencil className="h-3 w-3 ml-2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </h4>
+                    </Link>
                   </div>
                 ))
               ) : (
