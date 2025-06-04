@@ -158,13 +158,18 @@ export function CompanyDetailsPanel({ isOpen, onClose, company, onCompanyUpdate 
               )}
             </div>
             {isEditing ? (
-              <input
-                type="url"
-                value={editedCompany?.website || ''}
-                onChange={(e) => setEditedCompany(prev => prev ? { ...prev, website: e.target.value } : null)}
-                className="form-input block w-full text-sm"
-                placeholder="https://example.com"
-              />
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Globe className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  type="url"
+                  value={editedCompany?.website || ''}
+                  onChange={(e) => setEditedCompany(prev => prev ? { ...prev, website: e.target.value } : null)}
+                  className="form-input pl-10"
+                  placeholder="https://example.com"
+                />
+              </div>
             ) : (
               company.website ? (
                 <a
@@ -197,13 +202,18 @@ export function CompanyDetailsPanel({ isOpen, onClose, company, onCompanyUpdate 
               )}
             </div>
             {isEditing ? (
-              <textarea
-                value={editedCompany?.overview || ''}
-                onChange={(e) => setEditedCompany(prev => prev ? { ...prev, overview: e.target.value } : null)}
-                className="form-textarea block w-full text-sm"
-                rows={4}
-                placeholder="Enter company overview..."
-              />
+              <div className="relative">
+                <div className="absolute top-3 left-0 pl-3 flex items-center pointer-events-none">
+                  <Building2 className="h-5 w-5 text-gray-400" />
+                </div>
+                <textarea
+                  value={editedCompany?.overview || ''}
+                  onChange={(e) => setEditedCompany(prev => prev ? { ...prev, overview: e.target.value } : null)}
+                  className="form-input pl-10"
+                  rows={4}
+                  placeholder="Enter company overview..."
+                />
+              </div>
             ) : (
               <p className="text-sm text-gray-600">
                 {company.overview || 'No overview provided'}
