@@ -14,6 +14,7 @@ export function CompanyEmails() {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const campaignRunId = queryParams.get('campaign_run_id') || undefined;
+  const campaignId = queryParams.get('campaign_id') || undefined;
   const { showToast } = useToast();
   const {
     emailLogs,
@@ -27,7 +28,11 @@ export function CompanyEmails() {
     setPage,
     setPageSize,
     setFilters,
-  } = useEmailLogs({ companyId: companyId || '', campaignRunId });
+  } = useEmailLogs({ 
+    companyId: companyId || '', 
+    campaignRunId,
+    initialFilters: campaignId ? { campaign_id: campaignId } : undefined
+  });
   const [company, setCompany] = useState<Company | null>(null);
   const [isLoadingCompany, setIsLoadingCompany] = useState(true);
   const [error, setError] = useState<string | null>(null);
