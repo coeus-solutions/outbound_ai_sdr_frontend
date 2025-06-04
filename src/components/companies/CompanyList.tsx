@@ -164,28 +164,38 @@ export function CompanyList() {
   const handleCompanyUpdate = (updatedCompany: Company) => {
     setCompanies(companies.map(company => {
       if (company.id === updatedCompany.id) {
-        // Map the updated products to the CompanyWithStats product structure
-        const updatedProducts = updatedCompany.products.map(product => ({
-          id: product.id,
-          name: product.name,
-          product_name: product.product_name,
-          description: product.description,
-          company_id: product.company_id,
-          total_campaigns: product.total_campaigns || 0,
-          total_calls: product.total_calls || 0,
-          total_positive_calls: product.total_positive_calls || 0,
-          total_sent_emails: product.total_sent_emails || 0,
-          total_opened_emails: product.total_opened_emails || 0,
-          total_replied_emails: product.total_replied_emails || 0,
-          unique_leads_contacted: product.unique_leads_contacted || 0,
-          total_meetings_booked_in_calls: product.total_meetings_booked_in_calls || 0,
-          total_meetings_booked_in_emails: product.total_meetings_booked_in_emails || 0
-        }));
+        // If products array is provided, it's a product-related update
+        if (updatedCompany.products) {
+          // Map the updated products to the CompanyWithStats product structure
+          const updatedProducts = updatedCompany.products.map(product => ({
+            id: product.id,
+            name: product.name,
+            product_name: product.product_name,
+            description: product.description,
+            company_id: product.company_id,
+            total_campaigns: product.total_campaigns || 0,
+            total_calls: product.total_calls || 0,
+            total_positive_calls: product.total_positive_calls || 0,
+            total_sent_emails: product.total_sent_emails || 0,
+            total_opened_emails: product.total_opened_emails || 0,
+            total_replied_emails: product.total_replied_emails || 0,
+            unique_leads_contacted: product.unique_leads_contacted || 0,
+            total_meetings_booked_in_calls: product.total_meetings_booked_in_calls || 0,
+            total_meetings_booked_in_emails: product.total_meetings_booked_in_emails || 0
+          }));
+          
+          return {
+            ...company,
+            products: updatedProducts
+          };
+        }
         
+        // Otherwise it's a company details update (name/website/overview)
         return {
           ...company,
-          ...updatedCompany,
-          products: updatedProducts
+          name: updatedCompany.name ?? company.name,
+          website: updatedCompany.website ?? company.website,
+          overview: updatedCompany.overview ?? company.overview
         };
       }
       return company;
@@ -495,7 +505,7 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
                     className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
                     sideOffset={5}
                   >
-                    View details
+                    Company Details
                     <Tooltip.Arrow className="fill-gray-900" />
                   </Tooltip.Content>
                 </Tooltip.Portal>
@@ -539,7 +549,7 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
                     className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
                     sideOffset={5}
                   >
-                    View Leads
+                    Leads
                     <Tooltip.Arrow className="fill-gray-900" />
                   </Tooltip.Content>
                 </Tooltip.Portal>
@@ -562,7 +572,7 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
                     className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
                     sideOffset={5}
                   >
-                    View do-not-email list
+                    Do Not Contact List
                     <Tooltip.Arrow className="fill-gray-900" />
                   </Tooltip.Content>
                 </Tooltip.Portal>
@@ -586,7 +596,7 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
                       className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
                       sideOffset={5}
                     >
-                      Delete company
+                      Delete Company
                       <Tooltip.Arrow className="fill-gray-900" />
                     </Tooltip.Content>
                   </Tooltip.Portal>
