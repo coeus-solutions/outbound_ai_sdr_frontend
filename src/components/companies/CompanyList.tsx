@@ -549,7 +549,7 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
                     className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
                     sideOffset={5}
                   >
-                    View Leads
+                    Leads
                     <Tooltip.Arrow className="fill-gray-900" />
                   </Tooltip.Content>
                 </Tooltip.Portal>
@@ -572,7 +572,7 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
                     className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
                     sideOffset={5}
                   >
-                    View do-not-email list
+                    Do Not Contact List
                     <Tooltip.Arrow className="fill-gray-900" />
                   </Tooltip.Content>
                 </Tooltip.Portal>
@@ -596,7 +596,7 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
                       className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
                       sideOffset={5}
                     >
-                      Delete company
+                      Delete Company
                       <Tooltip.Arrow className="fill-gray-900" />
                     </Tooltip.Content>
                   </Tooltip.Portal>
