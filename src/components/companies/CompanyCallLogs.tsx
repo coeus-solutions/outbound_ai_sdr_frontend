@@ -14,10 +14,12 @@ export function CompanyCallLogs() {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const campaignRunId = queryParams.get('campaign_run_id');
+  const campaignId = queryParams.get('campaign_id');
   const { showToast } = useToast();
   const { callLogs, isLoading: isLoadingCalls, error: callLogsError, filters, setFilters, totalItems, currentPage, currentPageSize, setPage, setPageSize } = useCallLogs({
     companyId: companyId || '',
     campaignRunId: campaignRunId || undefined,
+    campaignId: campaignId || undefined,
   });
   const [company, setCompany] = useState<Company | null>(null);
   const [isLoadingCompany, setIsLoadingCompany] = useState(true);
