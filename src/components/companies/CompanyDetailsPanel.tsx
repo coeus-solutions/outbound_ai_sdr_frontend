@@ -64,6 +64,11 @@ export function CompanyDetailsPanel({ isOpen, onClose, company, onCompanyUpdate 
   const handleSave = async () => {
     if (!editedCompany) return;
 
+    if (!editedCompany.website) {
+      showToast('Website is required', 'error');
+      return;
+    }
+
     try {
       setIsSaving(true);
       const token = getToken();
@@ -158,6 +163,7 @@ export function CompanyDetailsPanel({ isOpen, onClose, company, onCompanyUpdate 
               <h3 className="text-sm font-medium text-gray-900 flex items-center">
                 <Globe className="h-4 w-4 mr-2" />
                 Website
+                <span className="text-red-500 ml-1">*</span>
               </h3>
               {!isEditing && (
                 <button
@@ -178,9 +184,13 @@ export function CompanyDetailsPanel({ isOpen, onClose, company, onCompanyUpdate 
                   type="url"
                   value={editedCompany?.website || ''}
                   onChange={(e) => setEditedCompany(prev => prev ? { ...prev, website: e.target.value } : null)}
-                  className="form-input pl-10"
+                  className={`form-input pl-10 ${!editedCompany?.website && 'border-red-300 focus:ring-red-500 focus:border-red-500'}`}
                   placeholder="https://example.com"
+                  required
                 />
+                {!editedCompany?.website && (
+                  <p className="mt-1 text-sm text-red-600">Website is required</p>
+                )}
               </div>
             ) : (
               company.website ? (
