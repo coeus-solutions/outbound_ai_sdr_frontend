@@ -128,6 +128,7 @@ export function LeadList() {
         title={product?.product_name || 'Product'}
         subtitle="Leads for"
         action={uploadButton}
+        showBackButton={false}
       />
 
       {leads.length === 0 ? (

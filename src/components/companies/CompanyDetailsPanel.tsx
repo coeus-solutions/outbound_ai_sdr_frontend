@@ -143,7 +143,8 @@ export function CompanyDetailsPanel({ isOpen, onClose, company, onCompanyUpdate 
     <div
       className={`fixed inset-y-0 right-0 w-96 bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${
         isOpen ? 'translate-x-0' : 'translate-x-full'
-      } z-50`}
+      }`}
+      style={{ zIndex: 99999 }}
     >
       {/* Header */}
       <div className="border-b border-gray-200 px-6 py-4">

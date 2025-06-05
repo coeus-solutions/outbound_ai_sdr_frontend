@@ -571,6 +571,7 @@ export function AddEmailCampaign() {
       <PageHeader
         title="New Campaign"
         subtitle={company?.name ? `for ${company.name}` : undefined}
+        showBackButton={false}
       />
       <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6 space-y-6">
         {error && (

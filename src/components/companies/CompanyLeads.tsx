@@ -168,6 +168,7 @@ export function CompanyLeads() {
         title={company?.name || 'Company'}
         subtitle="Leads for"
         action={uploadButton}
+        showBackButton={false}
       />
 
       {(!isLoading && leads.length === 0 && !searchTerm) ? (

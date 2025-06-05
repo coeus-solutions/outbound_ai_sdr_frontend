@@ -93,6 +93,7 @@ export function EditProduct() {
       <PageHeader
         title={product?.product_name || 'Edit Product'}
         subtitle="Edit"
+        showBackButton={false}
       />
 
       <div className="bg-white shadow-sm rounded-lg p-6">

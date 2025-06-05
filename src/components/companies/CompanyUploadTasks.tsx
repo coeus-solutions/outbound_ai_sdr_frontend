@@ -117,6 +117,7 @@ export function CompanyUploadTasks() {
         <PageHeader
           title={company?.name || 'Loading...'}
           subtitle="CSV Upload History for"
+          showBackButton={false}
         />
         <TableSkeletonLoader
           rowCount={5}
@@ -139,6 +140,7 @@ export function CompanyUploadTasks() {
       <PageHeader
         title={company?.name || 'Company'}
         subtitle="CSV Upload History for"
+        showBackButton={false}
       />
 
       <div className="bg-blue-50 border border-blue-200 rounded-md p-4 flex items-center space-x-2">

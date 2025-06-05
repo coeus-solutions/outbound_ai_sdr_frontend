@@ -1583,6 +1583,7 @@ export function CompanySettings() {
         <PageHeader
           title={`${company?.name || 'Company'} Settings`}
           subtitle="Manage your company settings and integrations"
+          showBackButton={false}
         />
 
         {/* Tabs */}

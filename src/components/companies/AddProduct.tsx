@@ -162,6 +162,7 @@ export function AddProduct() {
       <PageHeader
         title={productId ? "Edit Product" : "Add New Product"}
         subtitle={`for ${companyName}`}
+        showBackButton={false}
       />
       <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6 space-y-6">
         {error && (

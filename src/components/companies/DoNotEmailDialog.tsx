@@ -98,171 +98,187 @@ export function DoNotEmailDialog({ isOpen, onClose, companyId }: DoNotEmailDialo
   };
 
   return (
-    <Dialog
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Do Not Email List"
-      size="4xl"
+    <div 
+      className={`fixed inset-0 overflow-y-auto ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none hidden'}`} 
+      style={{ zIndex: 99999 }}
     >
-      <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-          <button
-            onClick={() => setActiveTab('view')}
-            className={`
-              whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm
-              ${activeTab === 'view'
-                ? 'border-indigo-500 text-indigo-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }
-            `}
-          >
-            <List className="w-5 h-5 inline-block mr-2" />
-            View List
-          </button>
-          <button
-            onClick={() => setActiveTab('upload')}
-            className={`
-              whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm
-              ${activeTab === 'upload'
-                ? 'border-indigo-500 text-indigo-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }
-            `}
-          >
-            <Upload className="w-5 h-5 inline-block mr-2" />
-            Upload CSV
-          </button>
-        </nav>
-      </div>
-
-      <div className="mt-4">
-        {activeTab === 'view' ? (
-          <div className="min-h-[300px]">
-            {isLoading ? (
-              <div className="flex items-center justify-center h-[300px]">
-                <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-              </div>
-            ) : entries.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-[300px] text-gray-500">
-                <Mail className="h-12 w-12 mb-4" />
-                <p>No emails in the do-not-email list</p>
-              </div>
-            ) : (
-              <>
-                <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg mb-4">
-                  <table className="min-w-full divide-y divide-gray-300">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
-                          Email
-                        </th>
-                        <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                          Reason
-                        </th>
-                        <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                          Added On
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200 bg-white">
-                      {entries.map((entry) => (
-                        <tr key={entry.id}>
-                          <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                            {entry.email}
-                          </td>
-                          <td className="px-3 py-4 text-sm text-gray-500 max-w-xs">
-                            {entry.reason || '-'}
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                            {new Date(entry.created_at).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric',
-                            })}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Pagination */}
-                <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
-                  <div className="flex flex-1 justify-between sm:hidden">
-                    <button
-                      onClick={() => handlePageChange(currentPage - 1)}
-                      disabled={currentPage === 1}
-                      className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Previous
-                    </button>
-                    <button
-                      onClick={() => handlePageChange(currentPage + 1)}
-                      disabled={currentPage === totalPages}
-                      className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Next
-                    </button>
-                  </div>
-                  <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-                    <div>
-                      <p className="text-sm text-gray-700">
-                        Showing <span className="font-medium">{((currentPage - 1) * limit) + 1}</span> to{' '}
-                        <span className="font-medium">{Math.min(currentPage * limit, totalItems)}</span> of{' '}
-                        <span className="font-medium">{totalItems}</span> results
-                      </p>
-                    </div>
-                    <div>
-                      <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
-                        <button
-                          onClick={() => handlePageChange(currentPage - 1)}
-                          disabled={currentPage === 1}
-                          className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          <span className="sr-only">Previous</span>
-                          <ChevronLeft className="h-5 w-5" aria-hidden="true" />
-                        </button>
-                        <button
-                          onClick={() => handlePageChange(currentPage + 1)}
-                          disabled={currentPage === totalPages}
-                          className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          <span className="sr-only">Next</span>
-                          <ChevronRight className="h-5 w-5" aria-hidden="true" />
-                        </button>
-                      </nav>
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <div className={`fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity ${isOpen ? 'opacity-100' : 'opacity-0'}`} onClick={onClose} />
+        
+        <div className={`relative bg-white rounded-lg shadow-xl w-full max-w-4xl transform transition-all ${isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
+          <div className="flex items-center justify-between p-4 border-b">
+            <h3 className="text-lg font-medium">Do Not Email List</h3>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-500"
+            >
+              <X className="h-5 w-5" />
+            </button>
           </div>
-        ) : (
-          <div className="space-y-4">
-            <p className="text-sm text-gray-500">
-              Upload a CSV file containing a list of email addresses that should not receive emails from your campaigns.
-            </p>
-            <div className="flex justify-center">
-              <FileUpload
-                accept=".csv"
-                onUpload={handleFileUpload}
-                buttonText={isUploading ? 'Uploading...' : 'Upload CSV'}
-                icon={<Upload className="h-5 w-5 mr-2" />}
-                disabled={isUploading}
-              />
+          
+          <div className="p-4">
+            <div className="border-b border-gray-200">
+              <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+                <button
+                  onClick={() => setActiveTab('view')}
+                  className={`
+                    whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm
+                    ${activeTab === 'view'
+                      ? 'border-indigo-500 text-indigo-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }
+                  `}
+                >
+                  <List className="w-5 h-5 inline-block mr-2" />
+                  View List
+                </button>
+                <button
+                  onClick={() => setActiveTab('upload')}
+                  className={`
+                    whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm
+                    ${activeTab === 'upload'
+                      ? 'border-indigo-500 text-indigo-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }
+                  `}
+                >
+                  <Upload className="w-5 h-5 inline-block mr-2" />
+                  Upload CSV
+                </button>
+              </nav>
             </div>
-            <div className="mt-4 text-sm text-gray-500">
-              <p className="font-medium mb-2">CSV Format Requirements:</p>
-              <ul className="list-disc list-inside space-y-1">
-                <li>File must be in CSV format</li>
-                <li>First row should contain column headers</li>
-                <li>Must include an 'email' column</li>
-                <li>Each row should contain a unique email address</li>
-              </ul>
+
+            <div className="mt-4">
+              {activeTab === 'view' ? (
+                <div className="min-h-[300px]">
+                  {isLoading ? (
+                    <div className="flex items-center justify-center h-[300px]">
+                      <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+                    </div>
+                  ) : entries.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-[300px] text-gray-500">
+                      <Mail className="h-12 w-12 mb-4" />
+                      <p>No emails in the do-not-email list</p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg mb-4">
+                        <table className="min-w-full divide-y divide-gray-300">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
+                                Email
+                              </th>
+                              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                                Reason
+                              </th>
+                              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                                Added On
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-200 bg-white">
+                            {entries.map((entry) => (
+                              <tr key={entry.id}>
+                                <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                                  {entry.email}
+                                </td>
+                                <td className="px-3 py-4 text-sm text-gray-500 max-w-xs">
+                                  {entry.reason || '-'}
+                                </td>
+                                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                  {new Date(entry.created_at).toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    year: 'numeric',
+                                  })}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* Pagination */}
+                      <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
+                        <div className="flex flex-1 justify-between sm:hidden">
+                          <button
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage === 1}
+                            className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            Previous
+                          </button>
+                          <button
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                            className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            Next
+                          </button>
+                        </div>
+                        <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                          <div>
+                            <p className="text-sm text-gray-700">
+                              Showing <span className="font-medium">{((currentPage - 1) * limit) + 1}</span> to{' '}
+                              <span className="font-medium">{Math.min(currentPage * limit, totalItems)}</span> of{' '}
+                              <span className="font-medium">{totalItems}</span> results
+                            </p>
+                          </div>
+                          <div>
+                            <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                              <button
+                                onClick={() => handlePageChange(currentPage - 1)}
+                                disabled={currentPage === 1}
+                                className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                <span className="sr-only">Previous</span>
+                                <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+                              </button>
+                              <button
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                disabled={currentPage === totalPages}
+                                className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                <span className="sr-only">Next</span>
+                                <ChevronRight className="h-5 w-5" aria-hidden="true" />
+                              </button>
+                            </nav>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-sm text-gray-500">
+                    Upload a CSV file containing a list of email addresses that should not receive emails from your campaigns.
+                  </p>
+                  <div className="flex justify-center">
+                    <FileUpload
+                      accept=".csv"
+                      onUpload={handleFileUpload}
+                      buttonText={isUploading ? 'Uploading...' : 'Upload CSV'}
+                      icon={<Upload className="h-5 w-5 mr-2" />}
+                      disabled={isUploading}
+                    />
+                  </div>
+                  <div className="mt-4 text-sm text-gray-500">
+                    <p className="font-medium mb-2">CSV Format Requirements:</p>
+                    <ul className="list-disc list-inside space-y-1">
+                      <li>File must be in CSV format</li>
+                      <li>First row should contain column headers</li>
+                      <li>Must include an 'email' column</li>
+                      <li>Each row should contain a unique email address</li>
+                    </ul>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-        )}
+        </div>
       </div>
-    </Dialog>
+    </div>
   );
 } 

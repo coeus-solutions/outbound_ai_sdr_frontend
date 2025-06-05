@@ -186,6 +186,7 @@ export function CompanyCampaigns() {
         <PageHeader
           title={company?.name || 'Company'}
           subtitle="Campaigns for"
+          showBackButton={false}
         />
         <Link
           to={`/companies/${companyId}/campaigns/new`}

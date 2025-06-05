@@ -91,6 +91,7 @@ export function CompanyEmails() {
       <PageHeader
         title={company?.name || 'Company'}
         subtitle="Email logs for"
+        showBackButton={false}
       />
 
       <EmailLogFilters 
