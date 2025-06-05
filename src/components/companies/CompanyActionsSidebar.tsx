@@ -57,21 +57,21 @@ export function CompanyActionsSidebar({ isCollapsed }: CompanyActionsSidebarProp
       name: 'Campaigns',
       icon: Target,
       path: `/companies/${companyId}/campaigns`,
-      tooltip: 'View Campaigns',
+      tooltip: 'Campaigns',
       basePath: 'campaigns'
     },
     {
       name: 'Campaign Runs',
       icon: Megaphone,
       path: `/companies/${companyId}/campaign-runs`,
-      tooltip: 'View Campaign Runs',
+      tooltip: 'Campaign Runs',
       basePath: 'campaign-runs'
     },
     {
       name: 'Products',
       icon: Package,
       path: `/companies/${companyId}/products`,
-      tooltip: 'View Products',
+      tooltip: 'Products',
       basePath: 'products'
     },
     {
@@ -85,7 +85,7 @@ export function CompanyActionsSidebar({ isCollapsed }: CompanyActionsSidebarProp
       name: 'Leads',
       icon: Users,
       path: `/companies/${companyId}/leads`,
-      tooltip: 'View Leads',
+      tooltip: 'Leads',
       basePath: 'leads'
     },
     {
