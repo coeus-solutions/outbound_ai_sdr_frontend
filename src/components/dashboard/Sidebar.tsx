@@ -60,7 +60,7 @@ export function Sidebar({ isCollapsed, onToggle, onLogout }: SidebarProps) {
     return location.pathname.startsWith(path);
   };
 
-  const isCompanyRoute = location.pathname.match(/^\/companies\/[^/]+/);
+  const isCompanyRoute = location.pathname.match(/^\/companies\/[^/]+/) && location.pathname !== '/companies/new';
 
   const mainMenuItems = [
     {
