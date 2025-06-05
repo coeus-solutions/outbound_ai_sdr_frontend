@@ -205,7 +205,7 @@ export function CallQueues() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <PageHeader title={company?.name || 'Company'} subtitle="Call Queue for" />
+        <PageHeader title={company?.name || 'Company'} subtitle="Call Queue for" showBackButton={false} />
         <button
           onClick={handleRetryFailedItems}
           disabled={retrying}

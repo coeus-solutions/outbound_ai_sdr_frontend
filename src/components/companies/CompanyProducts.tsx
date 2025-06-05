@@ -134,6 +134,7 @@ export function CompanyProducts() {
         title={company?.name || 'Company'}
         subtitle="Products for"
         action={addProductButton}
+        showBackButton={false}
       />
 
       {products.length === 0 ? (
