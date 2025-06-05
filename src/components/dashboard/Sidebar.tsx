@@ -148,7 +148,11 @@ export function Sidebar({ isCollapsed, onToggle, onLogout }: SidebarProps) {
         </div>
 
         <div className="flex-1 p-4">
-          <ul className="space-y-1">
+          {isCompanyRoute && (
+            <CompanyActionsSidebar isCollapsed={isCollapsed} />
+          )}
+
+          <ul className={cn("space-y-1", isCompanyRoute && "mt-4 pt-4 border-t dark:border-gray-800")}>
             {mainMenuItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -170,10 +174,6 @@ export function Sidebar({ isCollapsed, onToggle, onLogout }: SidebarProps) {
               );
             })}
           </ul>
-
-          {isCompanyRoute && (
-            <CompanyActionsSidebar isCollapsed={isCollapsed} />
-          )}
         </div>
 
         <div className="p-4 border-t dark:border-gray-800">
