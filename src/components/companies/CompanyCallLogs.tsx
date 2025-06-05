@@ -89,6 +89,7 @@ export function CompanyCallLogs() {
       <PageHeader
         title={company?.name || 'Company'}
         subtitle="Call logs for"
+        showBackButton={false}
       />
 
       <CallLogFilters filters={filters} onFilterChange={setFilters} companyId={companyId || ''} />

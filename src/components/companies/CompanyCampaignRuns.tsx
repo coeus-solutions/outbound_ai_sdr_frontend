@@ -66,6 +66,7 @@ export function CompanyCampaignRuns() {
         <PageHeader
           title={company?.name || 'Loading...'}
           subtitle="Campaign runs for"
+          showBackButton={false}
         />
         <TableSkeletonLoader
           rowCount={5}
@@ -101,6 +102,7 @@ export function CompanyCampaignRuns() {
       <PageHeader
         title={company?.name || 'Company'}
         subtitle="Campaign runs for"
+        showBackButton={false}
       />
       
       <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4">
