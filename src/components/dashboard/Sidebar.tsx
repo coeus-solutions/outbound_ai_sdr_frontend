@@ -10,6 +10,7 @@ import { motion } from 'framer-motion';
 import { useTheme } from '../../hooks/useTheme';
 import { Dialog } from '../shared/Dialog';
 import UpgradeDialog from '../subscription/UpgradeDialog';
+import { CompanyActionsSidebar } from '../companies/CompanyActionsSidebar';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -54,10 +55,12 @@ export function Sidebar({ isCollapsed, onToggle, onLogout }: SidebarProps) {
 
   const isActive = (path: string) => {
     if (path === '/companies') {
-      return location.pathname === '/' || location.pathname.startsWith('/companies');
+      return location.pathname === '/companies';
     }
     return location.pathname.startsWith(path);
   };
+
+  const isCompanyRoute = location.pathname.match(/^\/companies\/[^/]+/);
 
   return (
     <>
@@ -174,6 +177,10 @@ export function Sidebar({ isCollapsed, onToggle, onLogout }: SidebarProps) {
               </Link>
             </li>
           </ul>
+
+          {isCompanyRoute && (
+            <CompanyActionsSidebar isCollapsed={isCollapsed} />
+          )}
         </div>
 
         <div className="p-4 border-t dark:border-gray-800">
