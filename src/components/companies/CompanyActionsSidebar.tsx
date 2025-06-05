@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useLocation } from 'react-router-dom';
 import { Target, Megaphone, Package, FileSpreadsheet, Eye, Settings, Users, Ban, Trash2 } from 'lucide-react';
 import { cn } from '../../utils/cn';
 import { useUserRole } from '../../hooks/useUserRole';
@@ -13,6 +13,7 @@ interface CompanyActionsSidebarProps {
 
 export function CompanyActionsSidebar({ isCollapsed }: CompanyActionsSidebarProps) {
   const { companyId } = useParams();
+  const location = useLocation();
   const { isAdmin } = useUserRole(companyId || '');
   const [company, setCompany] = useState<Company | null>(null);
 
@@ -32,6 +33,23 @@ export function CompanyActionsSidebar({ isCollapsed }: CompanyActionsSidebarProp
     fetchCompany();
   }, [companyId]);
 
+  const isActive = (basePath: string) => {
+    const currentPath = location.pathname;
+    const baseCompanyPath = `/companies/${companyId}/${basePath}`;
+
+    // Special cases for routes with sub-paths
+    switch (basePath) {
+      case 'campaigns':
+        return currentPath === baseCompanyPath || currentPath === `${baseCompanyPath}/new`;
+      case 'products':
+        return currentPath === baseCompanyPath || 
+               currentPath === `${baseCompanyPath}/new` || 
+               currentPath.startsWith(`${baseCompanyPath}/`) && currentPath.includes('/edit');
+      default:
+        return currentPath === baseCompanyPath;
+    }
+  };
+
   if (!companyId || !company) return null;
 
   const actions = [
@@ -39,37 +57,43 @@ export function CompanyActionsSidebar({ isCollapsed }: CompanyActionsSidebarProp
       name: 'Campaigns',
       icon: Target,
       path: `/companies/${companyId}/campaigns`,
-      tooltip: 'View Campaigns'
+      tooltip: 'View Campaigns',
+      basePath: 'campaigns'
     },
     {
       name: 'Campaign Runs',
       icon: Megaphone,
       path: `/companies/${companyId}/campaign-runs`,
-      tooltip: 'View Campaign Runs'
+      tooltip: 'View Campaign Runs',
+      basePath: 'campaign-runs'
     },
     {
       name: 'Products',
       icon: Package,
       path: `/companies/${companyId}/products`,
-      tooltip: 'View Products'
+      tooltip: 'View Products',
+      basePath: 'products'
     },
     {
       name: 'Upload History',
       icon: FileSpreadsheet,
       path: `/companies/${companyId}/upload-history`,
-      tooltip: 'CSV Upload History'
+      tooltip: 'CSV Upload History',
+      basePath: 'upload-history'
     },
     {
       name: 'Leads',
       icon: Users,
       path: `/companies/${companyId}/leads`,
-      tooltip: 'View Leads'
+      tooltip: 'View Leads',
+      basePath: 'leads'
     },
     {
       name: 'Settings',
       icon: Settings,
       path: `/companies/${companyId}/settings`,
-      tooltip: 'Company Settings'
+      tooltip: 'Company Settings',
+      basePath: 'settings'
     }
   ];
 
@@ -91,6 +115,7 @@ export function CompanyActionsSidebar({ isCollapsed }: CompanyActionsSidebarProp
       <ul className="space-y-1">
         {actions.map((action) => {
           const Icon = action.icon;
+          const isActiveRoute = isActive(action.basePath);
           return (
             <Tooltip.Provider key={action.path}>
               <Tooltip.Root>
@@ -100,11 +125,16 @@ export function CompanyActionsSidebar({ isCollapsed }: CompanyActionsSidebarProp
                       to={action.path}
                       className={cn(
                         "flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors",
-                        "text-gray-700 hover:bg-indigo-50 dark:text-gray-300 dark:hover:bg-indigo-900/30",
+                        isActiveRoute
+                          ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-900/50 dark:text-indigo-400"
+                          : "text-gray-700 hover:bg-indigo-50 dark:text-gray-300 dark:hover:bg-indigo-900/30",
                         isCollapsed && "justify-center"
                       )}
                     >
-                      <Icon className="h-5 w-5 flex-shrink-0" />
+                      <Icon className={cn(
+                        "h-5 w-5 flex-shrink-0",
+                        isActiveRoute && "text-indigo-600 dark:text-indigo-400"
+                      )} />
                       {!isCollapsed && <span className="ml-3">{action.name}</span>}
                     </Link>
                   </li>
