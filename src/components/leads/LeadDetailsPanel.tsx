@@ -557,6 +557,7 @@ export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick }: 
           onClose={() => setIsCampaignStepsDialogOpen(false)}
           companyId={companyId}
           leadId={leadDetails?.id || ''}
+          leadName={leadDetails?.name || ''}
         />
       )}
     </div>

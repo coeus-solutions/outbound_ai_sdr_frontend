@@ -10,9 +10,10 @@ interface CampaignStepsDialogProps {
   onClose: () => void;
   companyId: string;
   leadId: string;
+  leadName: string;
 }
 
-export function CampaignStepsDialog({ isOpen, onClose, companyId, leadId }: CampaignStepsDialogProps) {
+export function CampaignStepsDialog({ isOpen, onClose, companyId, leadId, leadName }: CampaignStepsDialogProps) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [selectedCampaign, setSelectedCampaign] = useState<string>('');
   const [campaignStatus, setCampaignStatus] = useState<CampaignLeadStatus | null>(null);
@@ -103,14 +104,19 @@ export function CampaignStepsDialog({ isOpen, onClose, companyId, leadId }: Camp
       <div className="absolute inset-0 flex items-center justify-center p-4">
         <div className="relative bg-white rounded-lg shadow-xl w-full max-w-3xl h-[80vh] flex flex-col">
           {/* Header */}
-          <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-            <h2 className="text-lg font-medium text-gray-900">Campaign Steps</h2>
-            <button
-              onClick={onClose}
-              className="rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              <X className="h-6 w-6" />
-            </button>
+          <div className="px-6 py-4 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-medium text-gray-900">Campaign Steps</h2>
+                <p className="mt-1 text-sm text-gray-500">Lead: {leadName}</p>
+              </div>
+              <button
+                onClick={onClose}
+                className="rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
           </div>
 
           {/* Content */}
