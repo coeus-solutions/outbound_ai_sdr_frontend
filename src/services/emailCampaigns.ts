@@ -101,6 +101,24 @@ export interface RetryResponse {
   status: string;
 }
 
+export interface CampaignLeadStep {
+  step_number: number;
+  step_type: string;
+  status: string;
+  reminder_number: number | null;
+  completed_at: string | null;
+  email_log_id: string | null;
+  call_log_id: string | null;
+}
+
+export interface CampaignLeadStatus {
+  lead_id: string;
+  campaign_id: string;
+  campaign_name: string;
+  campaign_type: string;
+  steps: CampaignLeadStep[];
+}
+
 export async function getCompanyCampaigns(
   token: string, 
   companyId: string, 
@@ -282,4 +300,23 @@ export async function retryFailedCampaignEmails(
   }
 
   return data;
+}
+
+export async function getCampaignLeadStatus(
+  token: string,
+  campaignId: string,
+  leadId: string
+): Promise<CampaignLeadStatus> {
+  const response = await fetch(`${apiEndpoints.campaigns.leadStatus(campaignId, leadId)}`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch campaign lead status');
+  }
+
+  return response.json();
 } 

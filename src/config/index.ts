@@ -93,6 +93,7 @@ export const apiEndpoints = {
       list: (campaignRunId: string) => `${config.apiUrl}/api/campaigns/${campaignRunId}/call-queues`,
     },
     retry: (campaignRunId: string) => `${config.apiUrl}/api/campaign-runs/${campaignRunId}/retry`,
+    leadStatus: (campaignId: string, leadId: string) => `${config.apiUrl}/api/campaigns/${campaignId}/leads/${leadId}/status`,
   },
   generate: {
     campaign: `${config.apiUrl}/api/generate-campaign`,

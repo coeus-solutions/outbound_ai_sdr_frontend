@@ -1,19 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import { X } from 'lucide-react';
+import { X, CheckCircle2, Clock, AlertCircle, XCircle } from 'lucide-react';
 import { getToken } from '../../utils/auth';
-import { getCompanyCampaigns, Campaign } from '../../services/emailCampaigns';
+import { getCompanyCampaigns, Campaign, getCampaignLeadStatus, CampaignLeadStatus } from '../../services/emailCampaigns';
 import { useToast } from '../../context/ToastContext';
 
 interface CampaignStepsDialogProps {
   isOpen: boolean;
   onClose: () => void;
   companyId: string;
+  leadId: string;
 }
 
-export function CampaignStepsDialog({ isOpen, onClose, companyId }: CampaignStepsDialogProps) {
+export function CampaignStepsDialog({ isOpen, onClose, companyId, leadId }: CampaignStepsDialogProps) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [selectedCampaign, setSelectedCampaign] = useState<string>('');
+  const [campaignStatus, setCampaignStatus] = useState<CampaignLeadStatus | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingStatus, setIsLoadingStatus] = useState(false);
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -41,6 +45,55 @@ export function CampaignStepsDialog({ isOpen, onClose, companyId }: CampaignStep
     }
   };
 
+  const fetchCampaignStatus = async (campaignId: string) => {
+    try {
+      setIsLoadingStatus(true);
+      const token = getToken();
+      if (!token) {
+        showToast('Authentication failed. Please try logging in again.', 'error');
+        return;
+      }
+
+      const status = await getCampaignLeadStatus(token, campaignId, leadId);
+      setCampaignStatus(status);
+    } catch (error) {
+      console.error('Error fetching campaign status:', error);
+      showToast('Failed to fetch campaign status', 'error');
+    } finally {
+      setIsLoadingStatus(false);
+    }
+  };
+
+  const handleCampaignChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const campaignId = e.target.value;
+    setSelectedCampaign(campaignId);
+    if (campaignId) {
+      fetchCampaignStatus(campaignId);
+    } else {
+      setCampaignStatus(null);
+    }
+  };
+
+  const getStepIcon = (status: string) => {
+    switch (status) {
+      case 'sent':
+        return <CheckCircle2 className="h-5 w-5 text-green-500" />;
+      case 'pending':
+        return <Clock className="h-5 w-5 text-yellow-500" />;
+      case 'failed':
+        return <XCircle className="h-5 w-5 text-red-500" />;
+      default:
+        return <AlertCircle className="h-5 w-5 text-gray-500" />;
+    }
+  };
+
+  const formatStepType = (stepType: string) => {
+    return stepType
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
   if (!isOpen) return null;
 
   return ReactDOM.createPortal(
@@ -48,7 +101,7 @@ export function CampaignStepsDialog({ isOpen, onClose, companyId }: CampaignStep
       <div className="absolute inset-0 bg-gray-500 bg-opacity-75" onClick={onClose} />
       
       <div className="absolute inset-0 flex items-center justify-center p-4">
-        <div className="relative bg-white rounded-lg shadow-xl w-full max-w-6xl h-[80vh] flex flex-col">
+        <div className="relative bg-white rounded-lg shadow-xl w-full max-w-3xl h-[80vh] flex flex-col">
           {/* Header */}
           <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
             <h2 className="text-lg font-medium text-gray-900">Campaign Steps</h2>
@@ -61,15 +114,16 @@ export function CampaignStepsDialog({ isOpen, onClose, companyId }: CampaignStep
           </div>
 
           {/* Content */}
-          <div className="flex-1 p-6">
-            <div className="space-y-4">
+          <div className="flex-1 p-6 overflow-y-auto">
+            <div className="space-y-6">
               <div>
                 <select
                   id="campaign"
-                  className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                  defaultValue=""
+                  className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                  value={selectedCampaign}
+                  onChange={handleCampaignChange}
                 >
-                  <option value="" disabled>Select a campaign</option>
+                  <option value="">Select a campaign</option>
                   {isLoading ? (
                     <option value="" disabled>Loading campaigns...</option>
                   ) : (
@@ -81,6 +135,38 @@ export function CampaignStepsDialog({ isOpen, onClose, companyId }: CampaignStep
                   )}
                 </select>
               </div>
+
+              {isLoadingStatus ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                </div>
+              ) : campaignStatus?.steps && (
+                <div className="space-y-4">
+                  {campaignStatus.steps.map((step) => (
+                    <div
+                      key={step.step_number}
+                      className="flex items-center space-x-4 p-4 border rounded-lg bg-gray-50"
+                    >
+                      {getStepIcon(step.status)}
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium">
+                            {formatStepType(step.step_type)}
+                            {step.reminder_number !== null && ` (Reminder ${step.reminder_number})`}
+                          </span>
+                          <span className={`text-sm capitalize ${
+                            step.status === 'sent' ? 'text-green-600' :
+                            step.status === 'pending' ? 'text-yellow-600' :
+                            'text-red-600'
+                          }`}>
+                            {step.status}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
