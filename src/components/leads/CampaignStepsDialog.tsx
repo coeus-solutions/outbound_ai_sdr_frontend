@@ -140,6 +140,19 @@ export function CampaignStepsDialog({ isOpen, onClose, companyId, leadId }: Camp
                 <div className="flex items-center justify-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
                 </div>
+              ) : !selectedCampaign ? (
+                <div className="flex flex-col items-center justify-center py-8 text-gray-500">
+                  <div className="max-w-sm text-center">
+                    <p className="text-lg font-medium mb-2">View Campaign Progress</p>
+                    <p className="text-sm">Select a campaign from the dropdown above to view its steps and track the progress of this lead through the campaign sequence.</p>
+                  </div>
+                </div>
+              ) : selectedCampaign && campaignStatus?.steps?.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-8 text-gray-500">
+                  <AlertCircle className="h-12 w-12 mb-3" />
+                  <p className="text-lg font-medium">No Steps Found</p>
+                  <p className="text-sm">There are no campaign steps available for this lead.</p>
+                </div>
               ) : campaignStatus?.steps && (
                 <div className="space-y-4">
                   {campaignStatus.steps.map((step) => (
