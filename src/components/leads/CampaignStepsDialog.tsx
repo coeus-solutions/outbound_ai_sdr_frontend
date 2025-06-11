@@ -4,6 +4,7 @@ import { X, CheckCircle2, Clock, AlertCircle, XCircle, Mail, ChevronDown } from 
 import { getToken } from '../../utils/auth';
 import { getCompanyCampaigns, Campaign, getCampaignLeadStatus, CampaignLeadStatus } from '../../services/emailCampaigns';
 import { useToast } from '../../context/ToastContext';
+import { formatDateTime } from '../../utils/formatters';
 
 interface CampaignStepsDialogProps {
   isOpen: boolean;
@@ -107,8 +108,7 @@ export function CampaignStepsDialog({ isOpen, onClose, companyId, leadId, leadNa
           <div className="px-6 py-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-medium text-gray-900">Campaign Steps</h2>
-                <p className="mt-1 text-sm text-gray-500">Lead: {leadName}</p>
+                <h2 className="text-lg font-medium text-gray-900">Campaign Steps for Lead "{leadName}"</h2>
               </div>
               <button
                 onClick={onClose}
@@ -181,13 +181,20 @@ export function CampaignStepsDialog({ isOpen, onClose, companyId, leadId, leadNa
                             {formatStepType(step.step_type)}
                             {step.reminder_number !== null && ` (Reminder ${step.reminder_number})`}
                           </span>
-                          <span className={`text-sm capitalize ${
-                            step.status === 'sent' ? 'text-green-600' :
-                            step.status === 'pending' ? 'text-yellow-600' :
-                            'text-red-600'
-                          }`}>
-                            {step.status}
-                          </span>
+                          <div className="flex items-center space-x-1">
+                            <span className={`text-sm capitalize ${
+                              step.status === 'sent' ? 'text-green-600' :
+                              step.status === 'pending' ? 'text-yellow-600' :
+                              'text-red-600'
+                            }`}>
+                              {step.status}
+                            </span>
+                            {step.status === 'sent' && step.completed_at && (
+                              <span className="text-sm text-gray-500">
+                                on {formatDateTime(step.completed_at)}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
