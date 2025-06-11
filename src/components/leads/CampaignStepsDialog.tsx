@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import { X, CheckCircle2, Clock, AlertCircle, XCircle, Mail, ChevronDown } from 'lucide-react';
+import { X, CheckCircle2, Clock, AlertCircle, XCircle, Mail, ChevronDown, Phone, ListChecks } from 'lucide-react';
 import { getToken } from '../../utils/auth';
 import { getCompanyCampaigns, Campaign, getCampaignLeadStatus, CampaignLeadStatus } from '../../services/emailCampaigns';
 import { useToast } from '../../context/ToastContext';
@@ -76,6 +76,29 @@ export function CampaignStepsDialog({ isOpen, onClose, companyId, leadId, leadNa
     }
   };
 
+  const getCampaignIcon = (campaignId: string | null) => {
+    if (!campaignId) {
+      return <ListChecks className="h-5 w-5 text-gray-400" />;
+    }
+
+    const campaign = campaigns.find(c => c.id === campaignId);
+    switch (campaign?.type) {
+      case 'email':
+        return <Mail className="h-5 w-5 text-gray-400" />;
+      case 'call':
+        return <Phone className="h-5 w-5 text-gray-400" />;
+      case 'email_and_call':
+        return (
+          <div className="flex items-center space-x-1">
+            <Mail className="h-5 w-5 text-gray-400" />
+            <Phone className="h-5 w-5 text-gray-400" />
+          </div>
+        );
+      default:
+        return <AlertCircle className="h-5 w-5 text-gray-400" />;
+    }
+  };
+
   const getStepIcon = (status: string) => {
     switch (status) {
       case 'sent':
@@ -94,6 +117,13 @@ export function CampaignStepsDialog({ isOpen, onClose, companyId, leadId, leadNa
       .split('_')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
+  };
+
+  const getSelectPaddingClass = () => {
+    if (!selectedCampaign) return 'form-input appearance-none';
+    
+    const campaign = campaigns.find(c => c.id === selectedCampaign);
+    return `form-input appearance-none ${campaign?.type === 'email_and_call' ? 'pl-16' : ''}`;
   };
 
   if (!isOpen) return null;
@@ -125,14 +155,14 @@ export function CampaignStepsDialog({ isOpen, onClose, companyId, leadId, leadNa
               <div>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Mail className="h-5 w-5 text-gray-400" />
+                    {getCampaignIcon(selectedCampaign)}
                   </div>
                   <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                     <ChevronDown className="h-5 w-5 text-gray-400" />
                   </div>
                   <select
                     id="campaign"
-                    className="form-input appearance-none"
+                    className={getSelectPaddingClass()}
                     value={selectedCampaign}
                     onChange={handleCampaignChange}
                   >
