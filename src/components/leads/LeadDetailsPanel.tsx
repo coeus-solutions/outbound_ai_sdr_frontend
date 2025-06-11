@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Building2, Mail, Phone, MapPin, Globe, Briefcase, Users, DollarSign, Calendar, Award, BookOpen, Linkedin, LucideIcon, Zap, Loader2, FileText, PhoneCall, PlayCircle } from 'lucide-react';
+import { X, Building2, Mail, Phone, MapPin, Globe, Briefcase, Users, DollarSign, Calendar, Award, BookOpen, Linkedin, LucideIcon, Zap, Loader2, FileText, PhoneCall, PlayCircle, ListChecks } from 'lucide-react';
 import { formatCurrency } from '../../utils/formatters';
 import { LeadDetail, enrichLeadData } from '../../services/leads';
 import { getToken } from '../../utils/auth';
@@ -9,6 +9,7 @@ import { Product, getProducts } from '../../services/products';
 import { EmailScriptDialog } from './EmailScriptDialog';
 import { CallScriptDialog } from './CallScriptDialog';
 import { SimulateEmailCampaignDialog } from './SimulateEmailCampaignDialog';
+import { CampaignStepsDialog } from './CampaignStepsDialog';
 
 interface EnrichedDataItem {
   pain_point?: string;
@@ -65,6 +66,7 @@ export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick }: 
   const [isEmailScriptDialogOpen, setIsEmailScriptDialogOpen] = useState(false);
   const [isCallScriptDialogOpen, setIsCallScriptDialogOpen] = useState(false);
   const [isSimulateCampaignDialogOpen, setIsSimulateCampaignDialogOpen] = useState(false);
+  const [isCampaignStepsDialogOpen, setIsCampaignStepsDialogOpen] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const { showToast } = useToast();
@@ -431,6 +433,13 @@ export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick }: 
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
           <h2 className="text-lg font-medium text-gray-900">Lead Details</h2>
           <div className="flex items-center space-x-4">
+            <button
+              onClick={() => setIsCampaignStepsDialogOpen(true)}
+              className="text-indigo-600 hover:text-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              title="Campaign Steps"
+            >
+              <ListChecks className="h-5 w-5" />
+            </button>
 
             <button
               onClick={handleSimulateCampaignClick}
@@ -439,7 +448,6 @@ export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick }: 
             >
               <PlayCircle className="h-5 w-5" />
             </button>
-
 
             {leadDetails?.phone_number && (
               <button
@@ -539,6 +547,15 @@ export function LeadDetailsPanel({ isOpen, onClose, leadDetails, onCallClick }: 
           companyId={companyId}
           leadId={leadDetails.id}
           products={isLoadingProducts ? [] : products}
+        />
+      )}
+
+      {/* Campaign Steps Dialog */}
+      {companyId && (
+        <CampaignStepsDialog
+          isOpen={isCampaignStepsDialogOpen}
+          onClose={() => setIsCampaignStepsDialogOpen(false)}
+          companyId={companyId}
         />
       )}
     </div>
