@@ -214,16 +214,44 @@ export function CampaignStepsDialog({ isOpen, onClose, companyId, leadId, leadNa
                       {getStepIcon(step.status)}
                       <div className="flex-1">
                         <div className="flex items-center justify-between">
-                          <span className="font-medium">
+                          <span 
+                            className={`font-medium ${
+                              step.status === 'pending' && (
+                                (step.step_type === 'email_reminder' && campaignStatus.has_replied === true) ||
+                                (step.step_type === 'call_reminder' && campaignStatus.is_reminder_eligible === false)
+                              ) ? 'line-through text-gray-400' : ''
+                            }`}
+                            title={
+                              step.status === 'pending' && (
+                                (step.step_type === 'email_reminder' && campaignStatus.has_replied === true) ||
+                                (step.step_type === 'call_reminder' && campaignStatus.is_reminder_eligible === false)
+                              )
+                                ? 'This reminder will be skipped as the lead has already replied'
+                                : undefined
+                            }
+                          >
                             {formatStepType(step.step_type)}
                             {step.reminder_number !== null && ` (Reminder ${step.reminder_number})`}
                           </span>
                           <div className="flex items-center space-x-1">
-                            <span className={`text-sm capitalize ${
-                              step.status === 'sent' ? 'text-green-600' :
-                              step.status === 'pending' ? 'text-yellow-600' :
-                              'text-red-600'
-                            }`}>
+                            <span 
+                              className={`text-sm capitalize ${
+                                step.status === 'sent' ? 'text-green-600' :
+                                step.status === 'pending' ? (
+                                  (step.step_type === 'email_reminder' && campaignStatus.has_replied === true) ||
+                                  (step.step_type === 'call_reminder' && campaignStatus.is_reminder_eligible === false)
+                                ) ? 'line-through text-gray-400' : 'text-yellow-600' :
+                                'text-red-600'
+                              }`}
+                              title={
+                                step.status === 'pending' && (
+                                  (step.step_type === 'email_reminder' && campaignStatus.has_replied === true) ||
+                                  (step.step_type === 'call_reminder' && campaignStatus.is_reminder_eligible === false)
+                                )
+                                  ? 'This reminder will be skipped as the lead has already replied'
+                                  : undefined
+                              }
+                            >
                               {step.status}
                             </span>
                             {step.status === 'sent' && step.completed_at && (

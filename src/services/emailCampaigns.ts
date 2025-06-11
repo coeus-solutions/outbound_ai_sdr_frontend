@@ -116,6 +116,8 @@ export interface CampaignLeadStatus {
   campaign_id: string;
   campaign_name: string;
   campaign_type: string;
+  has_replied: boolean | null;
+  is_reminder_eligible: boolean | null;
   steps: CampaignLeadStep[];
 }
 
