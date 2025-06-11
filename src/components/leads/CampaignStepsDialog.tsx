@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import { X, CheckCircle2, Clock, AlertCircle, XCircle } from 'lucide-react';
+import { X, CheckCircle2, Clock, AlertCircle, XCircle, Mail, ChevronDown } from 'lucide-react';
 import { getToken } from '../../utils/auth';
 import { getCompanyCampaigns, Campaign, getCampaignLeadStatus, CampaignLeadStatus } from '../../services/emailCampaigns';
 import { useToast } from '../../context/ToastContext';
@@ -123,23 +123,31 @@ export function CampaignStepsDialog({ isOpen, onClose, companyId, leadId, leadNa
           <div className="flex-1 p-6 overflow-y-auto">
             <div className="space-y-6">
               <div>
-                <select
-                  id="campaign"
-                  className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                  value={selectedCampaign}
-                  onChange={handleCampaignChange}
-                >
-                  <option value="">Select a campaign</option>
-                  {isLoading ? (
-                    <option value="" disabled>Loading campaigns...</option>
-                  ) : (
-                    campaigns.map((campaign) => (
-                      <option key={campaign.id} value={campaign.id}>
-                        {campaign.name}
-                      </option>
-                    ))
-                  )}
-                </select>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Mail className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                    <ChevronDown className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <select
+                    id="campaign"
+                    className="form-input appearance-none"
+                    value={selectedCampaign}
+                    onChange={handleCampaignChange}
+                  >
+                    <option value="">Select a campaign</option>
+                    {isLoading ? (
+                      <option value="" disabled>Loading campaigns...</option>
+                    ) : (
+                      campaigns.map((campaign) => (
+                        <option key={campaign.id} value={campaign.id}>
+                          {campaign.name}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                </div>
               </div>
 
               {isLoadingStatus ? (
