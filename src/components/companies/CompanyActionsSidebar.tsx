@@ -70,18 +70,20 @@ export function CompanyActionsSidebar({ isCollapsed }: CompanyActionsSidebarProp
 
   const actions = [
     {
-      name: 'Company Details',
-      icon: Eye,
-      onClick: handleViewDetails,
-      tooltip: 'Company Details',
-      type: 'button'
+      name: 'Products',
+      icon: Package,
+      path: `/companies/${companyId}/products`,
+      tooltip: 'Products',
+      basePath: 'products',
+      type: 'link'
     },
     {
-      name: 'Do Not Contact List',
-      icon: Ban,
-      onClick: () => setIsDoNotEmailDialogOpen(true),
-      tooltip: 'Do Not Contact List',
-      type: 'button'
+      name: 'Leads',
+      icon: Users,
+      path: `/companies/${companyId}/leads`,
+      tooltip: 'Leads',
+      basePath: 'leads',
+      type: 'link'
     },
     {
       name: 'Campaigns',
@@ -100,14 +102,6 @@ export function CompanyActionsSidebar({ isCollapsed }: CompanyActionsSidebarProp
       type: 'link'
     },
     {
-      name: 'Products',
-      icon: Package,
-      path: `/companies/${companyId}/products`,
-      tooltip: 'Products',
-      basePath: 'products',
-      type: 'link'
-    },
-    {
       name: 'Upload History',
       icon: FileSpreadsheet,
       path: `/companies/${companyId}/upload-history`,
@@ -116,12 +110,18 @@ export function CompanyActionsSidebar({ isCollapsed }: CompanyActionsSidebarProp
       type: 'link'
     },
     {
-      name: 'Leads',
-      icon: Users,
-      path: `/companies/${companyId}/leads`,
-      tooltip: 'Leads',
-      basePath: 'leads',
-      type: 'link'
+      name: 'Company Details',
+      icon: Eye,
+      onClick: handleViewDetails,
+      tooltip: 'Company Details',
+      type: 'button'
+    },
+    {
+      name: 'Do Not Contact List',
+      icon: Ban,
+      onClick: () => setIsDoNotEmailDialogOpen(true),
+      tooltip: 'Do Not Contact List',
+      type: 'button'
     },
     {
       name: 'Settings',
