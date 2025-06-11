@@ -28,6 +28,13 @@ export function CampaignStepsDialog({ isOpen, onClose, companyId, leadId, leadNa
     }
   }, [isOpen, companyId]);
 
+  useEffect(() => {
+    if (!isOpen) {
+      setSelectedCampaign('');
+      setCampaignStatus(null);
+    }
+  }, [isOpen]);
+
   const fetchCampaigns = async () => {
     try {
       setIsLoading(true);
