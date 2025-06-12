@@ -87,7 +87,7 @@ export function CompanyCallLogs() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title={company?.name || 'Company'}
+        title={`Campaign run ${campaignRunId || 'Unknown'}`}
         subtitle="Call logs for"
         showBackButton={false}
       />
