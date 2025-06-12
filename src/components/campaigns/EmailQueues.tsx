@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { getEmailQueues, PaginatedEmailQueueResponse, EmailQueue, retryFailedCampaignEmails } from '../../services/emailCampaigns';
 import { PageHeader } from '../shared/PageHeader';
 import { Loader2, Mail, Eye, RefreshCw, Copy } from 'lucide-react';
@@ -21,6 +21,7 @@ const STATUS_OPTIONS = [
 
 export function EmailQueues() {
   const { campaignRunId, companyId } = useParams<{ campaignRunId: string; companyId: string }>();
+  const navigate = useNavigate();
   const { showToast } = useToast();
   const [page, setPage] = useState(1);
   const [pageSize] = useState(20);
@@ -123,10 +124,19 @@ export function EmailQueues() {
     }
   };
 
+  const handleBackClick = () => {
+    navigate(`/companies/${companyId}/campaign-runs`);
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Loading..." subtitle="Email Queue for" />
+        <PageHeader 
+          title="Loading..." 
+          subtitle="Email Queue for" 
+          showBackButton={true}
+          onBackClick={handleBackClick}
+        />
         <div className="bg-white shadow rounded-lg">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -200,7 +210,12 @@ export function EmailQueues() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <PageHeader title={`Campaign run ${campaignRunId || 'Unknown'}`} subtitle="Email Queue for" showBackButton={false} />
+        <PageHeader 
+          title={`Campaign run ${campaignRunId || 'Unknown'}`} 
+          subtitle="Email Queue for" 
+          showBackButton={true}
+          onBackClick={handleBackClick}
+        />
         <button
           onClick={handleRetryFailedItems}
           disabled={retrying}

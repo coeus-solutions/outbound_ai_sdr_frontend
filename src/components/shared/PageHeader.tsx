@@ -7,19 +7,28 @@ interface PageHeaderProps {
   subtitle?: string;
   action?: React.ReactNode;
   showBackButton?: boolean;
+  onBackClick?: () => void;
 }
 
-export function PageHeader({ title, subtitle, action, showBackButton = true }: PageHeaderProps) {
+export function PageHeader({ title, subtitle, action, showBackButton = true, onBackClick }: PageHeaderProps) {
   const navigate = useNavigate();
+
+  const handleBackClick = () => {
+    if (onBackClick) {
+      onBackClick();
+    } else {
+      navigate('/companies');
+    }
+  };
 
   return (
     <div className="flex justify-between items-start mb-6">
       <div className="flex items-center space-x-4">
         {showBackButton && (
           <button
-            onClick={() => navigate('/companies')}
+            onClick={handleBackClick}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            aria-label="Back to companies"
+            aria-label="Go back"
           >
             <ArrowLeft className="h-5 w-5 text-gray-500" />
           </button>

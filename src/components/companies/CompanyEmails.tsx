@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useLocation } from 'react-router-dom';
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { EmailLogList } from '../emails/EmailLogList';
 import { EmailLogFilters } from '../emails/EmailLogFilters';
 import { useEmailLogs } from '../../hooks/useEmailLogs';
@@ -12,6 +12,7 @@ import type { Company } from '../../services/companies';
 export function CompanyEmails() {
   const { companyId } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
   const campaignRunId = queryParams.get('campaign_run_id') || undefined;
   const campaignId = queryParams.get('campaign_id') || undefined;
@@ -86,12 +87,17 @@ export function CompanyEmails() {
     );
   }
 
+  const handleBackClick = () => {
+    navigate(`/companies/${companyId}/campaign-runs`);
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader
         title={`Campaign run ${campaignRunId || 'Unknown'}`}
         subtitle="Email logs for"
-        showBackButton={false}
+        showBackButton={true}
+        onBackClick={handleBackClick}
       />
 
       <EmailLogFilters 

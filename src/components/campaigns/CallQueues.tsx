@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { getCallQueues, PaginatedCallQueueResponse, CallQueue, retryFailedCampaignCalls, retryCallQueueItem } from '../../services/calls';
 import { PageHeader } from '../shared/PageHeader';
 import { Loader2, Phone, Eye, RefreshCw, Copy } from 'lucide-react';
@@ -19,6 +19,7 @@ const STATUS_OPTIONS = [
 
 export function CallQueues() {
   const { campaignRunId, companyId } = useParams<{ campaignRunId: string; companyId: string }>();
+  const navigate = useNavigate();
   const { showToast } = useToast();
   const [page, setPage] = useState(1);
   const [pageSize] = useState(20);
@@ -145,14 +146,20 @@ export function CallQueues() {
     }
   };
 
+  const handleBackClick = () => {
+    navigate(`/companies/${companyId}/campaign-runs`);
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <div>
-            <div className="h-8 w-48 bg-gray-200 rounded animate-pulse"></div>
-            <div className="h-4 w-32 bg-gray-200 rounded mt-2 animate-pulse"></div>
-          </div>
+          <PageHeader 
+            title="Loading..." 
+            subtitle="Call Queue for" 
+            showBackButton={true}
+            onBackClick={handleBackClick}
+          />
           <div className="h-10 w-32 bg-gray-200 rounded animate-pulse"></div>
         </div>
         <div className="bg-white shadow rounded-lg">
@@ -220,7 +227,12 @@ export function CallQueues() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <PageHeader title={`Campaign run ${campaignRunId || 'Unknown'}`} subtitle="Call Queue for" showBackButton={false} />
+        <PageHeader 
+          title={`Campaign run ${campaignRunId || 'Unknown'}`} 
+          subtitle="Call Queue for" 
+          showBackButton={true}
+          onBackClick={handleBackClick}
+        />
         <button
           onClick={handleRetryFailedItems}
           disabled={retrying}

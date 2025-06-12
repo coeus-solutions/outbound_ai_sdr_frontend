@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useLocation } from 'react-router-dom';
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { CallLogList } from '../calls/CallLogList';
 import { CallLogFilters } from '../calls/CallLogFilters';
 import { useCallLogs } from '../../hooks/useCallLogs';
@@ -12,6 +12,7 @@ import type { Company } from '../../services/companies';
 export function CompanyCallLogs() {
   const { companyId } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
   const campaignRunId = queryParams.get('campaign_run_id');
   const campaignId = queryParams.get('campaign_id');
@@ -73,7 +74,9 @@ export function CompanyCallLogs() {
   if (error || callLogsError) {
     return (
       <div className="text-center py-12">
-        <div className="text-red-600 mb-4">{error?.toString() || callLogsError?.toString()}</div>
+        <div className="text-red-600 mb-4">
+          {error || (callLogsError instanceof Error ? callLogsError.message : 'An error occurred')}
+        </div>
         <button
           onClick={() => window.location.reload()}
           className="text-indigo-600 hover:text-indigo-500"
@@ -84,12 +87,17 @@ export function CompanyCallLogs() {
     );
   }
 
+  const handleBackClick = () => {
+    navigate(`/companies/${companyId}/campaign-runs`);
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader
         title={`Campaign run ${campaignRunId || 'Unknown'}`}
         subtitle="Call logs for"
-        showBackButton={false}
+        showBackButton={true}
+        onBackClick={handleBackClick}
       />
 
       <CallLogFilters filters={filters} onFilterChange={setFilters} companyId={companyId || ''} />
