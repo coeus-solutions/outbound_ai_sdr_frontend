@@ -9,7 +9,7 @@ import { TableSkeletonLoader } from '../shared/TableSkeletonLoader';
 import { PageHeader } from '../shared/PageHeader';
 import { getCompanyById, type Company } from '../../services/companies';
 import { useToast } from '../../context/ToastContext';
-import { Mail, Phone, ChevronLeft, ChevronRight, Info, List, ChevronDown } from 'lucide-react';
+import { Mail, Phone, ChevronLeft, ChevronRight, Info, List, ChevronDown, Copy } from 'lucide-react';
 import { LoadingButton } from '../shared/LoadingButton';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 
@@ -60,6 +60,17 @@ export function CompanyCampaignRuns() {
     setPage(newPage);
   };
 
+  const handleCopyId = async (e: React.MouseEvent, runId: string) => {
+    e.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(runId);
+      showToast('Campaign Run ID copied to clipboard', 'success');
+    } catch (error) {
+      console.error('Failed to copy ID:', error);
+      showToast('Failed to copy ID', 'error');
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -70,7 +81,7 @@ export function CompanyCampaignRuns() {
         />
         <TableSkeletonLoader
           rowCount={5}
-          columnCount={7}
+          columnCount={8}
           hasHeader={true}
         />
       </div>
@@ -126,6 +137,9 @@ export function CompanyCampaignRuns() {
             <thead className="bg-gray-50">
               <tr>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  ID
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Run At
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -148,6 +162,16 @@ export function CompanyCampaignRuns() {
             <tbody className="bg-white divide-y divide-gray-200">
               {campaignRuns.map((run) => (
                 <tr key={run.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <button
+                      onClick={(e) => handleCopyId(e, run.id)}
+                      className="inline-flex items-center p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-gray-100 rounded-md transition-colors"
+                      title="Copy Campaign Run ID"
+                    >
+                      <Copy className="h-4 w-4" />
+                      <span className="sr-only">Copy ID</span>
+                    </button>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {formatDate(run.run_at)}
                   </td>
