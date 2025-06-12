@@ -25,8 +25,8 @@ export function PageHeader({ title, subtitle, action, showBackButton = true }: P
           </button>
         )}
         <div>
-          {subtitle && <h2 className="text-sm font-medium text-gray-500">{subtitle}</h2>}
-          <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
+          {subtitle && <h2 className="text-xs font-medium text-gray-500">{subtitle}</h2>}
+          <h1 className="text-lg font-bold text-gray-900">{title}</h1>
         </div>
       </div>
       {action && <div>{action}</div>}

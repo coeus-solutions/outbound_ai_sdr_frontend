@@ -89,7 +89,7 @@ export function CompanyEmails() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title={company?.name || 'Company'}
+        title={`Campaign run ${campaignRunId || 'Unknown'}`}
         subtitle="Email logs for"
         showBackButton={false}
       />
