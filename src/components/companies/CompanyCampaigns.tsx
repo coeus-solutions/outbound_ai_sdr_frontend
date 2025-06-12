@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Mail, Plus, Eye, Play, Phone, MoreVertical, ChevronDown } from 'lucide-react';
+import { Mail, Plus, Eye, Play, Phone, MoreVertical, ChevronDown, Copy } from 'lucide-react';
 import { PageHeader } from '../shared/PageHeader';
 import { getCompanyById, Company } from '../../services/companies';
 import { getCompanyCampaigns, Campaign, runCampaign } from '../../services/emailCampaigns';
@@ -150,6 +150,17 @@ export function CompanyCampaigns() {
     return <span className={date < nowUTC ? "text-gray-500" : "text-emerald-600"}>{utcString}</span>;
   };
 
+  const handleCopyId = async (e: React.MouseEvent, campaignId: string) => {
+    e.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(campaignId);
+      showToast('Campaign ID copied to clipboard', 'success');
+    } catch (error) {
+      console.error('Failed to copy ID:', error);
+      showToast('Failed to copy ID', 'error');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -218,6 +229,9 @@ export function CompanyCampaigns() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    ID
+                  </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Campaign</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
@@ -228,6 +242,16 @@ export function CompanyCampaigns() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {campaigns.map((campaign) => (
                   <tr key={campaign.id} className="hover:bg-gray-50 relative">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <button
+                        onClick={(e) => handleCopyId(e, campaign.id)}
+                        className="inline-flex items-center p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-gray-100 rounded-md transition-colors"
+                        title="Copy Campaign ID"
+                      >
+                        <Copy className="h-4 w-4" />
+                        <span className="sr-only">Copy ID</span>
+                      </button>
+                    </td>
                     <td className="px-6 py-4">
                       <div className="text-sm font-medium text-gray-900">{campaign.name}</div>
                       {campaign.description && (
