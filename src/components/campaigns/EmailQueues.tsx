@@ -200,7 +200,7 @@ export function EmailQueues() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <PageHeader title={company?.name || 'Company'} subtitle="Email Queue for" showBackButton={false} />
+        <PageHeader title={`Campaign run ${campaignRunId || 'Unknown'}`} subtitle="Email Queue for" showBackButton={false} />
         <button
           onClick={handleRetryFailedItems}
           disabled={retrying}
