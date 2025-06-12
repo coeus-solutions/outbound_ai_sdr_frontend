@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Phone, Clock, ThumbsUp, ThumbsDown, Minus, CalendarCheck, ChevronRight, PlayCircle, X, PhoneOff } from 'lucide-react';
+import { Phone, Clock, ThumbsUp, ThumbsDown, Minus, CalendarCheck, ChevronRight, PlayCircle, X, PhoneOff, Copy } from 'lucide-react';
 import { CallLog } from '../../types';
 import { formatDuration, formatDateTime } from '../../utils/formatters';
 import { CallTranscriptsDialog } from './CallTranscriptsDialog';
 import { CallSummaryPanel } from './CallSummaryPanel';
+import { useToast } from '../../context/ToastContext';
 
 interface CallLogListProps {
   callLogs: CallLog[];
@@ -29,6 +30,7 @@ export function CallLogList({
   const [selectedLog, setSelectedLog] = useState<CallLog | null>(null);
   const [dialogType, setDialogType] = useState<'summary' | 'transcripts' | null>(null);
   const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
+  const { showToast } = useToast();
   
   // Ensure page is always a number
   const currentPage = Number(page) || 1;
@@ -36,8 +38,68 @@ export function CallLogList({
   const currentTotalPages = Number(totalPages) || 1;
   const currentTotalItems = Number(totalItems) || 0;
 
+  const handleCopyId = async (e: React.MouseEvent, callId: string) => {
+    e.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(callId);
+      showToast('Call ID copied to clipboard', 'success');
+    } catch (error) {
+      console.error('Failed to copy ID:', error);
+      showToast('Failed to copy ID', 'error');
+    }
+  };
+
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="bg-white shadow rounded-lg overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th scope="col" className="w-16 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lead</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Campaign</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Called At</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
+                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Outcome</th>
+                <th scope="col" className="relative px-6 py-3"><span className="sr-only">View Details</span></th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {[...Array(5)].map((_, index) => (
+                <tr key={index}>
+                  <td className="w-16 px-3 py-4 whitespace-nowrap">
+                    <div className="h-8 w-8 bg-gray-200 rounded animate-pulse"></div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="h-8 w-8 bg-gray-200 rounded animate-pulse"></div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="h-8 w-8 bg-gray-200 rounded animate-pulse"></div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
   }
 
   if (callLogs.length === 0) {
@@ -96,32 +158,29 @@ export function CallLogList({
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Lead
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Campaign
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Last Called At
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Duration
-                </th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Outcome
-                </th>
-                <th scope="col" className="relative px-6 py-3">
-                  <span className="sr-only">View Details</span>
-                </th>
+                <th scope="col" className="w-16 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lead</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Campaign</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Called At</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
+                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Outcome</th>
+                <th scope="col" className="relative px-6 py-3"><span className="sr-only">View Details</span></th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {callLogs.map((log) => (
                 <tr key={log.id} className="hover:bg-gray-50">
+                  <td className="w-16 px-3 py-4 whitespace-nowrap">
+                    <button
+                      onClick={(e) => handleCopyId(e, log.id)}
+                      className="inline-flex items-center p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-gray-100 rounded-md transition-colors"
+                      title="Copy Call ID"
+                    >
+                      <Copy className="h-4 w-4" />
+                      <span className="sr-only">Copy ID</span>
+                    </button>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">{log.lead_name}</div>
                     <div className="text-sm text-gray-500">{log.lead_phone_number || 'No phone number'}</div>

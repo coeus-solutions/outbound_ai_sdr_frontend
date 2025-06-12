@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
-import { Building2, Phone, Mail, Search, ChevronRight, X, Loader2, Trash2, Briefcase, Facebook, Twitter } from 'lucide-react';
+import { Building2, Phone, Mail, Search, ChevronRight, X, Loader2, Trash2, Briefcase, Facebook, Twitter, Copy } from 'lucide-react';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import { useToast } from '../../context/ToastContext';
 import { getToken } from '../../utils/auth';
@@ -185,6 +185,17 @@ export function LeadTable({
     }
   };
 
+  const handleCopyId = async (e: React.MouseEvent, leadId: string) => {
+    e.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(leadId);
+      showToast('Lead ID copied to clipboard', 'success');
+    } catch (error) {
+      console.error('Failed to copy ID:', error);
+      showToast('Failed to copy ID', 'error');
+    }
+  };
+
   return (
     <>
       <div className="mt-8 flex flex-col">
@@ -289,6 +300,9 @@ export function LeadTable({
                         disabled={isLoading}
                       />
                     </th>
+                    <th scope="col" className="w-16 px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                      ID
+                    </th>
                     <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
                       Name
                     </th>
@@ -315,6 +329,9 @@ export function LeadTable({
                     Array.from({ length: 10 }).map((_, index) => (
                       <tr key={`skeleton-${index}`} className="animate-pulse">
                         <td className="relative py-4 pl-4 pr-3 sm:pl-6">
+                          <div className="h-4 w-4 rounded bg-gray-200" />
+                        </td>
+                        <td className="w-16 px-3 py-4 whitespace-nowrap">
                           <div className="h-4 w-4 rounded bg-gray-200" />
                         </td>
                         <td className="whitespace-nowrap py-4 pl-4 pr-3 sm:pl-6">
@@ -373,6 +390,16 @@ export function LeadTable({
                             onChange={(e) => e.stopPropagation()}
                             onClick={(e) => handleSelectLead(e, lead.id)}
                           />
+                        </td>
+                        <td className="w-16 px-3 py-4 whitespace-nowrap">
+                          <button
+                            onClick={(e) => handleCopyId(e, lead.id)}
+                            className="inline-flex items-center p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-gray-100 rounded-md transition-colors"
+                            title="Copy Lead ID"
+                          >
+                            <Copy className="h-4 w-4" />
+                            <span className="sr-only">Copy ID</span>
+                          </button>
                         </td>
                         <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                           {lead.name}

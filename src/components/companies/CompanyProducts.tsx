@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Package, Plus, Pencil, Trash2, ExternalLink, Search } from 'lucide-react';
+import { Package, Plus, Pencil, Trash2, ExternalLink, Search, Copy } from 'lucide-react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { EmptyState } from './EmptyState';
 import { PageHeader } from '../shared/PageHeader';
@@ -106,6 +106,16 @@ export function CompanyProducts() {
     setExpandedProductId(expandedProductId === productId ? null : productId);
   };
 
+  const handleCopyId = async (productId: string) => {
+    try {
+      await navigator.clipboard.writeText(productId);
+      showToast('Product ID copied to clipboard', 'success');
+    } catch (error) {
+      console.error('Failed to copy ID:', error);
+      showToast('Failed to copy ID', 'error');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -169,6 +179,9 @@ export function CompanyProducts() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
+                  <th scope="col" className="w-16 px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    ID
+                  </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Product
                   </th>
@@ -184,12 +197,22 @@ export function CompanyProducts() {
                       className="hover:bg-gray-50 cursor-pointer"
                       onClick={() => toggleProductDetails(product.id)}
                     >
+                      <td className="w-16 px-3 py-4 whitespace-nowrap">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCopyId(product.id);
+                          }}
+                          className="inline-flex items-center p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-gray-100 rounded-md transition-colors"
+                          title="Copy Product ID"
+                        >
+                          <Copy className="h-4 w-4" />
+                          <span className="sr-only">Copy ID</span>
+                        </button>
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <div className="flex-shrink-0">
-                            <Package className="h-5 w-5 text-indigo-600" />
-                          </div>
-                          <div className="ml-4">
+                          <div className="ml-0">
                             <div className="text-sm font-medium text-gray-900">{product.product_name}</div>
                             {product.product_url && (
                               <a 
@@ -235,7 +258,7 @@ export function CompanyProducts() {
                     </tr>
                     {expandedProductId === product.id && product.enriched_information && (
                       <tr>
-                        <td colSpan={2} className="px-6 py-4 bg-gray-50">
+                        <td colSpan={3} className="px-6 py-4 bg-gray-50">
                           <div className="border-t border-gray-200 pt-4">
                             <h4 className="text-sm font-medium text-gray-700 mb-2">AI-Enriched Information</h4>
                             <EnrichedProductInfo enrichedInfo={product.enriched_information} />

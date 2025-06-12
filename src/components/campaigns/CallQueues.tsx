@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getCallQueues, PaginatedCallQueueResponse, CallQueue, retryFailedCampaignCalls, retryCallQueueItem } from '../../services/calls';
 import { PageHeader } from '../shared/PageHeader';
-import { Loader2, Phone, Eye, RefreshCw } from 'lucide-react';
+import { Loader2, Phone, Eye, RefreshCw, Copy } from 'lucide-react';
 import { getToken } from '../../utils/auth';
 import { useToast } from '../../context/ToastContext';
 import { formatDateTime } from '../../utils/formatters';
@@ -134,6 +134,17 @@ export function CallQueues() {
     }
   };
 
+  const handleCopyId = async (e: React.MouseEvent, queueId: string) => {
+    e.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(queueId);
+      showToast('Call Queue ID copied to clipboard', 'success');
+    } catch (error) {
+      console.error('Failed to copy ID:', error);
+      showToast('Failed to copy ID', 'error');
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -149,6 +160,7 @@ export function CallQueues() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
+                  <th scope="col" className="w-16 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lead</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Retry Count</th>
@@ -160,6 +172,9 @@ export function CallQueues() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {[...Array(5)].map((_, index) => (
                   <tr key={index}>
+                    <td className="w-16 px-3 py-4 whitespace-nowrap">
+                      <div className="h-8 w-8 bg-gray-200 rounded animate-pulse"></div>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
                     </td>
@@ -261,6 +276,7 @@ export function CallQueues() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
+                  <th scope="col" className="w-16 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lead</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Retry Count</th>
@@ -272,6 +288,16 @@ export function CallQueues() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {data?.items.map((queue) => (
                   <tr key={queue.id} className="hover:bg-gray-50">
+                    <td className="w-16 px-3 py-4 whitespace-nowrap">
+                      <button
+                        onClick={(e) => handleCopyId(e, queue.id)}
+                        className="inline-flex items-center p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-gray-100 rounded-md transition-colors"
+                        title="Copy Call Queue ID"
+                      >
+                        <Copy className="h-4 w-4" />
+                        <span className="sr-only">Copy ID</span>
+                      </button>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       <div>{queue.lead_name || 'Unknown'}</div>
                       <div className="text-sm text-gray-500">{queue.lead_phone || 'No phone'}</div>
