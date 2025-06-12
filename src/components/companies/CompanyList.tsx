@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Building2, Plus, Package, Phone, Mail, Settings, Eye, ChevronDown, ChevronUp, Search, ExternalLink, Trash2, Pencil, Users, Megaphone, Ban, Target, FileSpreadsheet } from 'lucide-react';
+import { Building2, Plus, Package, Phone, Mail, Settings, Eye, ChevronDown, ChevronUp, Search, ExternalLink, Trash2, Pencil, Users, Megaphone, Ban, Target, FileSpreadsheet, Copy } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getToken } from '../../utils/auth';
 import { Company, getCompanies, getCompanyById, deleteCompany } from '../../services/companies';
@@ -369,10 +369,22 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
   const [isExpanded, setIsExpanded] = useState(true);
   const [isDoNotEmailDialogOpen, setIsDoNotEmailDialogOpen] = useState(false);
   const { isAdmin } = useUserRole(company.id);
+  const { showToast } = useToast();
 
   if (isLoadingDetails) {
     return <CardSkeletonLoader hasHeader={true} hasActions={true} actionCount={4} contentSections={2} />;
   }
+
+  const handleCopyId = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(company.id);
+      showToast('Company ID copied to clipboard', 'success');
+    } catch (error) {
+      console.error('Failed to copy ID:', error);
+      showToast('Failed to copy ID', 'error');
+    }
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
@@ -383,13 +395,36 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
             <h2 className="text-xl font-semibold text-gray-900 flex items-center">
               <Building2 className="w-5 h-5 mr-2 text-indigo-600" />
               {company.name}
+              <Tooltip.Provider>
+                <Tooltip.Root>
+                  <Tooltip.Trigger asChild>
+                    <button
+                      onClick={handleCopyId}
+                      className="p-1 text-gray-400 hover:text-indigo-600 hover:bg-gray-100 rounded-md transition-colors ml-2"
+                    >
+                      <Copy className="h-4 w-4" />
+                      <span className="sr-only">Copy Company ID</span>
+                    </button>
+                  </Tooltip.Trigger>
+                  <Tooltip.Portal>
+                    <Tooltip.Content
+                      className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
+                      sideOffset={5}
+                    >
+                      Copy Company ID
+                      <Tooltip.Arrow className="fill-gray-900" />
+                    </Tooltip.Content>
+                  </Tooltip.Portal>
+                </Tooltip.Root>
+              </Tooltip.Provider>
             </h2>
             {company.website && (
-              <a 
+              <a
                 href={company.website}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm text-gray-500 hover:text-indigo-600 flex items-center mt-1"
+                onClick={(e) => e.stopPropagation()}
               >
                 <ExternalLink className="w-4 h-4 mr-1" />
                 {company.website}
