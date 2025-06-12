@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getEmailQueues, PaginatedEmailQueueResponse, EmailQueue, retryFailedCampaignEmails } from '../../services/emailCampaigns';
 import { PageHeader } from '../shared/PageHeader';
-import { Loader2, Mail, Eye, RefreshCw } from 'lucide-react';
+import { Loader2, Mail, Eye, RefreshCw, Copy } from 'lucide-react';
+import * as Tooltip from '@radix-ui/react-tooltip';
 import { getToken } from '../../utils/auth';
 import { useToast } from '../../context/ToastContext';
 import { formatDateTime } from '../../utils/formatters';
@@ -111,6 +112,17 @@ export function EmailQueues() {
     }
   };
 
+  const handleCopyId = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(id);
+      showToast('Email Queue ID copied to clipboard', 'success');
+    } catch (error) {
+      console.error('Failed to copy ID:', error);
+      showToast('Failed to copy ID', 'error');
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -120,6 +132,7 @@ export function EmailQueues() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lead</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
@@ -133,6 +146,9 @@ export function EmailQueues() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {[...Array(5)].map((_, index) => (
                   <tr key={index}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="h-4 bg-gray-200 rounded animate-pulse w-16"></div>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="h-4 bg-gray-200 rounded animate-pulse w-32"></div>
                     </td>
@@ -237,6 +253,7 @@ export function EmailQueues() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lead</th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
@@ -250,6 +267,30 @@ export function EmailQueues() {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {data?.items.map((queue) => (
                     <tr key={queue.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <Tooltip.Provider>
+                          <Tooltip.Root>
+                            <Tooltip.Trigger asChild>
+                              <button
+                                onClick={(e) => handleCopyId(e, queue.id)}
+                                className="inline-flex items-center p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-gray-100 rounded-md transition-colors"
+                              >
+                                <Copy className="h-4 w-4" />
+                                <span className="sr-only">Copy ID</span>
+                              </button>
+                            </Tooltip.Trigger>
+                            <Tooltip.Portal>
+                              <Tooltip.Content
+                                className="bg-gray-900 text-white px-3 py-1.5 rounded text-xs"
+                                sideOffset={5}
+                              >
+                                Copy Email Queue ID
+                                <Tooltip.Arrow className="fill-gray-900" />
+                              </Tooltip.Content>
+                            </Tooltip.Portal>
+                          </Tooltip.Root>
+                        </Tooltip.Provider>
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         <div>{queue.lead_name || 'Unknown'}</div>
                         <div className="text-sm text-gray-500">{queue.lead_email || 'No email'}</div>
