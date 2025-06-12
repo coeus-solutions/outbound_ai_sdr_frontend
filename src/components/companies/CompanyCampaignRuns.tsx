@@ -210,7 +210,12 @@ export function CompanyCampaignRuns() {
                         <div className="relative group">
                           <Info className="h-4 w-4 text-red-500 cursor-help" />
                           <div className="absolute z-[9999] invisible group-hover:visible bg-gray-900 text-white text-xs rounded py-2 px-3 left-1/2 bottom-full mb-2 min-w-[24rem] -translate-x-1/2 whitespace-normal">
-                            <p className="text-center">This campaign run has failed items. You can retry those failed items by visiting Email Queue/Call Queue screen</p>
+                            <p className="text-center">
+                              {run.campaigns.type === 'email' ? 'This campaign run has failed items. You can retry those failed items by visiting Email Queue screen' :
+                               run.campaigns.type === 'call' ? 'This campaign run has failed items. You can retry those failed items by visiting Call Queue screen' :
+                               run.campaigns.type === 'email_and_call' ? 'This campaign run has failed items. You can retry those failed items by visiting Email Queue/Call Queue screen' :
+                               'This campaign run has failed items. You can retry those failed items by visiting Email Queue/Call Queue screen'}
+                            </p>
                             <div className="absolute left-1/2 bottom-[-6px] w-3 h-3 bg-gray-900 transform rotate-45 -translate-x-1/2"></div>
                           </div>
                         </div>
