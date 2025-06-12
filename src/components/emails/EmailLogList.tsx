@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Mail, User, Calendar, Eye, MessageSquare, CalendarCheck, ChevronRight } from 'lucide-react';
+import { Mail, User, Calendar, Eye, MessageSquare, CalendarCheck, ChevronRight, Copy } from 'lucide-react';
 import { EmailLog } from '../../services/emails';
 import { formatDateTime } from '../../utils/formatters';
 import { EmailSidePanel } from './EmailSidePanel';
 import { useParams } from 'react-router-dom';
+import { useToast } from '../../context/ToastContext';
 
 interface EmailLogListProps {
   emailLogs: EmailLog[];
@@ -28,9 +29,62 @@ export function EmailLogList({
 }: EmailLogListProps) {
   const { companyId = '' } = useParams();
   const [selectedEmailLog, setSelectedEmailLog] = useState<EmailLog | null>(null);
+  const { showToast } = useToast();
+
+  const handleCopyId = async (e: React.MouseEvent, emailId: string) => {
+    e.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(emailId);
+      showToast('Email ID copied to clipboard', 'success');
+    } catch (error) {
+      console.error('Failed to copy ID:', error);
+      showToast('Failed to copy ID', 'error');
+    }
+  };
 
   if (isLoading) {
-    return <div className="text-center py-8">Loading email logs...</div>;
+    return (
+      <div className="bg-white shadow-md rounded-lg overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th scope="col" className="w-16 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lead</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Campaign</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sent At</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {[...Array(5)].map((_, index) => (
+                <tr key={index}>
+                  <td className="w-16 px-3 py-4 whitespace-nowrap">
+                    <div className="h-8 w-8 bg-gray-200 rounded animate-pulse"></div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="h-8 w-8 bg-gray-200 rounded animate-pulse"></div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
   }
 
   const startItem = (page - 1) * pageSize + 1;
@@ -50,26 +104,27 @@ export function EmailLogList({
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Lead
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Campaign
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Sent At
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
+                  <th scope="col" className="w-16 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lead</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Campaign</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sent At</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {emailLogs.map((log) => (
                   <tr key={log.id} className="hover:bg-gray-50">
+                    <td className="w-16 px-3 py-4 whitespace-nowrap">
+                      <button
+                        onClick={(e) => handleCopyId(e, log.id)}
+                        className="inline-flex items-center p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-gray-100 rounded-md transition-colors"
+                        title="Copy Email ID"
+                      >
+                        <Copy className="h-4 w-4" />
+                        <span className="sr-only">Copy ID</span>
+                      </button>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <User className="h-5 w-5 text-gray-400 mr-2" />
