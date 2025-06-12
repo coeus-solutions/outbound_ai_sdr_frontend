@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Download, FileSpreadsheet, Info } from 'lucide-react';
+import { Download, FileSpreadsheet, Info, Copy } from 'lucide-react';
 import { PageHeader } from '../shared/PageHeader';
 import { getCompanyById, type Company } from '../../services/companies';
 import { getUploadTasks, downloadUploadFile, type UploadTask } from '../../services/uploadTasks';
@@ -111,6 +111,17 @@ export function CompanyUploadTasks() {
     }
   };
 
+  const handleCopyId = async (e: React.MouseEvent, taskId: string) => {
+    e.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(taskId);
+      showToast('Upload Task ID copied to clipboard', 'success');
+    } catch (error) {
+      console.error('Failed to copy ID:', error);
+      showToast('Failed to copy ID', 'error');
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -121,7 +132,7 @@ export function CompanyUploadTasks() {
         />
         <TableSkeletonLoader
           rowCount={5}
-          columnCount={5}
+          columnCount={8}
           hasHeader={true}
         />
       </div>
@@ -156,6 +167,9 @@ export function CompanyUploadTasks() {
             <thead className="bg-gray-50">
               <tr>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  ID
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   File Name
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -181,7 +195,7 @@ export function CompanyUploadTasks() {
             <tbody className="bg-white divide-y divide-gray-200">
               {uploadTasks.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center">
+                  <td colSpan={8} className="px-6 py-12 text-center">
                     <FileSpreadsheet className="mx-auto h-12 w-12 text-gray-400" />
                     <h3 className="mt-2 text-sm font-medium text-gray-900">No upload tasks</h3>
                     <p className="mt-1 text-sm text-gray-500">No CSV files have been uploaded yet.</p>
@@ -190,6 +204,16 @@ export function CompanyUploadTasks() {
               ) : (
                 uploadTasks.map((task) => (
                   <tr key={task.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <button
+                        onClick={(e) => handleCopyId(e, task.id)}
+                        className="inline-flex items-center p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-gray-100 rounded-md transition-colors"
+                        title="Copy Upload Task ID"
+                      >
+                        <Copy className="h-4 w-4" />
+                        <span className="sr-only">Copy ID</span>
+                      </button>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {task.file_name}
                     </td>
@@ -233,7 +257,10 @@ export function CompanyUploadTasks() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <button
-                        onClick={() => handleDownload(task.id, task.file_name)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDownload(task.id, task.file_name);
+                        }}
                         className="text-indigo-600 hover:text-indigo-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 rounded-md"
                         title="Download"
                         aria-label={`Download ${task.file_name}`}
@@ -247,7 +274,8 @@ export function CompanyUploadTasks() {
                          'emails_skipped' in task.result && task.result.emails_skipped > 0) && (
                           <button
                             className="text-indigo-600 hover:text-indigo-900 focus:outline-none focus:underline"
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.stopPropagation();
                               setSelectedUploadTaskId(task.id);
                               setIsSkippedRecordsDialogOpen(true);
                             }}
