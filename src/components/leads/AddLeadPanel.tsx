@@ -67,7 +67,17 @@ export function AddLeadPanel({ isOpen, onClose, companyId, onLeadAdded }: AddLea
         return;
       }
       
-      await createLead(token, companyId, formData);
+      // Create payload without phone_number
+      const payload = {
+        ...formData,
+      };
+      
+      // Only include phone_number if it has a value
+      if (!formData.phone_number) {
+        delete payload.phone_number;
+      }
+      
+      await createLead(token, companyId, payload);
       showToast('Lead added successfully', 'success');
       onLeadAdded();
       onClose();
