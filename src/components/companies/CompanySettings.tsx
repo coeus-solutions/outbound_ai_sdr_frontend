@@ -899,6 +899,17 @@ export function CompanySettings() {
       case 'calendar':
         return (
           <div className="space-y-6">
+            {/* Description section */}
+            <div className="bg-white shadow rounded-lg px-6 py-5">
+              <div className="flex items-center space-x-3">
+                <Calendar className="h-6 w-6 text-gray-400" />
+                <h3 className="text-lg font-medium text-gray-900">Calendar Integration</h3>
+              </div>
+              <p className="mt-2 text-sm text-gray-500">
+                Connect your calendar to automatically schedule meetings with leads. When a lead agrees to meet, ReachGenie books the appointment directly on your connected calendar. This ensures seamless scheduling and helps you manage your meetings efficiently.
+              </p>
+            </div>
+
             {/* Calendar settings */}
             {isCalendarConnected && (
               <div className="bg-white shadow rounded-lg">
