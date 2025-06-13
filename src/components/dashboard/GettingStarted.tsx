@@ -1,5 +1,6 @@
 import React from 'react';
 import { Building2, Package, Users, Mail } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface StepProps {
   stepNumber: number;
@@ -7,6 +8,7 @@ interface StepProps {
   title: string;
   description: string;
   isCompleted?: boolean;
+  action?: React.ReactNode;
 }
 
 const Step: React.FC<StepProps> = ({ 
@@ -14,7 +16,8 @@ const Step: React.FC<StepProps> = ({
   icon, 
   title, 
   description,
-  isCompleted = false
+  isCompleted = false,
+  action
 }) => (
   <div className="relative flex items-start p-6 rounded-lg transition-all duration-200 bg-white border-2 border-indigo-500 shadow-lg">
     {/* Step Number Circle */}
@@ -38,6 +41,11 @@ const Step: React.FC<StepProps> = ({
             )}
           </div>
           <p className="mt-1 text-sm text-gray-500">{description}</p>
+          {action && (
+            <div className="mt-4">
+              {action}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -51,7 +59,15 @@ export function GettingStarted() {
       icon: <Building2 className="w-6 h-6" />,
       title: "Create Your Company",
       description: "Start by setting up your company. This is where you'll manage all your outreach campaigns and team settings.",
-      isCompleted: false
+      isCompleted: false,
+      action: (
+        <Link
+          to="/companies/new"
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+        >
+          Create Company
+        </Link>
+      )
     },
     {
       icon: <Package className="w-6 h-6" />,
