@@ -658,7 +658,7 @@ export function CompanySettings() {
           <div>
             <div className="flex items-center space-x-2">
               <label htmlFor="account_password" className="block text-sm font-medium text-gray-700">
-                Account Password
+                App Password
               </label>
               <Tooltip.Provider>
                 <Tooltip.Root>
