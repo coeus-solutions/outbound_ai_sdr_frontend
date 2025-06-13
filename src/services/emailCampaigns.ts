@@ -321,4 +321,19 @@ export async function getCampaignLeadStatus(
   }
 
   return response.json();
+}
+
+export async function getCampaignById(token: string, campaignId: string): Promise<Campaign> {
+  const response = await fetch(`${apiEndpoints.campaigns.details(campaignId)}`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch campaign details');
+  }
+
+  return response.json();
 } 

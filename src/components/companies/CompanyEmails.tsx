@@ -8,6 +8,7 @@ import { getCompanyById } from '../../services/companies';
 import { getToken } from '../../utils/auth';
 import { useToast } from '../../context/ToastContext';
 import type { Company } from '../../services/companies';
+import { getCampaignById, type Campaign } from '../../services/emailCampaigns';
 
 export function CompanyEmails() {
   const { companyId } = useParams();
@@ -35,7 +36,9 @@ export function CompanyEmails() {
     initialFilters: campaignId ? { campaign_id: campaignId } : undefined
   });
   const [company, setCompany] = useState<Company | null>(null);
+  const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [isLoadingCompany, setIsLoadingCompany] = useState(true);
+  const [isLoadingCampaign, setIsLoadingCampaign] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -69,7 +72,35 @@ export function CompanyEmails() {
     fetchCompany();
   }, [companyId, showToast]);
 
-  const isLoading = isLoadingEmails || isLoadingCompany;
+  useEffect(() => {
+    async function fetchCampaign() {
+      if (!campaignId || campaignRunId) {
+        // Don't fetch if we don't have campaignId or if we have campaignRunId
+        return;
+      }
+
+      try {
+        setIsLoadingCampaign(true);
+        const token = getToken();
+        if (!token) {
+          showToast('Authentication failed. Please try logging in again.', 'error');
+          return;
+        }
+
+        const campaignData = await getCampaignById(token, campaignId);
+        setCampaign(campaignData);
+      } catch (err) {
+        console.error('Error fetching campaign:', err);
+        showToast('Failed to fetch campaign details', 'error');
+      } finally {
+        setIsLoadingCampaign(false);
+      }
+    }
+
+    fetchCampaign();
+  }, [campaignId, campaignRunId, showToast]);
+
+  const isLoading = isLoadingEmails || isLoadingCompany || isLoadingCampaign;
 
   if (error || emailLogsError) {
     return (
@@ -91,10 +122,20 @@ export function CompanyEmails() {
     navigate(`/companies/${companyId}/campaign-runs`);
   };
 
+  const getHeaderTitle = () => {
+    if (campaignRunId) {
+      return `Campaign run ${campaignRunId}`;
+    }
+    if (campaign) {
+      return `Campaign: ${campaign.name}`;
+    }
+    return 'Campaign run Unknown';
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader
-        title={`Campaign run ${campaignRunId || 'Unknown'}`}
+        title={getHeaderTitle()}
         subtitle="Email logs for"
         showBackButton={true}
         onBackClick={handleBackClick}
