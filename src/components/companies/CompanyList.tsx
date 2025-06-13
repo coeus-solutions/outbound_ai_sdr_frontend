@@ -892,13 +892,16 @@ function ProductCard({ product, companyId }: ProductCardProps) {
               </div>
             ) : (
               <div className="text-center py-6">
-                <p className="text-sm text-gray-500">No active campaigns</p>
+                <p className="text-sm font-medium text-gray-700">No campaigns for this product yet</p>
+                <p className="mt-2 text-sm text-gray-500 max-w-sm mx-auto">
+                  Set up your first campaign with personalized messages and automated follow-ups.
+                </p>
                 <Link
                   to={`/companies/${companyId}/campaigns/new?product_id=${product.id}`}
-                  className="mt-2 inline-flex items-center text-sm text-indigo-600 hover:text-indigo-700"
+                  className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
                 >
-                  <Plus className="w-4 h-4 mr-1" />
-                  Create your first campaign
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Campaign
                 </Link>
               </div>
             )}
