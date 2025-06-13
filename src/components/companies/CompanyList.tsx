@@ -376,10 +376,8 @@ export function CompanyList() {
 }
 
 function CompanyCard({ company, companies, onViewDetails, isLoadingDetails, onDelete }: CompanyCardProps) {
-  // Initialize expanded state based on company and product count
-  const [isExpanded, setIsExpanded] = useState(() => {
-    return companies.length === 1 && company.products.length === 1;
-  });
+  // Always expanded by default, but user can collapse if needed
+  const [isExpanded, setIsExpanded] = useState(true);
 
   const [isDoNotEmailDialogOpen, setIsDoNotEmailDialogOpen] = useState(false);
   const { isAdmin } = useUserRole(company.id);
