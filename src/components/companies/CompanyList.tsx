@@ -39,6 +39,7 @@ interface CompanyWithStats extends Omit<Company, 'products'> {
 
 interface CompanyCardProps {
   company: CompanyWithStats;
+  companies: CompanyWithStats[];
   onViewDetails: (company: CompanyWithStats) => void;
   isLoadingDetails?: boolean;
   onDelete: () => void;
@@ -47,6 +48,8 @@ interface CompanyCardProps {
 interface ProductCardProps {
   product: ProductStats;
   companyId: string;
+  companies: CompanyWithStats[];
+  company: CompanyWithStats;
 }
 
 export function CompanyList() {
@@ -311,12 +314,13 @@ export function CompanyList() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-6">
+          <div className="space-y-6">
             {filteredCompanies.map((company) => (
               <CompanyCard
                 key={company.id}
                 company={company}
-                onViewDetails={() => handleViewDetails(company)}
+                companies={companies}
+                onViewDetails={handleViewDetails}
                 isLoadingDetails={loadingCompanyId === company.id}
                 onDelete={() => handleDeleteCompany(company)}
               />
@@ -371,8 +375,12 @@ export function CompanyList() {
   );
 }
 
-function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: CompanyCardProps) {
-  const [isExpanded, setIsExpanded] = useState(true);
+function CompanyCard({ company, companies, onViewDetails, isLoadingDetails, onDelete }: CompanyCardProps) {
+  // Initialize expanded state based on company and product count
+  const [isExpanded, setIsExpanded] = useState(() => {
+    return companies.length === 1 && company.products.length === 1;
+  });
+
   const [isDoNotEmailDialogOpen, setIsDoNotEmailDialogOpen] = useState(false);
   const { isAdmin } = useUserRole(company.id);
   const { showToast } = useToast();
@@ -664,6 +672,8 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
                   key={product.id}
                   product={product}
                   companyId={company.id}
+                  companies={companies}
+                  company={company}
                 />
               ))
             ) : (
@@ -706,8 +716,11 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
   );
 }
 
-function ProductCard({ product, companyId }: ProductCardProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+function ProductCard({ product, companyId, companies, company }: ProductCardProps) {
+  // Initialize expanded state based on company and product count
+  const [isExpanded, setIsExpanded] = useState(() => {
+    return companies.length === 1 && company.products.length === 1;
+  });
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [isLoadingCampaigns, setIsLoadingCampaigns] = useState(false);
   const { showToast } = useToast();
