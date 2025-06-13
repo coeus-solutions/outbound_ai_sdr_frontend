@@ -676,7 +676,6 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
                     <p className="text-sm text-gray-600">Here's how it works:</p>
                     <ol className="text-left text-sm text-gray-600 space-y-2 list-decimal list-inside">
                       <li>Add a product or service with its value proposition</li>
-                      <li>Upload your product documentation or sales materials</li>
                       <li>Create targeted email or call campaigns</li>
                       <li>Generate and nurture leads based on your value proposition</li>
                     </ol>
