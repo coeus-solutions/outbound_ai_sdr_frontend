@@ -83,7 +83,7 @@ export function GettingStarted() {
     },
     {
       icon: <Mail className="w-6 h-6" />,
-      title: "Create Campaign",
+      title: "Create and Run Campaign",
       description: "Set up your first campaign with personalized messages and automated follow-ups.",
       isCompleted: false
     }
