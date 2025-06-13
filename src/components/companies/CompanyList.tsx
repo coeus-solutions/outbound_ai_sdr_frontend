@@ -675,8 +675,8 @@ function CompanyCard({ company, companies, onViewDetails, isLoadingDetails, onDe
                 <Users className="h-5 w-5 text-blue-400" />
               </div>
               <div className="ml-3">
-                <h3 className="text-sm font-medium text-blue-800">Time to add leads!</h3>
-                <div className="mt-2 text-sm text-blue-700">
+                <h3 className="text-sm font-medium text-gray-800">Time to add leads!</h3>
+                <div className="mt-2 text-sm text-gray-700">
                   <p>You've set up your campaigns, now it's time to start reaching out to potential customers. Add leads to begin your outreach efforts.</p>
                 </div>
                 <div className="mt-3">
