@@ -897,7 +897,7 @@ function ProductCard({ product, companyId }: ProductCardProps) {
                   Set up your first campaign with personalized messages and automated follow-ups.
                 </p>
                 <Link
-                  to={`/companies/${companyId}/campaigns/new?product_id=${product.id}`}
+                  to={`/companies/${companyId}/campaigns/new?product_id=${product.id}&redirect=companies`}
                   className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
                 >
                   <Plus className="w-4 h-4 mr-2" />
