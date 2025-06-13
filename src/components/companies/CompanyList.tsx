@@ -31,6 +31,7 @@ interface ProductStats {
   unique_leads_contacted: number;
   total_meetings_booked_in_calls: number;
   total_meetings_booked_in_emails: number;
+  total_leads: number;
 }
 
 interface CompanyWithStats extends Omit<Company, 'products'> {
@@ -92,7 +93,8 @@ export function CompanyList() {
             total_replied_emails: product.total_replied_emails,
             unique_leads_contacted: product.unique_leads_contacted,
             total_meetings_booked_in_calls: product.total_meetings_booked_in_calls,
-            total_meetings_booked_in_emails: product.total_meetings_booked_in_emails
+            total_meetings_booked_in_emails: product.total_meetings_booked_in_emails,
+            total_leads: product.total_leads
           }))
         }));
 
@@ -190,7 +192,8 @@ export function CompanyList() {
             total_replied_emails: product.total_replied_emails || 0,
             unique_leads_contacted: product.unique_leads_contacted || 0,
             total_meetings_booked_in_calls: product.total_meetings_booked_in_calls || 0,
-            total_meetings_booked_in_emails: product.total_meetings_booked_in_emails || 0
+            total_meetings_booked_in_emails: product.total_meetings_booked_in_emails || 0,
+            total_leads: product.total_leads || 0
           }));
           
           return {
@@ -382,6 +385,9 @@ function CompanyCard({ company, companies, onViewDetails, isLoadingDetails, onDe
   const [isDoNotEmailDialogOpen, setIsDoNotEmailDialogOpen] = useState(false);
   const { isAdmin } = useUserRole(company.id);
   const { showToast } = useToast();
+
+  // Check if any product has campaigns
+  const hasProductsWithCampaigns = company.products.some(product => product.total_campaigns > 0);
 
   if (isLoadingDetails) {
     return <CardSkeletonLoader hasHeader={true} hasActions={true} actionCount={4} contentSections={2} />;
@@ -660,6 +666,32 @@ function CompanyCard({ company, companies, onViewDetails, isLoadingDetails, onDe
             </button>
           </div>
         </div>
+
+        {/* Leads Message - Show only when there are campaigns but no leads */}
+        {hasProductsWithCampaigns && company.total_leads === 0 && (
+          <div className="bg-blue-50 rounded-lg p-4 mb-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <Users className="h-5 w-5 text-blue-400" />
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-blue-800">Time to add leads!</h3>
+                <div className="mt-2 text-sm text-blue-700">
+                  <p>You've set up your campaigns, now it's time to start reaching out to potential customers. Add leads to begin your outreach efforts.</p>
+                </div>
+                <div className="mt-3">
+                  <Link
+                    to={`/companies/${company.id}/leads`}
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    <Users className="h-4 w-4 mr-2" />
+                    Go to Leads
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Products Section */}
         {isExpanded && (
