@@ -86,6 +86,7 @@ export const apiEndpoints = {
   campaigns: {
     run: (campaignId: string) => `${config.apiUrl}/api/campaigns/${campaignId}/run`,
     testRun: (campaignId: string) => `${config.apiUrl}/api/campaigns/${campaignId}/test-run`,
+    details: (campaignId: string) => `${config.apiUrl}/api/campaigns/${campaignId}`,
     emailQueues: {
       list: (campaignRunId: string) => `${config.apiUrl}/api/campaigns/${campaignRunId}/email-queues`,
     },
