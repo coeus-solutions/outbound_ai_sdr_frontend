@@ -803,14 +803,6 @@ function ProductCard({ product, companyId }: ProductCardProps) {
           <div className="bg-white rounded-lg p-4">
             <div className="flex justify-between items-center mb-4">
               <h5 className="text-sm font-medium text-gray-900">Active Campaigns</h5>
-              <div className="flex items-center space-x-2">
-                <Link
-                  to={`/companies/${companyId}/campaigns/new?product_id=${product.id}`}
-                  className="text-sm text-indigo-600 hover:text-indigo-700 flex items-center"
-                >
-                  New Campaign
-                </Link>
-              </div>
             </div>
 
             {isLoadingCampaigns ? (
