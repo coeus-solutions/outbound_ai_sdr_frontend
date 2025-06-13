@@ -709,17 +709,9 @@ function CompanyCard({ company, companies, onViewDetails, isLoadingDetails, onDe
             ) : (
               <div className="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">
                 <Package className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-semibold text-gray-900">No products/value props yet</h3>
+                <h3 className="mt-2 text-sm font-semibold text-gray-900">No products added</h3>
                 <div className="mt-2 px-4">
-                  <p className="text-sm text-gray-600">Products/Value Props are the foundation of your lead generation campaigns.</p>
-                  <div className="mt-3 space-y-2">
-                    <p className="text-sm text-gray-600">Here's how it works:</p>
-                    <ol className="text-left text-sm text-gray-600 space-y-2 list-decimal list-inside">
-                      <li>Add a product or service with its value proposition</li>
-                      <li>Create targeted email or call campaigns</li>
-                      <li>Generate and nurture leads based on your value proposition</li>
-                    </ol>
-                  </div>
+                  <p className="text-sm text-gray-600">Define the products or services you want to promote. This helps us tailor your outreach campaigns for better results.</p>
                 </div>
                 <div className="mt-6">
                   <Link
