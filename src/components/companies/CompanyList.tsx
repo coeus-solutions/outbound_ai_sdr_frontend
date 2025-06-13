@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Building2, Plus, Package, Phone, Mail, Settings, Eye, ChevronDown, ChevronUp, Search, ExternalLink, Trash2, Pencil, Users, Megaphone, Ban, Target, FileSpreadsheet, Copy } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { getToken } from '../../utils/auth';
 import { Company, getCompanies, getCompanyById, deleteCompany } from '../../services/companies';
 import { Dialog } from '../shared/Dialog';
@@ -50,6 +50,7 @@ interface ProductCardProps {
 }
 
 export function CompanyList() {
+  const navigate = useNavigate();
   const { showToast } = useToast();
   const [companies, setCompanies] = useState<CompanyWithStats[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -94,6 +95,11 @@ export function CompanyList() {
 
         setCompanies(companiesWithProducts);
         setError(null);
+
+        // Redirect to getting started page if there are no companies
+        if (companiesWithProducts.length === 0) {
+          navigate('/getting-started');
+        }
       } catch (err) {
         setError('Failed to fetch companies');
         console.error('Error fetching companies:', err);
@@ -103,7 +109,7 @@ export function CompanyList() {
     }
 
     fetchCompanies();
-  }, []);
+  }, [navigate]);
 
   const filteredCompanies = companies.filter(company => 
     (company.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
