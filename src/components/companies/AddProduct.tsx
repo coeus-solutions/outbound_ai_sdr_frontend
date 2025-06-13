@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Package, Upload, Globe } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { getToken } from '../../utils/auth';
 import { createProduct, getProduct, updateProduct } from '../../services/products';
 import { useToast } from '../../context/ToastContext';
@@ -10,6 +10,7 @@ import { PageHeader } from '../shared/PageHeader';
 export function AddProduct() {
   const navigate = useNavigate();
   const { companyId, productId } = useParams();
+  const location = useLocation();
   const { showToast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(!!productId);
@@ -97,7 +98,14 @@ export function AddProduct() {
         showToast('Product created successfully!', 'success');
       }
 
-      navigate(`/companies/${companyId}/products`);
+      // Check for redirect parameter
+      const searchParams = new URLSearchParams(location.search);
+      const redirect = searchParams.get('redirect');
+      if (redirect === 'companies') {
+        navigate('/companies');
+      } else {
+        navigate(`/companies/${companyId}/products`);
+      }
     } catch (error) {
       const errorMessage = productId ? 'Failed to update product' : 'Failed to create product';
       setError(errorMessage);

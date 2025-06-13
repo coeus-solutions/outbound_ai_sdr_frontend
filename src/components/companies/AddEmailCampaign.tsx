@@ -354,7 +354,15 @@ export function AddEmailCampaign() {
 
       await createCampaign(token, companyId!, campaignData);
       showToast('Campaign created successfully!', 'success');
-      navigate(`/companies/${companyId}/campaigns`);
+      
+      // Check for redirect parameter
+      const searchParams = new URLSearchParams(location.search);
+      const redirect = searchParams.get('redirect');
+      if (redirect === 'companies') {
+        navigate('/companies');
+      } else {
+        navigate(`/companies/${companyId}/campaigns`);
+      }
     } catch (err) {
       console.error('Error creating campaign:', err);
       const error = err as any;

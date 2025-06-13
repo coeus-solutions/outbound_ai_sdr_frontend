@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Building2, Plus, Package, Phone, Mail, Settings, Eye, ChevronDown, ChevronUp, Search, ExternalLink, Trash2, Pencil, Users, Megaphone, Ban, Target, FileSpreadsheet, Copy } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { getToken } from '../../utils/auth';
 import { Company, getCompanies, getCompanyById, deleteCompany } from '../../services/companies';
 import { Dialog } from '../shared/Dialog';
@@ -31,6 +31,7 @@ interface ProductStats {
   unique_leads_contacted: number;
   total_meetings_booked_in_calls: number;
   total_meetings_booked_in_emails: number;
+  total_leads: number;
 }
 
 interface CompanyWithStats extends Omit<Company, 'products'> {
@@ -39,6 +40,7 @@ interface CompanyWithStats extends Omit<Company, 'products'> {
 
 interface CompanyCardProps {
   company: CompanyWithStats;
+  companies: CompanyWithStats[];
   onViewDetails: (company: CompanyWithStats) => void;
   isLoadingDetails?: boolean;
   onDelete: () => void;
@@ -47,9 +49,12 @@ interface CompanyCardProps {
 interface ProductCardProps {
   product: ProductStats;
   companyId: string;
+  companies: CompanyWithStats[];
+  company: CompanyWithStats;
 }
 
 export function CompanyList() {
+  const navigate = useNavigate();
   const { showToast } = useToast();
   const [companies, setCompanies] = useState<CompanyWithStats[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -88,12 +93,18 @@ export function CompanyList() {
             total_replied_emails: product.total_replied_emails,
             unique_leads_contacted: product.unique_leads_contacted,
             total_meetings_booked_in_calls: product.total_meetings_booked_in_calls,
-            total_meetings_booked_in_emails: product.total_meetings_booked_in_emails
+            total_meetings_booked_in_emails: product.total_meetings_booked_in_emails,
+            total_leads: product.total_leads
           }))
         }));
 
         setCompanies(companiesWithProducts);
         setError(null);
+
+        // Redirect to getting started page if there are no companies
+        if (companiesWithProducts.length === 0) {
+          navigate('/getting-started');
+        }
       } catch (err) {
         setError('Failed to fetch companies');
         console.error('Error fetching companies:', err);
@@ -103,7 +114,7 @@ export function CompanyList() {
     }
 
     fetchCompanies();
-  }, []);
+  }, [navigate]);
 
   const filteredCompanies = companies.filter(company => 
     (company.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -181,7 +192,8 @@ export function CompanyList() {
             total_replied_emails: product.total_replied_emails || 0,
             unique_leads_contacted: product.unique_leads_contacted || 0,
             total_meetings_booked_in_calls: product.total_meetings_booked_in_calls || 0,
-            total_meetings_booked_in_emails: product.total_meetings_booked_in_emails || 0
+            total_meetings_booked_in_emails: product.total_meetings_booked_in_emails || 0,
+            total_leads: product.total_leads || 0
           }));
           
           return {
@@ -305,12 +317,13 @@ export function CompanyList() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-6">
+          <div className="space-y-6">
             {filteredCompanies.map((company) => (
               <CompanyCard
                 key={company.id}
                 company={company}
-                onViewDetails={() => handleViewDetails(company)}
+                companies={companies}
+                onViewDetails={handleViewDetails}
                 isLoadingDetails={loadingCompanyId === company.id}
                 onDelete={() => handleDeleteCompany(company)}
               />
@@ -365,11 +378,16 @@ export function CompanyList() {
   );
 }
 
-function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: CompanyCardProps) {
+function CompanyCard({ company, companies, onViewDetails, isLoadingDetails, onDelete }: CompanyCardProps) {
+  // Always expanded by default, but user can collapse if needed
   const [isExpanded, setIsExpanded] = useState(true);
+
   const [isDoNotEmailDialogOpen, setIsDoNotEmailDialogOpen] = useState(false);
   const { isAdmin } = useUserRole(company.id);
   const { showToast } = useToast();
+
+  // Check if any product has campaigns
+  const hasProductsWithCampaigns = company.products.some(product => product.total_campaigns > 0);
 
   if (isLoadingDetails) {
     return <CardSkeletonLoader hasHeader={true} hasActions={true} actionCount={4} contentSections={2} />;
@@ -649,6 +667,32 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
           </div>
         </div>
 
+        {/* Leads Message - Show only when there are campaigns but no leads */}
+        {hasProductsWithCampaigns && company.total_leads === 0 && (
+          <div className="bg-blue-50 rounded-lg p-4 mb-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <Users className="h-5 w-5 text-blue-400" />
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-gray-800">Time to add leads!</h3>
+                <div className="mt-2 text-sm text-gray-700">
+                  <p>You've set up your campaigns, now it's time to start reaching out to potential customers. Add leads to begin your outreach efforts.</p>
+                </div>
+                <div className="mt-3">
+                  <Link
+                    to={`/companies/${company.id}/leads`}
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    <Users className="h-4 w-4 mr-2" />
+                    Go to Leads
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Products Section */}
         {isExpanded && (
           <div className="space-y-4">
@@ -658,31 +702,24 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
                   key={product.id}
                   product={product}
                   companyId={company.id}
+                  companies={companies}
+                  company={company}
                 />
               ))
             ) : (
               <div className="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">
                 <Package className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-semibold text-gray-900">No products/value props yet</h3>
+                <h3 className="mt-2 text-sm font-semibold text-gray-900">No products added</h3>
                 <div className="mt-2 px-4">
-                  <p className="text-sm text-gray-600">Products/Value Props are the foundation of your lead generation campaigns.</p>
-                  <div className="mt-3 space-y-2">
-                    <p className="text-sm text-gray-600">Here's how it works:</p>
-                    <ol className="text-left text-sm text-gray-600 space-y-2 list-decimal list-inside">
-                      <li>Add a product or service with its value proposition</li>
-                      <li>Upload your product documentation or sales materials</li>
-                      <li>Create targeted email or call campaigns</li>
-                      <li>Generate and nurture leads based on your value proposition</li>
-                    </ol>
-                  </div>
+                  <p className="text-sm text-gray-600">Define the products or services you want to promote. This helps us tailor your outreach campaigns for better results.</p>
                 </div>
                 <div className="mt-6">
                   <Link
-                    to={`/companies/${company.id}/products`}
+                    to={`/companies/${company.id}/products/new?redirect=companies`}
                     className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                   >
                     <Package className="h-5 w-5 mr-2" />
-                    View Products
+                    Add Product
                   </Link>
                 </div>
               </div>
@@ -701,8 +738,11 @@ function CompanyCard({ company, onViewDetails, isLoadingDetails, onDelete }: Com
   );
 }
 
-function ProductCard({ product, companyId }: ProductCardProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+function ProductCard({ product, companyId, companies, company }: ProductCardProps) {
+  // Initialize expanded state based on company and product count
+  const [isExpanded, setIsExpanded] = useState(() => {
+    return companies.length === 1 && company.products.length === 1;
+  });
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [isLoadingCampaigns, setIsLoadingCampaigns] = useState(false);
   const { showToast } = useToast();
@@ -798,14 +838,6 @@ function ProductCard({ product, companyId }: ProductCardProps) {
           <div className="bg-white rounded-lg p-4">
             <div className="flex justify-between items-center mb-4">
               <h5 className="text-sm font-medium text-gray-900">Active Campaigns</h5>
-              <div className="flex items-center space-x-2">
-                <Link
-                  to={`/companies/${companyId}/campaigns/new?product_id=${product.id}`}
-                  className="text-sm text-indigo-600 hover:text-indigo-700 flex items-center"
-                >
-                  New Campaign
-                </Link>
-              </div>
             </div>
 
             {isLoadingCampaigns ? (
@@ -895,13 +927,16 @@ function ProductCard({ product, companyId }: ProductCardProps) {
               </div>
             ) : (
               <div className="text-center py-6">
-                <p className="text-sm text-gray-500">No active campaigns</p>
+                <p className="text-sm font-medium text-gray-700">No campaigns for this product yet</p>
+                <p className="mt-2 text-sm text-gray-500 max-w-sm mx-auto">
+                  Set up your first campaign with personalized messages and automated follow-ups.
+                </p>
                 <Link
-                  to={`/companies/${companyId}/campaigns/new?product_id=${product.id}`}
-                  className="mt-2 inline-flex items-center text-sm text-indigo-600 hover:text-indigo-700"
+                  to={`/companies/${companyId}/campaigns/new?product_id=${product.id}&redirect=companies`}
+                  className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
                 >
-                  <Plus className="w-4 h-4 mr-1" />
-                  Create your first campaign
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Campaign
                 </Link>
               </div>
             )}
