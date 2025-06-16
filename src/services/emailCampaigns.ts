@@ -10,6 +10,7 @@ export interface Campaign {
   created_at: string;
   template?: string;
   scheduled_at?: string;
+  auto_reply_enabled: boolean;
 }
 
 interface CampaignsResponse {
@@ -119,6 +120,14 @@ export interface CampaignLeadStatus {
   has_replied: boolean | null;
   is_reminder_eligible: boolean | null;
   steps: CampaignLeadStep[];
+}
+
+export interface CampaignUpdate {
+  name: string;
+  description: string;
+  template?: string;
+  auto_reply_enabled: boolean;
+  scheduled_at?: string;
 }
 
 export async function getCompanyCampaigns(
@@ -333,6 +342,24 @@ export async function getCampaignById(token: string, campaignId: string): Promis
 
   if (!response.ok) {
     throw new Error('Failed to fetch campaign details');
+  }
+
+  return response.json();
+}
+
+export async function updateCampaign(token: string, companyId: string, campaignId: string, data: CampaignUpdate): Promise<Campaign> {
+  const response = await fetch(apiEndpoints.companies.emailCampaigns.update(companyId, campaignId), {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.detail || 'Failed to update campaign');
   }
 
   return response.json();

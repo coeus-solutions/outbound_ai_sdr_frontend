@@ -31,6 +31,7 @@ import { CallQueues } from './components/campaigns/CallQueues';
 import { SubscriptionSuccess } from './components/subscription/SubscriptionSuccess';
 import { SubscriptionDetails } from './components/subscription/SubscriptionDetails';
 import { CompanyUploadTasks } from './components/companies/CompanyUploadTasks';
+import { EditCampaign } from './components/companies/EditCampaign';
 
 // Import competitor pages
 import { JasonAIPage } from './components/competitors/JasonAIPage';
@@ -145,6 +146,7 @@ export function App() {
             <Route path="/companies/:companyId/campaigns" element={<CompanyCampaigns />} />
             <Route path="/companies/:companyId/campaign-runs" element={<CompanyCampaignRuns />} />
             <Route path="/companies/:companyId/campaigns/new" element={<AddEmailCampaign />} />
+            <Route path="/companies/:companyId/campaigns/:campaignId/edit" element={<EditCampaign />} />
             <Route path="/companies/:companyId/settings" element={<CompanySettings />} />
             <Route path="/cronofy-auth" element={<CronofyCallback />} />
             <Route path="/getting-started" element={<GettingStarted />} />

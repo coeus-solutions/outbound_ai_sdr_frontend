@@ -57,6 +57,7 @@ export const apiEndpoints = {
     },
     emailCampaigns: {
       list: (companyId: string) => `${config.apiUrl}/api/companies/${companyId}/campaigns`,
+      update: (companyId: string, campaignId: string) => `${config.apiUrl}/api/companies/${companyId}/campaigns/${campaignId}`,
     },
     emails: {
       list: (companyId: string) => `${config.apiUrl}/api/companies/${companyId}/emails`,
