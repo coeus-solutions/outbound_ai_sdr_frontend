@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Mail, Plus, Eye, Play, Phone, MoreVertical, ChevronDown, Copy } from 'lucide-react';
+import { Mail, Plus, Eye, Play, Phone, MoreVertical, ChevronDown, Copy, Pencil } from 'lucide-react';
 import { PageHeader } from '../shared/PageHeader';
 import { getCompanyById, Company } from '../../services/companies';
 import { getCompanyCampaigns, Campaign, runCampaign } from '../../services/emailCampaigns';
@@ -321,6 +321,14 @@ export function CompanyCampaigns() {
                         </button>
                       </div>
                       
+                      <Link
+                        to={`/companies/${companyId}/campaigns/${campaign.id}/edit`}
+                        className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-indigo-600 hover:bg-indigo-700"
+                      >
+                        <Pencil className="h-3 w-3 mr-1" />
+                        Edit
+                      </Link>
+
                       {campaign.type === 'email' && campaign.template && (
                         <button
                           onClick={() => setTemplateDialog({ isOpen: true, template: campaign.template || '' })}
