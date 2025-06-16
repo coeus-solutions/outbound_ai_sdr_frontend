@@ -6,6 +6,7 @@ export interface Campaign {
   description: string | null;
   type: 'email' | 'call' | 'email_and_call';
   product_id: string;
+  product_name: string;
   company_id: string;
   created_at: string;
   template?: string;
