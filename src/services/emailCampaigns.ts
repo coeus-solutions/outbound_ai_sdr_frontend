@@ -12,6 +12,11 @@ export interface Campaign {
   template?: string;
   scheduled_at?: string;
   auto_reply_enabled: boolean;
+  number_of_reminders?: number;
+  days_between_reminders?: number;
+  phone_number_of_reminders?: number;
+  phone_days_between_reminders?: number;
+  trigger_call_on?: 'after_email_sent' | 'after_email_open';
 }
 
 interface CampaignsResponse {

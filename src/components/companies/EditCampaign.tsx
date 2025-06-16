@@ -4,7 +4,7 @@ import { getToken } from '../../utils/auth';
 import { useToast } from '../../context/ToastContext';
 import { getCompanyById, Company } from '../../services/companies';
 import { getCampaignById, updateCampaign, Campaign, CampaignUpdate } from '../../services/emailCampaigns';
-import { Mail, MessageSquare, FileText, Calendar, Phone, Eye, Package } from 'lucide-react';
+import { Mail, MessageSquare, FileText, Calendar, Phone, Eye, Package, Clock, PhoneCall } from 'lucide-react';
 import { PageHeader } from '../shared/PageHeader';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
@@ -452,6 +452,69 @@ export function EditCampaign() {
               <p className="ml-8 text-xs text-gray-500">
                 When enabled, AI will automatically handle prospect replies
               </p>
+            </div>
+          )}
+
+          {/* Email Reminder Settings - Read Only */}
+          {(campaign.type === 'email' || campaign.type === 'email_and_call') && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Email Reminder Settings
+              </label>
+              <div className="mt-1 space-y-2">
+                <div className="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
+                  <Calendar className="h-5 w-5 text-gray-400" />
+                  <span className="text-sm text-gray-900">
+                    Number of follow-up emails: {campaign.number_of_reminders || 0}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
+                  <Clock className="h-5 w-5 text-gray-400" />
+                  <span className="text-sm text-gray-900">
+                    Days between reminders: {campaign.days_between_reminders || 0}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Phone Reminder Settings - Read Only */}
+          {(campaign.type === 'call' || campaign.type === 'email_and_call') && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Phone Reminder Settings
+              </label>
+              <div className="mt-1 space-y-2">
+                <div className="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
+                  <Phone className="h-5 w-5 text-gray-400" />
+                  <span className="text-sm text-gray-900">
+                    Number of retries: {campaign.phone_number_of_reminders || 0}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
+                  <Clock className="h-5 w-5 text-gray-400" />
+                  <span className="text-sm text-gray-900">
+                    Days between retries: {campaign.phone_days_between_reminders || 0}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Call Trigger Settings - Read Only */}
+          {campaign.type === 'email_and_call' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Call Trigger Settings
+              </label>
+              <div className="mt-1">
+                <div className="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
+                  <PhoneCall className="h-5 w-5 text-gray-400" />
+                  <span className="text-sm text-gray-900">
+                    Trigger call: {campaign.trigger_call_on === 'after_email_open' ? 'After email is opened' : 'After email is sent'}
+                  </span>
+                </div>
+              </div>
             </div>
           )}
         </div>
