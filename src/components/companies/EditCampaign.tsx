@@ -62,7 +62,16 @@ export function EditCampaign() {
 
         // Set the date picker value if scheduled_at exists
         if (campaignData.scheduled_at) {
-          setScheduledAtDate(new Date(campaignData.scheduled_at));
+          // Parse the UTC string and create a UTC Date object
+          const utcDate = new Date(campaignData.scheduled_at);
+          const localDate = new Date(
+            utcDate.getUTCFullYear(),
+            utcDate.getUTCMonth(),
+            utcDate.getUTCDate(),
+            utcDate.getUTCHours(),
+            utcDate.getUTCMinutes()
+          );
+          setScheduledAtDate(localDate);
         }
       } catch (err) {
         console.error('Error fetching data:', err);
@@ -222,10 +231,26 @@ export function EditCampaign() {
 
   const handleScheduledAtChange = (date: Date | null) => {
     setScheduledAtDate(date);
-    setFormData(prev => ({
-      ...prev,
-      scheduled_at: date ? date.toISOString() : undefined
-    }));
+    // If date is selected, create a UTC date string
+    if (date) {
+      // Convert local date to UTC string
+      const utcDate = new Date(Date.UTC(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate(),
+        date.getHours(),
+        date.getMinutes()
+      ));
+      setFormData(prev => ({
+        ...prev,
+        scheduled_at: utcDate.toISOString()
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        scheduled_at: undefined
+      }));
+    }
   };
 
   if (isLoading) {
@@ -374,7 +399,7 @@ export function EditCampaign() {
                 Choose when to automatically run this campaign. Leave empty to run manually.
               </p>
               <p className="text-xs font-medium text-amber-600">
-                Note: The time you select will be treated as UTC time. For example, selecting 2:00 PM means the campaign will run at 2:00 PM UTC.
+                All times are in UTC timezone
               </p>
             </div>
           </div>
